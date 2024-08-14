@@ -1,0 +1,13 @@
+jobSuffix:
+
+chzzk:
+  uid:
+  cookies:
+
+nfs:
+  path:
+  server:
+
+file:
+  mountPath: /mnt/nfs
+  outDir: /mnt/nfs/stream

@@ -1,0 +1,11 @@
+services:
+  stdl:
+    image: stdl:latest
+    container_name: stdl
+    environment:
+      CHZZK_UID: "${CHZZK_UID}"
+      OUT_DIR: "${OUT_DIR}"
+      HTTP_COOKIES: "${HTTP_COOKIES}"
+      PY_ENV: prod
+    volumes:
+      - ../assets:/mnt/nas
