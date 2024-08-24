@@ -1,25 +1,12 @@
+import re
 from dataclasses import dataclass
 from typing import List, Optional
-import re
+from stdl.hls.utils import merge_intersected_strings, get_ext
 
 
 class M3u8ElemError(Exception):
     def __init__(self, message: str):
-        self.message = message
-
-    def __str__(self):
-        return f"M3U8 Elem Error: {self.message}"
-
-
-def get_ext(path: str) -> str:
-    return path.split('.')[-1]
-
-
-def merge_intersected_strings(str1: str, str2: str) -> str:
-    for i in range(len(str1)):
-        if str2.startswith(str1[i:]):
-            return str1[:i] + str2
-    return str1 + str2
+        super().__init__(f"M3U8 Elem Error: {message}")
 
 
 @dataclass
