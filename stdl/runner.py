@@ -1,37 +1,42 @@
-import logging
 import time
-
-from stdl.env import get_env
-from stdl.logger import log
-from stdl.StreamRecorder import StreamRecorder
-
-
-def disable_streamlink_log():
-    logging.getLogger("streamlink").setLevel(logging.CRITICAL)
-
-
-def convert_time(secs: int) -> str:
-    hours = secs // 3600
-    remaining_seconds = secs % 3600
-    minutes = remaining_seconds // 60
-    seconds = remaining_seconds % 60
-
-    return f"{hours}:{minutes}:{seconds}"
+from stdl.config.config import read_app_config
+from stdl.config.env import get_env
+from stdl.config.requests import RequestType
+from stdl.utils.logger import log
+from stdl.chzzk_vid.recorder import StreamRecorder
+from stdl.utils.streamlink import disable_streamlink_log
+from stdl.utils.type import convert_time
 
 
-def run():
-    disable_streamlink_log()
-    env = get_env()
-    log.info("Request Env", env)
-    recorder = StreamRecorder(env)
-    recorder.observe()
-    idx = 0
-    while True:
-        if idx % 10 == 0:
-            log.info("Running App...", {
-                "time": convert_time(idx),
-                "state": recorder.state.name,
-            })
-        time.sleep(1)
-        idx += 1
+class Runner:
+    def __init__(self):
+        self.env = get_env()
+        self.conf = read_app_config(self.env.config_path)
+
+    def run(self):
+        if self.conf.req_type() == RequestType.CHZZK_LIVE:
+            self.run_chzzk_live()
+        elif self.conf.reqType == "chzzkVideo":
+            self.run_chzzk_video()
+        else:
+            raise ValueError("Invalid Request Type", self.conf.reqType)
+
+    def run_chzzk_video(self):
+        print("hello")
+
+    def run_chzzk_live(self):
+        disable_streamlink_log()
+        log.info("Conf", self.conf)
+        req = self.conf.chzzkLive
+        recorder = StreamRecorder(req.uid, self.conf.outDirPath, self.conf.cookies)
+        recorder.observe()
+        idx = 0
+        while True:
+            if idx % 10 == 0:
+                log.info("Running App...", {
+                    "time": convert_time(idx),
+                    "state": recorder.state.name,
+                })
+            time.sleep(1)
+            idx += 1
 

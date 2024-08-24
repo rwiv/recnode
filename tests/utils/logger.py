@@ -1,6 +1,6 @@
 import logging
 
-from stdl.logger import log, get_error_info
+from stdl.utils.logger import log, get_error_info
 
 
 def test_logger():

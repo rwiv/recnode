@@ -1,8 +1,8 @@
 import requests
 from xml.etree.ElementTree import fromstring, Element
-from stdl.utils.dataclass import dataclass_from_dict
-from stdl.chzzk_vid.type_video_info import ChzzkVideoResponse
+from stdl.chzzk_vid.type_video import ChzzkVideoResponse
 from stdl.utils.url import find_query_value_one, get_base_url
+from dacite import from_dict
 
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
@@ -11,8 +11,8 @@ def parse_xml(xml_str) -> Element:
     return fromstring(xml_str)
 
 
-def run():
-    res = request_video_info(3114831)
+def run(videoNo: int):
+    res = request_video_info(videoNo)
     videoId = res.content.videoId
     key = res.content.inKey
     m3u_url, lsu_sa, base_url = request_play_info(videoId, key)
@@ -28,7 +28,7 @@ def request_video_info(videoNo: int) -> ChzzkVideoResponse:
         "Accept": "application/json",
     }
     json = requests.get(url, headers=headers).json()
-    return dataclass_from_dict(ChzzkVideoResponse, json)
+    return from_dict(data_class=ChzzkVideoResponse, data=json)
 
 
 def request_play_info(videoId: str, key: str):

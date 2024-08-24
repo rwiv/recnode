@@ -5,13 +5,10 @@ import threading
 import time
 from datetime import datetime
 from enum import Enum
-
 import streamlink
 from streamlink.stream import HLSStream
 from streamlink.stream.hls import HLSStreamReader
-
-from stdl.env import Env
-from stdl.logger import log, get_error_info
+from stdl.utils.logger import log, get_error_info
 
 
 class RecordState(Enum):
@@ -24,13 +21,16 @@ class RecordState(Enum):
 class StreamRecorder:
 
     def __init__(
-            self, env: Env,
+            self,
+            uid: str,
+            out_dir: str,
+            cookies: str,
             wait_interval: int = 1,
             restart_delay: int = 40,
     ):
-        self.uid = env["uid"]
-        self.out_dir = env["out_dir"]
-        self.cookies = env["cookies"]
+        self.uid = uid
+        self.out_dir = out_dir
+        self.cookies = cookies
         self.url = f"https://chzzk.naver.com/live/{self.uid}"
         self.delay_sec = wait_interval
         self.is_done = False
