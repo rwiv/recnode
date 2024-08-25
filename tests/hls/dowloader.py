@@ -1,5 +1,5 @@
 import asyncio
-from stdl.hls.downloader import HlsDownloader, download_file
+from stdl.hls.downloader import HlsDownloader
 from stdl.hls.parser import parse_media_playlist
 
 

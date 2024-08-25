@@ -2,6 +2,7 @@ import os
 import time
 
 from stdl.afreeca.recorder import AfreecaLiveRecorder
+from stdl.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.config.config import read_app_config
 from stdl.config.env import get_env
 from stdl.config.requests import RequestType
@@ -39,7 +40,9 @@ class Runner:
         print("end")
 
     def run_chzzk_video(self):
-        print("hello")
+        dl = ChzzkVideoDownloader(self.conf.outDirPath, self.conf.chzzkVideo.cookies)
+        dl.download(self.conf.chzzkVideo.videoNoList)
+        print("end")
 
     def run_chzzk_live(self):
         disable_streamlink_log()

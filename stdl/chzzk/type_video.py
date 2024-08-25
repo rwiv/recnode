@@ -41,7 +41,7 @@ class AdParameter:
 class Content(Video):
     paidPromotion: bool
     inKey: str
-    liveOpenDate: str
+    liveOpenDate: Optional[str]
     vodStatus: str
     prevVideo: Optional[Video]
     nextVideo: Optional[Video]

@@ -13,15 +13,6 @@ class HttpError(Exception):
         super().__init__(f"HTTP Error: {status_code}")
 
 
-@dataclass
-class HlsDownloaderArgs:
-    urls: List[str]
-    headers: dict
-    base_dir_path: str
-    out_name: str
-    parallel: Optional[int] = 10
-
-
 class HlsDownloader:
     def __init__(
             self,
@@ -29,7 +20,7 @@ class HlsDownloader:
             base_dir_path: str,
             out_name: str,
             headers: Optional[dict] = None,
-            parallel: Optional[int] = 10,
+            parallel: Optional[int] = 30,
     ):
         self.urls = urls
         self.headers = headers
@@ -51,7 +42,7 @@ class HlsDownloader:
             await asyncio.gather(*tasks)
 
 
-async def download_file(url: str, headers: Optional[dict], num: int, out_dir_path: str):
+async def download_file(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
     buf_size = 8192
     file_path = os.path.join(out_dir_path, f"{num + 1}.ts")
     async with aiohttp.ClientSession(headers=headers) as session:
