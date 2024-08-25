@@ -1,6 +1,9 @@
 from dataclasses import dataclass, asdict
 from typing import Optional
-from stdl.config.requests import RequestType, ChzzkLiveRequest, ChzzkVideoRequest, YtdlVideoRequest, AfreecaLiveRequest
+from stdl.config.requests import RequestType, \
+    ChzzkLiveRequest, ChzzkVideoRequest, \
+    AfreecaLiveRequest, TwitchLiveRequest, \
+    YtdlVideoRequest
 import yaml
 from dacite import from_dict
 
@@ -8,12 +11,12 @@ from dacite import from_dict
 @dataclass
 class AppConfig:
     reqType: str
+    outDirPath: str
     chzzkLive: Optional[ChzzkLiveRequest]
     chzzkVideo: Optional[ChzzkVideoRequest]
     afreecaLive: Optional[AfreecaLiveRequest]
+    twitchLive: Optional[TwitchLiveRequest]
     youtubeVideo: Optional[YtdlVideoRequest]
-    outDirPath: str
-    cookies: Optional[str]
 
     def req_type(self) -> RequestType:
         return RequestType(self.reqType)

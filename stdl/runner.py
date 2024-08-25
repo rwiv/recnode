@@ -5,6 +5,7 @@ from stdl.afreeca.recorder import AfreecaLiveRecorder
 from stdl.config.config import read_app_config
 from stdl.config.env import get_env
 from stdl.config.requests import RequestType
+from stdl.twitch.recorder import TwitchLiveRecorder
 from stdl.utils.logger import log
 from stdl.chzzk.recorder import ChzzkLiveRecorder
 from stdl.utils.streamlink import disable_streamlink_log
@@ -25,6 +26,8 @@ class Runner:
             self.run_chzzk_video()
         elif self.conf.req_type() == RequestType.AFREECA_LIVE:
             self.run_afreeca_live()
+        elif self.conf.req_type() == RequestType.TWITCH_LIVE:
+            self.run_twitch_live()
         elif self.conf.req_type() == RequestType.YTDL_VIDEO:
             self.run_ytdl_video()
         else:
@@ -38,6 +41,14 @@ class Runner:
     def run_chzzk_video(self):
         print("hello")
 
+    def run_chzzk_live(self):
+        disable_streamlink_log()
+        log.info("Conf", self.conf.to_dict())
+        req = self.conf.chzzkLive
+        recorder = ChzzkLiveRecorder(req.uid, self.conf.outDirPath, req.cookies)
+        recorder.observe()
+        self.wait(recorder.state.name)
+
     def run_afreeca_live(self):
         disable_streamlink_log()
         log.info("Conf", self.conf.to_dict())
@@ -48,11 +59,11 @@ class Runner:
         recorder.observe()
         self.wait(recorder.state.name)
 
-    def run_chzzk_live(self):
+    def run_twitch_live(self):
         disable_streamlink_log()
         log.info("Conf", self.conf.to_dict())
-        req = self.conf.chzzkLive
-        recorder = ChzzkLiveRecorder(req.uid, self.conf.outDirPath, self.conf.cookies)
+        req = self.conf.twitchLive
+        recorder = TwitchLiveRecorder(req.channelName, self.conf.outDirPath, req.cookies)
         recorder.observe()
         self.wait(recorder.state.name)
 
@@ -66,4 +77,3 @@ class Runner:
                 })
             time.sleep(1)
             idx += 1
-
