@@ -42,7 +42,9 @@ class Runner:
         disable_streamlink_log()
         log.info("Conf", self.conf.to_dict())
         req = self.conf.afreecaLive
-        recorder = AfreecaLiveRecorder(req.userId, self.conf.outDirPath, self.conf.cookies, self.env.afreeca_credential)
+        recorder = AfreecaLiveRecorder(
+            req.userId, self.conf.outDirPath, self.env.afreeca_credential
+        )
         recorder.observe()
         self.wait(recorder.state.name)
 
