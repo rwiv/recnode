@@ -14,6 +14,9 @@ for /f "usebackq tokens=1,2* delims== " %%a in (%ENV_FILE%) do (
     set "key=%%a"
     set "value=%%b"
     if "!key!" neq "" if "!key:~0,1!" neq "#" (
+        setlocal disabledelayedexpansion
+        set "value=%%b"
+        setlocal enabledelayedexpansion
         set "!key!=!value!"
     )
 )

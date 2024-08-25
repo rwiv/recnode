@@ -1,9 +1,13 @@
-from stdl.config.config import AppConfig
-from dacite import from_dict
+import json
+from dataclasses import asdict, is_dataclass
+
+from stdl.config.config import read_app_config
 
 
 def test():
     print()
-    d = {"type": "chzzk"}
-    conf = from_dict(AppConfig, d)
-    print(conf)
+    conf = read_app_config("../../dev/conf.yaml")
+    if is_dataclass(conf):
+        conf = asdict(conf)
+    a = json.dumps(conf)
+    print(a)

@@ -1,6 +1,6 @@
 import requests
 from xml.etree.ElementTree import fromstring, Element
-from stdl.chzzk_vid.type_video import ChzzkVideoResponse
+from stdl.chzzk.type_video import ChzzkVideoResponse
 from stdl.utils.url import find_query_value_one, get_base_url
 from dacite import from_dict
 
