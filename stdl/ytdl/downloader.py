@@ -38,7 +38,7 @@ def opts(out_dir_path: str, cookie_path: Optional[str] = None):
     return opts
 
 
-class YoutubeDownloader:
+class YtdlDownloader:
     def __init__(self, out_dir_path: str):
         self.out_dir_path = out_dir_path
 

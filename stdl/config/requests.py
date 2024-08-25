@@ -5,7 +5,7 @@ from enum import Enum
 class RequestType(Enum):
     CHZZK_VIDEO = "chzzk_video"
     CHZZK_LIVE = "chzzk_live"
-    YOUTUBE_VIDEO = "youtube_video"
+    YTDL_VIDEO = "ytdl_video"
 
 
 @dataclass
@@ -19,5 +19,5 @@ class ChzzkLiveRequest:
 
 
 @dataclass
-class YoutubeVideoRequest:
+class YtdlVideoRequest:
     urls: list[str]
