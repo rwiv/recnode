@@ -1,4 +1,5 @@
-from stdl.runner import run
+from stdl.runner import Runner
 
 if __name__ == "__main__":
-    run()
+    r = Runner()
+    r.run()

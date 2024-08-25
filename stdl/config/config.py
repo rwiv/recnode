@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from stdl.config.requests import ChzzkLiveRequest, ChzzkVideoRequest, RequestType
+from stdl.config.requests import RequestType, ChzzkLiveRequest, ChzzkVideoRequest, YoutubeVideoRequest
 import yaml
 from dacite import from_dict
 
@@ -10,6 +10,7 @@ class AppConfig:
     reqType: str
     chzzkLive: Optional[ChzzkLiveRequest]
     chzzkVideo: Optional[ChzzkVideoRequest]
+    youtubeVideo: Optional[YoutubeVideoRequest]
     outDirPath: str
     cookies: Optional[str]
 
