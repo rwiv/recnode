@@ -38,18 +38,18 @@ class HlsDownloader:
             os.makedirs(dir_path, exist_ok=True)
 
             tasks = [
-                download_file_wraper(elem.value, self.headers, elem.idx, dir_path)
+                download_file_wrapper(elem.value, self.headers, elem.idx, dir_path)
                 for elem in sub
             ]
             await asyncio.gather(*tasks)
 
 
-async def download_file_wraper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
+async def download_file_wrapper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
     for i in range(retry_count):
         try:
             await download_file(url, headers, num, out_dir_path)
             break
-        except HttpError as e:
+        except Exception as e:
             log.error(f"HTTP Error", {
                 "retry": i,
                 "error": e,
@@ -70,4 +70,3 @@ async def download_file(url: str, headers: Optional[dict[str, str]], num: int, o
                     if not chunk:
                         break
                     file.write(chunk)
-
