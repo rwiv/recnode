@@ -7,6 +7,11 @@ def get_base_url(url: str) -> str:
     return f"{parsed_rul.scheme}://{parsed_rul.netloc}{new_path}"
 
 
+def get_query_string(url: str) -> str:
+    parsed_rul = urlparse(url)
+    return parsed_rul.query
+
+
 def find_query_value_one(url: str, key: str) -> str:
     parsed_rul = urlparse(url)
     params = parse_qs(parsed_rul.query)

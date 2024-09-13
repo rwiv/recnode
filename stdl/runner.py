@@ -1,8 +1,11 @@
 import os
 import time
 
+from dacite import WrongTypeError
+
 from stdl.afreeca.recorder import AfreecaLiveRecorder
 from stdl.chzzk.video_downloader import ChzzkVideoDownloader
+from stdl.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
 from stdl.config.config import read_app_config
 from stdl.config.env import get_env
 from stdl.config.requests import RequestType
@@ -41,7 +44,11 @@ class Runner:
 
     def run_chzzk_video(self):
         dl = ChzzkVideoDownloader(self.conf.outDirPath, self.conf.chzzkVideo.cookies)
-        dl.download(self.conf.chzzkVideo.videoNoList)
+        dl_l = ChzzkVideoDownloaderLegacy(self.conf.outDirPath, self.conf.chzzkVideo.cookies)
+        try:
+            dl.download(self.conf.chzzkVideo.videoNoList)
+        except WrongTypeError:
+            dl_l.download(self.conf.chzzkVideo.videoNoList)
         print("end")
 
     def run_chzzk_live(self):

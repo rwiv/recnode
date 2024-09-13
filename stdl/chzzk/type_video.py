@@ -43,6 +43,7 @@ class Content(Video):
     inKey: str
     liveOpenDate: Optional[str]
     vodStatus: str
+    liveRewindPlaybackJson: str
     prevVideo: Optional[Video]
     nextVideo: Optional[Video]
     userAdultStatus: Optional[str]

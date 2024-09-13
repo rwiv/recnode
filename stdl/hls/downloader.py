@@ -1,5 +1,4 @@
 import os
-from dataclasses import dataclass
 from typing import List, Optional
 import asyncio
 import aiohttp
@@ -25,7 +24,7 @@ class HlsDownloader:
         self.urls = urls
         self.headers = headers
         self.base_dir_path = base_dir_path
-        self.out_name = out_name
+        self.out_name = out_name.replace("?", "？").replace("/", "／")
         self.parallel = parallel
 
     async def download(self):
