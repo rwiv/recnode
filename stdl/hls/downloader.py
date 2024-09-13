@@ -55,7 +55,7 @@ async def download_file_wraper(url: str, headers: Optional[dict[str, str]], num:
                 "error": e,
             })
     else:
-        log.error(f"Failed to download {num + 1}.ts")
+        raise Exception(f"Failed to download, cnt={num + 1}")
 
 
 async def download_file(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
