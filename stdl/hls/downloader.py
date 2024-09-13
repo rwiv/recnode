@@ -6,6 +6,9 @@ import aiohttp
 from stdl.hls.utils import sub_lists_with_idx
 from stdl.utils.logger import log
 
+buf_size = 8192
+retry_count = 3
+
 
 class HttpError(Exception):
     def __init__(self, status_code: int):
@@ -35,14 +38,27 @@ class HlsDownloader:
             os.makedirs(dir_path, exist_ok=True)
 
             tasks = [
-                download_file(elem.value, self.headers, elem.idx, dir_path)
+                download_file_wraper(elem.value, self.headers, elem.idx, dir_path)
                 for elem in sub
             ]
             await asyncio.gather(*tasks)
 
 
+async def download_file_wraper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
+    for i in range(retry_count):
+        try:
+            await download_file(url, headers, num, out_dir_path)
+            break
+        except HttpError as e:
+            log.error(f"HTTP Error", {
+                "retry": i,
+                "error": e,
+            })
+    else:
+        log.error(f"Failed to download {num + 1}.ts")
+
+
 async def download_file(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
-    buf_size = 8192
     file_path = os.path.join(out_dir_path, f"{num + 1}.ts")
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url) as res:
