@@ -9,6 +9,7 @@ class RequestType(Enum):
     AFREECA_LIVE = "afreeca_live"
     TWITCH_LIVE = "twitch_live"
     YTDL_VIDEO = "ytdl_video"
+    HLS_M3U8 = "hls_m3u8"
 
 
 @dataclass
@@ -37,3 +38,9 @@ class TwitchLiveRequest:
 @dataclass
 class YtdlVideoRequest:
     urls: list[str]
+
+
+@dataclass
+class HlsM3u8Request:
+    urls: list[str]
+    cookies: Optional[str]

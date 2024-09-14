@@ -3,7 +3,7 @@ from typing import Optional
 from stdl.config.requests import RequestType, \
     ChzzkLiveRequest, ChzzkVideoRequest, \
     AfreecaLiveRequest, TwitchLiveRequest, \
-    YtdlVideoRequest
+    YtdlVideoRequest, HlsM3u8Request
 import yaml
 from dacite import from_dict
 
@@ -17,6 +17,7 @@ class AppConfig:
     afreecaLive: Optional[AfreecaLiveRequest]
     twitchLive: Optional[TwitchLiveRequest]
     youtubeVideo: Optional[YtdlVideoRequest]
+    hlsM3u8: Optional[HlsM3u8Request]
 
     def req_type(self) -> RequestType:
         return RequestType(self.reqType)

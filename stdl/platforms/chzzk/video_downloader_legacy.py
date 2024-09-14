@@ -8,9 +8,9 @@ import requests
 from dacite import from_dict
 
 from stdl.platforms.chzzk.type_video import Video, AdParameter
-from stdl.platforms.chzzk.utils import get_headers
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.utils.url import find_query_value_one, get_base_url
+from stdl.utils.http import get_headers
 
 
 @dataclass
@@ -38,10 +38,7 @@ class ChzzkVideoDownloaderLegacy:
         self.cookies = None
         if cookie_str is not None:
             self.cookies = json.loads(cookie_str)
-        headers = None
-        if self.cookies is not None:
-            headers = get_headers(self.cookies)
-        self.hls = HlsDownloader(base_dir_path=out_dir, headers=headers)
+        self.hls = HlsDownloader(base_dir_path=out_dir, headers=get_headers(self.cookies))
 
     def download(self, video_no_list: list[int]):
         for video_no in video_no_list:

@@ -6,8 +6,8 @@ from dacite import from_dict
 
 from stdl.platforms.chzzk.type_playback import ChzzkPlayback
 from stdl.platforms.chzzk.type_video import ChzzkVideoResponse
-from stdl.platforms.chzzk.utils import get_headers
 from stdl.downloaders.hls.downloader import HlsDownloader
+from stdl.utils.http import get_headers
 
 
 class ChzzkVideoDownloader:
@@ -16,10 +16,7 @@ class ChzzkVideoDownloader:
         self.cookies = None
         if cookie_str is not None:
             self.cookies = json.loads(cookie_str)
-        headers = None
-        if self.cookies is not None:
-            headers = get_headers(self.cookies)
-        self.hls = HlsDownloader(base_dir_path=out_dir, headers=headers)
+        self.hls = HlsDownloader(base_dir_path=out_dir, headers=get_headers(self.cookies))
 
     def download(self, video_no_list: list[int]):
         for video_no in video_no_list:
