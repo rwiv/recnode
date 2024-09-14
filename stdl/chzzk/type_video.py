@@ -22,7 +22,7 @@ class Video:
     duration: int
     readCount: int
     publishDateAt: int
-    categoryType: str
+    categoryType: Optional[str]
     videoCategory: str
     videoCategoryValue: str
     exposure: bool
