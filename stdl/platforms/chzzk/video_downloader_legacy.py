@@ -7,8 +7,8 @@ from xml.etree.ElementTree import fromstring, Element
 import requests
 from dacite import from_dict
 
-from stdl.chzzk.type_video import Video, AdParameter
-from stdl.chzzk.utils import get_headers
+from stdl.platforms.chzzk.type_video import Video, AdParameter
+from stdl.platforms.chzzk.utils import get_headers
 from stdl.hls.downloader import HlsDownloader
 from stdl.utils.url import find_query_value_one, get_base_url
 

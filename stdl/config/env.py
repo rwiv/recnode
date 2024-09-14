@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 from typing import Optional
-from stdl.afreeca.types import AfreecaCredential
+from stdl.platforms.afreeca.types import AfreecaCredential
 
 
 @dataclass

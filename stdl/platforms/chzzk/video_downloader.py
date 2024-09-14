@@ -4,9 +4,9 @@ import json
 import requests
 from dacite import from_dict
 
-from stdl.chzzk.type_playback import ChzzkPlayback
-from stdl.chzzk.type_video import ChzzkVideoResponse
-from stdl.chzzk.utils import get_headers
+from stdl.platforms.chzzk.type_playback import ChzzkPlayback
+from stdl.platforms.chzzk.type_video import ChzzkVideoResponse
+from stdl.platforms.chzzk.utils import get_headers
 from stdl.hls.downloader import HlsDownloader
 
 
