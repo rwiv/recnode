@@ -75,10 +75,7 @@ async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], nu
             await _download_file(url, headers, num, out_dir_path)
             break
         except Exception as e:
-            log.error(f"HTTP Error", {
-                "retry": i,
-                "error": e,
-            })
+            print(f"HTTP Error: cnt={i}, error={e}")
     else:
         raise Exception(f"Failed to download, cnt={num + 1}")
 
