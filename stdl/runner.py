@@ -14,7 +14,7 @@ from stdl.utils.logger import log
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.utils.streamlink import disable_streamlink_log
 from stdl.utils.type import convert_time
-from stdl.ytdl.downloader import YtdlDownloader
+from stdl.downloaders.ytdl.downloader import YtdlDownloader
 
 
 class Runner:

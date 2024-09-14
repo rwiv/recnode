@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from typing import List, Optional
-from stdl.hls.utils import merge_intersected_strings, get_ext
+from stdl.downloaders.hls.utils import merge_intersected_strings, get_ext
 
 
 class M3u8ElemError(Exception):

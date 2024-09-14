@@ -1,4 +1,4 @@
-from stdl.hls.parser import parse_master_playlist, merge_intersected_strings, parse_media_playlist
+from stdl.downloaders.hls.parser import parse_master_playlist, merge_intersected_strings, parse_media_playlist
 
 
 def test_master_playlist():

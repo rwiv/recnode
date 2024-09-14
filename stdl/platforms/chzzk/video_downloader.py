@@ -7,7 +7,7 @@ from dacite import from_dict
 from stdl.platforms.chzzk.type_playback import ChzzkPlayback
 from stdl.platforms.chzzk.type_video import ChzzkVideoResponse
 from stdl.platforms.chzzk.utils import get_headers
-from stdl.hls.downloader import HlsDownloader
+from stdl.downloaders.hls.downloader import HlsDownloader
 
 
 class ChzzkVideoDownloader:

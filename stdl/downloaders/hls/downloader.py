@@ -5,8 +5,8 @@ from typing import List, Optional
 import aiohttp
 import requests
 
-from stdl.hls.parser import parse_master_playlist, parse_media_playlist
-from stdl.hls.utils import sub_lists_with_idx
+from stdl.downloaders.hls.parser import parse_master_playlist, parse_media_playlist
+from stdl.downloaders.hls.utils import sub_lists_with_idx
 from stdl.utils.logger import log
 from stdl.utils.url import get_base_url
 
