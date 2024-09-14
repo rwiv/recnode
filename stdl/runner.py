@@ -3,18 +3,18 @@ import time
 
 from dacite import WrongTypeError
 
+from stdl.downloaders.ytdl.downloader import YtdlDownloader
 from stdl.platforms.afreeca.recorder import AfreecaLiveRecorder
+from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
+from stdl.platforms.twitch.recorder import TwitchLiveRecorder
 from stdl.config.config import read_app_config
 from stdl.config.env import get_env
 from stdl.config.requests import RequestType
-from stdl.platforms.twitch.recorder import TwitchLiveRecorder
 from stdl.utils.logger import log
-from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.utils.streamlink import disable_streamlink_log
 from stdl.utils.type import convert_time
-from stdl.downloaders.ytdl.downloader import YtdlDownloader
 
 
 class Runner:

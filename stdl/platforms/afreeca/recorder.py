@@ -2,7 +2,7 @@ from typing import Optional
 
 from streamlink.plugins.afreeca import AfreecaTV
 
-from stdl.common.recorder import StreamRecorder, StreamRecorderArgs
+from stdl.downloaders.streamlink.recorder import StreamRecorder, StreamRecorderArgs
 from stdl.platforms.afreeca.types import AfreecaCredential
 
 

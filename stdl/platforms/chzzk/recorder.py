@@ -1,6 +1,6 @@
 from typing import Optional
 
-from stdl.common.recorder import StreamRecorder, StreamRecorderArgs
+from stdl.downloaders.streamlink.recorder import StreamRecorder, StreamRecorderArgs
 
 
 class ChzzkLiveRecorder(StreamRecorder):
