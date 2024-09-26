@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 from typing import List, Optional
 
 import aiohttp
@@ -11,7 +12,7 @@ from stdl.utils.logger import log
 from stdl.utils.url import get_base_url
 
 buf_size = 8192
-retry_count = 3
+retry_count = 10
 
 
 class HttpError(Exception):
@@ -76,6 +77,7 @@ async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], nu
             break
         except Exception as e:
             print(f"HTTP Error: cnt={i}, error={e}")
+            time.sleep(0.1)
     else:
         raise Exception(f"Failed to download, cnt={num + 1}")
 
