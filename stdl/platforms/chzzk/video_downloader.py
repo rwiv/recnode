@@ -11,10 +11,10 @@ from stdl.utils.http import get_headers
 
 class ChzzkVideoDownloader:
 
-    def __init__(self, out_dir: str, cookie_str: str = None):
-        self.cookies = None
-        if cookie_str is not None:
-            self.cookies = json.loads(cookie_str)
+    def __init__(self, out_dir: str, cookie_str: Optional[str]):
+        if cookie_str is None:
+            raise ValueError("cookie_str is required")
+        self.cookies = json.loads(cookie_str)
         self.hls = HlsDownloader(base_dir_path=out_dir, headers=get_headers(self.cookies))
 
     def download(self, video_no_list: list[int]):

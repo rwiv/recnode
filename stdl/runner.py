@@ -3,8 +3,9 @@ import json
 import os
 import time
 
-from dacite import WrongTypeError
-
+from stdl.config.config import read_app_config
+from stdl.config.env import get_env
+from stdl.config.requests import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.downloaders.ytdl.downloader import YtdlDownloader
 from stdl.platforms.afreeca.recorder import AfreecaLiveRecorder
@@ -12,9 +13,6 @@ from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
 from stdl.platforms.twitch.recorder import TwitchLiveRecorder
-from stdl.config.config import read_app_config
-from stdl.config.env import get_env
-from stdl.config.requests import RequestType
 from stdl.utils.http import get_headers
 from stdl.utils.logger import log
 from stdl.utils.streamlink import disable_streamlink_log
