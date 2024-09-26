@@ -1,5 +1,6 @@
 import asyncio
 import json
+from typing import Optional
 
 import requests
 from dacite import from_dict
@@ -11,7 +12,7 @@ from stdl.utils.http import get_headers
 
 class ChzzkVideoDownloader:
 
-    def __init__(self, out_dir: str, cookie_str: Optional[str]):
+    def __init__(self, out_dir: str, cookie_str: Optional[str] = None):
         if cookie_str is None:
             raise ValueError("cookie_str is required")
         self.cookies = json.loads(cookie_str)
