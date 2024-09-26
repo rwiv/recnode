@@ -77,7 +77,7 @@ async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], nu
             break
         except Exception as e:
             print(f"HTTP Error: cnt={i}, error={e}")
-            time.sleep(0.1)
+            time.sleep(1)
     else:
         # raise Exception(f"Failed to download, cnt={num + 1}")
         print(f"Failed to download, cnt={num + 1}")
