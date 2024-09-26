@@ -79,7 +79,8 @@ async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], nu
             print(f"HTTP Error: cnt={i}, error={e}")
             time.sleep(0.1)
     else:
-        raise Exception(f"Failed to download, cnt={num + 1}")
+        # raise Exception(f"Failed to download, cnt={num + 1}")
+        print(f"Failed to download, cnt={num + 1}")
 
 
 async def _download_file(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
