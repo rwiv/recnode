@@ -5,7 +5,6 @@ import requests
 from dacite import from_dict
 
 from stdl.platforms.chzzk.type_playback import ChzzkPlayback
-from stdl.platforms.chzzk.type_video import ChzzkVideoResponse
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.utils.http import get_headers
 
@@ -28,16 +27,16 @@ class ChzzkVideoDownloader:
 
     def _get_info(self, video_no: int):
         res = self._request_video_info(video_no)
-        title = res.content.videoTitle
-        pb = from_dict(data_class=ChzzkPlayback, data=json.loads(res.content.liveRewindPlaybackJson))
+        title = res["content"]["videoTitle"]
+        pb = from_dict(data_class=ChzzkPlayback, data=json.loads(res["content"]["liveRewindPlaybackJson"]))
         if len(pb.media) != 1:
             raise ValueError("media should be 1")
 
         m3u8_url = pb.media[0].path
         return m3u8_url, title
 
-    def _request_video_info(self, video_no: int) -> ChzzkVideoResponse:
+    def _request_video_info(self, video_no: int) -> dict[str, any]:
         url = f"https://api.chzzk.naver.com/service/v3/videos/{video_no}"
         res = requests.get(url, headers=get_headers(self.cookies, "application/json"))
-        return from_dict(data_class=ChzzkVideoResponse, data=res.json())
+        return res.json()
 

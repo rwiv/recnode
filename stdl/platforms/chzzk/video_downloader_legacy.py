@@ -1,35 +1,12 @@
 import asyncio
 import json
-from dataclasses import dataclass
-from typing import Optional
 from xml.etree.ElementTree import fromstring, Element
 
 import requests
-from dacite import from_dict
 
-from stdl.platforms.chzzk.type_video import Video, AdParameter
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.utils.url import find_query_value_one, get_base_url
 from stdl.utils.http import get_headers
-
-
-@dataclass
-class ContentLegacy(Video):
-    paidPromotion: bool
-    inKey: str
-    liveOpenDate: Optional[str]
-    vodStatus: str
-    prevVideo: Optional[Video]
-    nextVideo: Optional[Video]
-    userAdultStatus: Optional[str]
-    adParameter: AdParameter
-
-
-@dataclass
-class ChzzkVideoResponseLegacy:
-    code: int
-    message: Optional[str]
-    content: ContentLegacy
 
 
 class ChzzkVideoDownloaderLegacy:
@@ -50,17 +27,17 @@ class ChzzkVideoDownloaderLegacy:
 
     def _get_info(self, video_no: int) -> tuple[str, str, str]:
         res = self._request_video_info(video_no)
-        title = res.content.videoTitle
-        videoId = res.content.videoId
-        key = res.content.inKey
+        title = res["content"]["videoTitle"]
+        videoId = res["content"]["videoId"]
+        key = res["content"]["inKey"]
         m3u_url, lsu_sa, base_url = self._request_play_info(videoId, key)
         qs = f"_lsu_sa_={lsu_sa}"
         return m3u_url, qs, title
 
-    def _request_video_info(self, video_no: int) -> ChzzkVideoResponseLegacy:
+    def _request_video_info(self, video_no: int) -> dict[str, any]:
         url = f"https://api.chzzk.naver.com/service/v3/videos/{video_no}"
         res = requests.get(url, headers=get_headers(self.cookies, "application/json"))
-        return from_dict(data_class=ChzzkVideoResponseLegacy, data=res.json())
+        return res.json()
 
     def _request_play_info(self, video_id: str, key: str):
         url = f"https://apis.naver.com/neonplayer/vodplay/v1/playback/{video_id}?key={key}"

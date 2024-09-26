@@ -67,7 +67,7 @@ class Runner:
         dl_l = ChzzkVideoDownloaderLegacy(self.conf.outDirPath, self.conf.chzzkVideo.cookies)
         try:
             dl.download(self.conf.chzzkVideo.videoNoList)
-        except WrongTypeError:
+        except TypeError:
             dl_l.download(self.conf.chzzkVideo.videoNoList)
         print("end")
 
