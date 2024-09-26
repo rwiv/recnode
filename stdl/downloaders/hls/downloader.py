@@ -12,7 +12,7 @@ from stdl.utils.logger import log
 from stdl.utils.url import get_base_url
 
 buf_size = 8192
-retry_count = 10
+retry_count = 5
 
 
 class HttpError(Exception):
