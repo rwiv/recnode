@@ -103,9 +103,7 @@ class StreamlinkManager:
 
             if len(data) > 0:
                 with open(f"{dir_path}/{idx}.ts", "wb") as f:
-                    log.info("Write .ts file", {
-                        "name": self.name, "idx": idx, "size": len(data),
-                    })
+                    # log.info("Write .ts file", {"name": self.name, "idx": idx, "size": len(data)})
                     f.write(data)
                 idx += 1
         return dir_path

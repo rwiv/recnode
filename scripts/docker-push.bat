@@ -1,16 +1,11 @@
 cd ..
-set IMG1=stdl:latest
-set IMG2=ghcr.io/rwiv/stdl:latest
+set IMG=harbor.rwiv.xyz/test/stdl:0.1.0
 set DOCKERFILE=./docker/Dockerfile
 
-docker rmi %IMG1%
-docker rmi %IMG2%
+docker rmi %IMG%
 
-docker build -t %IMG1% -f %DOCKERFILE% .
+docker build -t %IMG% -f %DOCKERFILE% .
+docker push %IMG%
 
-docker tag %IMG1% %IMG2%
-docker push %IMG2%
-
-docker rmi %IMG1%
-docker rmi %IMG2%
+docker rmi %IMG%
 pause

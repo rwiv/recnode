@@ -6,14 +6,14 @@ from stdl.platforms.afreeca.types import AfreecaCredential
 
 @dataclass
 class Env:
-    config_path: str
+    out_dir_path: str
+    config_path: Optional[str]
     afreeca_credential: Optional[AfreecaCredential]
 
 
 def get_env() -> Env:
+    out_dir_path = os.getenv("OUT_DIR_PATH") or None
     config_path = os.getenv("CONFIG_PATH") or None
-    if config_path is None:
-        config_path = "../dev/conf.yaml"
 
     afreeca_username = os.getenv("AFREECA_USERNAME") or None
     afreeca_password = os.getenv("AFREECA_PASSWORD") or None
@@ -22,6 +22,7 @@ def get_env() -> Env:
         afreeca_credential = AfreecaCredential(username=afreeca_username, password=afreeca_password)
 
     return Env(
+        out_dir_path=out_dir_path,
         config_path=config_path,
         afreeca_credential=afreeca_credential,
     )

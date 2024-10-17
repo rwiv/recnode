@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass, asdict
 from typing import Optional
 from stdl.config.requests import RequestType, \
@@ -11,7 +12,6 @@ from dacite import from_dict
 @dataclass
 class AppConfig:
     reqType: str
-    outDirPath: str
     chzzkLive: Optional[ChzzkLiveRequest]
     chzzkVideo: Optional[ChzzkVideoRequest]
     afreecaLive: Optional[AfreecaLiveRequest]
@@ -26,9 +26,17 @@ class AppConfig:
         return asdict(self)
 
 
-def read_app_config(config_path: str) -> AppConfig:
+def read_app_config_by_file(config_path: str) -> AppConfig:
     with open(config_path, "r") as file:
         text = file.read()
 
     d = yaml.load(text, Loader=yaml.FullLoader)
     return from_dict(data_class=AppConfig, data=d)
+
+
+def read_app_config_by_event(config_path: str) -> AppConfig:
+    with open(config_path, "r") as file:
+        text = file.read()
+
+    d = json.loads(text)
+    return from_dict(data_class=AppConfig, data=d["data"])

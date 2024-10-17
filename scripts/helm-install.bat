@@ -1,4 +1,4 @@
 cd ..
 
-helm install "stdl-hello" ./chart -f ./dev/values.yaml
+helm install "stdl-darom" ./chart -f ./dev/values.yaml
 pause
