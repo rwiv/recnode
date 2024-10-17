@@ -13,11 +13,11 @@ spec:
           containers:
             - name: {{ .Values.global.name }}
               image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-                env:
-                  - name: OUT_DIR_PATH
-                    value: {{ .Values.persistence.mountPath }}
-                  - name: PY_ENV
-                    value: prod
+              env:
+                - name: OUT_DIR_PATH
+                  value: {{ .Values.persistence.mountPath }}
+                - name: PY_ENV
+                  value: prod
               volumeMounts:
                 - name: {{ .Values.persistence.mountName }}
                   mountPath: {{ .Values.persistence.mountPath }}

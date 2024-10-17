@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from typing import List, TypeVar
-
-T = TypeVar('T')
+from typing import List
 
 
 def get_ext(path: str) -> str:
@@ -16,12 +14,12 @@ def merge_intersected_strings(str1: str, str2: str) -> str:
 
 
 @dataclass
-class ValueWithIdx[T]:
+class ValueWithIdx:
     idx: int
-    value: T
+    value: str
 
 
-def sub_lists_with_idx(origin: List[T], n: int) -> List[List[ValueWithIdx[T]]]:
+def sub_lists_with_idx(origin: List[str], n: int) -> List[List[ValueWithIdx]]:
     copy = origin[:]
     result = []
     cnt = 0

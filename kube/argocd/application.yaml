@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: streamq
+  name: stdl
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/rwiv/gitops-prod.git
     targetRevision: HEAD
-    path: apps/media/streamq
+    path: apps/media/stdl
   destination:
     namespace: default
     server: https://kubernetes.default.svc

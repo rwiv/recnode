@@ -8,5 +8,5 @@ image:
 persistence:
   pvcName: nfs-pvc
   mountName: nfs-volume
-  storageClass: nfs-content
+  storageClass: nfs-nas
   mountPath: /mnt/nfs

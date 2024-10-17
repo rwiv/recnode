@@ -1,14 +1,11 @@
-FROM ubuntu:24.10
+FROM python:3.9.19-alpine
 
 WORKDIR /app
 COPY requirements.txt requirements.txt
 COPY main.py main.py
 COPY stdl stdl
+COPY docker/ffmpeg /usr/local/bin/ffmpeg
 
-RUN apt-get update
-RUN apt-get install python3-venv ffmpeg -y
+RUN pip install -r requirements.txt
 
-RUN python3 -m venv /app/venv
-RUN /app/venv/bin/pip3 install -r requirements.txt
-
-ENTRYPOINT ["/app/venv/bin/python3", "-u", "main.py"]
+ENTRYPOINT ["python", "-u", "main.py"]
