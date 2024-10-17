@@ -1,6 +1,7 @@
 from typing import Optional
 
-from stdl.downloaders.streamlink.recorder import StreamRecorder, StreamRecorderArgs
+from stdl.downloaders.streamlink.recorder import StreamRecorder
+from stdl.downloaders.streamlink.stream import StreamlinkArgs
 
 
 class TwitchLiveRecorder(StreamRecorder):
@@ -10,15 +11,11 @@ class TwitchLiveRecorder(StreamRecorder):
             channel_name: str,
             out_dir: str,
             cookies: Optional[str] = None,
-            wait_interval: int = 1,
-            restart_delay: int = 40,
     ):
-        args = StreamRecorderArgs(
+        args = StreamlinkArgs(
             url=f"https://www.twitch.tv/{channel_name}",
             name=channel_name,
             out_dir=out_dir,
             cookies=cookies,
-            wait_interval=wait_interval,
-            restart_delay=restart_delay,
         )
         super().__init__(args)

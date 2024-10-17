@@ -1,139 +1,81 @@
-import json
 import os
-import sys
+import shutil
+import subprocess
 import threading
 import time
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from typing import Optional
 
-import streamlink
-from streamlink.options import Options
-from streamlink.stream import HLSStream
-from streamlink.stream.hls import HLSStreamReader
-from stdl.utils.logger import log, get_error_info
-
-
-class RecordState(Enum):
-    WAIT = 0
-    RECORDING = 1
-    DONE = 2
-    FAILED = 3
-
-
-@dataclass
-class StreamRecorderArgs:
-    url: str
-    name: str
-    out_dir: str
-    cookies: Optional[str] = None
-    options: Optional[dict[str, str]] = None
-    wait_interval: int = 1
-    restart_delay: int = 40
+from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
+from stdl.utils.logger import log
 
 
 class StreamRecorder:
 
-    def __init__(self, args: StreamRecorderArgs):
-        self.name = args.name
-        self.out_dir = args.out_dir
-        self.cookies = args.cookies
-        self.options = args.options
-        self.url = args.url
-        self.delay_sec = args.wait_interval
-        self.restart_delay = args.restart_delay
+    def __init__(self, args: StreamlinkArgs, is_once: bool = True):
+        self.is_once = is_once
 
-        self.is_done = False
-        self.thread: threading.Thread | None = None
-        self.state: RecordState = RecordState.WAIT
+        # self.restart_delay_sec = 3
+        self.restart_delay_sec = 20
+        self.chunk_threshold = 20
+        self.streamlink = StreamlinkManager(StreamlinkArgs(
+            url=args.url,
+            name=args.name,
+            out_dir=args.out_dir,
+            cookies=args.cookies,
+            options=args.options,
+        ))
 
-    def stop(self):
-        self.is_done = True
-        self.thread.join()
+    def record(self):
+        if self.is_once:
+            self.__record_once()
+        else:
+            self.__record_endless()
 
-    def get_session(self) -> streamlink.session.Streamlink:
-        session = streamlink.session.Streamlink()
-        if self.cookies is not None:
-            data: list[dict] = json.loads(self.cookies)
-            for cookie in data:
-                session.http.cookies.set(cookie["name"], cookie["value"])
-        return session
-
-    def __wait_for_live(self) -> dict[str, HLSStream]:
-        cnt = 0
-        while True:
-            self.state = RecordState.WAIT
-            try:
-                session = self.get_session()
-                if self.options is not None:
-                    options = Options()
-                    for key, value in self.options.items():
-                        options.set(key, value)
-                    streams: dict[str, HLSStream] = session.streams(self.url, options=options)
-                else:
-                    streams: dict[str, HLSStream] = session.streams(self.url)
-
-                if streams != {}:
-                    log.info("Stream Start")
-                    return streams
-            except (Exception,):
-                log.error(*get_error_info())
-
-            time.sleep(self.delay_sec)
-            cnt += 1
-            if cnt >= 10:
-                log.info("Wait For Live", {"name": self.name})
-                cnt = 0
-
-    def observe(self):
-        self.thread = threading.Thread(target=self.__observe)
-        self.thread.daemon = True
-        self.thread.start()
-
-    def __observe(self):
+    def __record_once(self):
         while True:
             self.__record()
-            time.sleep(self.restart_delay)
-            log.info("Restart Record", {"latest_state": self.state.name})
+            time.sleep(self.restart_delay_sec)
+            if self.streamlink.get_streams() == {}:
+                break
+        log.info("End Record", {"latest_state": self.streamlink.state.name})
+
+    def __record_endless(self):
+        while True:
+            self.__record()
+            time.sleep(self.restart_delay_sec)
+            log.info("Restart Record", {"latest_state": self.streamlink.state.name})
 
     def __record(self):
-        streams = self.__wait_for_live()
-        if streams == {}:
-            self.state = RecordState.FAILED
-            return
+        streams = self.streamlink.wait_for_live()
+        log.info("Stream Start")
 
-        formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        dir_path = f"{self.out_dir}/{self.name}/{formatted_time}"
+        dir_path = self.streamlink.record(streams)
 
-        stream = streams["best"]
-        input_stream: HLSStreamReader = stream.open()
-        self.state = RecordState.RECORDING
+        if len(os.listdir(dir_path)) < self.chunk_threshold:
+            shutil.rmtree(dir_path)
+        else:
+            thread = threading.Thread(target=merge_chunks, args=(dir_path,))
+            thread.daemon = True
+            thread.start()
 
-        idx = 0
 
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
+def merge_chunks(src_dir_path: str):
+    merged_ts_path = f"{src_dir_path}.ts"
+    mp4_path = f"{src_dir_path}.mp4"
 
-        log.info("Start recording")
-        while True:
-            if self.is_done:
-                log.info("Recording Stop")
-                self.state = RecordState.DONE
-                break
-            if input_stream.closed:
-                log.info("Stream closed")
-                self.state = RecordState.DONE
-                break
+    # merge ts files
+    with open(merged_ts_path, "wb") as outfile:
+        ts_filenames = sorted(
+            [f for f in os.listdir(src_dir_path) if f.endswith(".ts")],
+            key=lambda x: int(x.split(".")[0])
+        )
+        for ts_filename in ts_filenames:
+            with open(os.path.join(src_dir_path, ts_filename), "rb") as infile:
+                outfile.write(infile.read())
 
-            data: bytes = input_stream.read(sys.maxsize)
+    # convert ts to mp4
+    command = ['ffmpeg', '-i', merged_ts_path, '-c', 'copy', mp4_path]
+    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            if len(data) > 0:
-                with open(f"{dir_path}/{idx}.ts", "wb") as f:
-                    log.info("Write .ts file", {
-                        "name": self.name,
-                        "idx": idx,
-                        "size": len(data),
-                    })
-                    f.write(data)
-                idx += 1
+    shutil.rmtree(src_dir_path)
+    os.remove(merged_ts_path)
+    log.info("Convert file", {"file_path": mp4_path})

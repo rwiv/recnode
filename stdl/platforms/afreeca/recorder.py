@@ -2,7 +2,8 @@ from typing import Optional
 
 from streamlink.plugins.afreeca import AfreecaTV
 
-from stdl.downloaders.streamlink.recorder import StreamRecorder, StreamRecorderArgs
+from stdl.downloaders.streamlink.recorder import StreamRecorder
+from stdl.downloaders.streamlink.stream import StreamlinkArgs
 from stdl.platforms.afreeca.types import AfreecaCredential
 
 
@@ -13,18 +14,15 @@ class AfreecaLiveRecorder(StreamRecorder):
             user_id: str,
             out_dir: str,
             cred: Optional[AfreecaCredential] = None,
-            wait_interval: int = 1,
-            restart_delay: int = 40,
     ):
-        args = StreamRecorderArgs(
+        args = StreamlinkArgs(
             url=f"https://play.afreecatv.com/{user_id}",
             name=user_id,
             out_dir=out_dir,
             options=cred.to_options(),
-            wait_interval=wait_interval,
-            restart_delay=restart_delay,
         )
         super().__init__(args)
 
     def clear_cookie(self):
-        AfreecaTV(self.get_session(), self.url).clear_cookies()
+        session = self.streamlink.get_session()
+        AfreecaTV(session, self.url).clear_cookies()

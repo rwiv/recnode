@@ -1,7 +1,6 @@
 import asyncio
 import json
 import os
-import time
 
 from stdl.config.config import read_app_config
 from stdl.config.env import get_env
@@ -16,7 +15,6 @@ from stdl.platforms.twitch.recorder import TwitchLiveRecorder
 from stdl.utils.http import get_headers
 from stdl.utils.logger import log
 from stdl.utils.streamlink import disable_streamlink_log
-from stdl.utils.type import convert_time
 from stdl.utils.url import get_query_string
 
 
@@ -74,8 +72,7 @@ class Runner:
         log.info("Conf", self.conf.to_dict())
         req = self.conf.chzzkLive
         recorder = ChzzkLiveRecorder(req.uid, self.conf.outDirPath, req.cookies)
-        recorder.observe()
-        self.wait(recorder.state.name)
+        recorder.record()
 
     def run_afreeca_live(self):
         disable_streamlink_log()
@@ -84,24 +81,11 @@ class Runner:
         recorder = AfreecaLiveRecorder(
             req.userId, self.conf.outDirPath, self.env.afreeca_credential
         )
-        recorder.observe()
-        self.wait(recorder.state.name)
+        recorder.record()
 
     def run_twitch_live(self):
         disable_streamlink_log()
         log.info("Conf", self.conf.to_dict())
         req = self.conf.twitchLive
         recorder = TwitchLiveRecorder(req.channelName, self.conf.outDirPath, req.cookies)
-        recorder.observe()
-        self.wait(recorder.state.name)
-
-    def wait(self, state: str):
-        idx = 0
-        while True:
-            if idx % 10 == 0:
-                log.info("Running App...", {
-                    "time": convert_time(idx),
-                    "state": state,
-                })
-            time.sleep(1)
-            idx += 1
+        recorder.record()
