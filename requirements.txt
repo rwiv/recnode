@@ -4,4 +4,3 @@ PyYAML==6.0.2
 dacite==1.8.1
 streamlink==6.8.1
 yt-dlp==2024.8.6
-pytest==8.2.2

@@ -10,11 +10,10 @@ from stdl.utils.logger import log
 
 class StreamRecorder:
 
-    def __init__(self, args: StreamlinkArgs, is_once: bool = True):
-        self.is_once = is_once
+    def __init__(self, args: StreamlinkArgs, once: bool = True):
+        self.once = once
 
-        # self.restart_delay_sec = 3
-        self.restart_delay_sec = 20
+        self.restart_delay_sec = 3
         self.chunk_threshold = 20
         self.streamlink = StreamlinkManager(StreamlinkArgs(
             url=args.url,
@@ -25,7 +24,7 @@ class StreamRecorder:
         ))
 
     def record(self):
-        if self.is_once:
+        if self.once:
             self.__record_once()
         else:
             self.__record_endless()

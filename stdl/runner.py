@@ -79,7 +79,7 @@ class Runner:
         log.info(f"Start record: {url}")
         log.info("Conf", self.conf.to_dict())
         req = self.conf.chzzkLive
-        recorder = ChzzkLiveRecorder(req.uid, self.env.out_dir_path, req.cookies)
+        recorder = ChzzkLiveRecorder(req.uid, self.env.out_dir_path, req.once, req.cookies)
         recorder.record()
 
     def run_afreeca_live(self):
@@ -87,7 +87,7 @@ class Runner:
         log.info("Conf", self.conf.to_dict())
         req = self.conf.afreecaLive
         recorder = AfreecaLiveRecorder(
-            req.userId, self.env.out_dir_path, self.env.afreeca_credential
+            req.userId, self.env.out_dir_path, req.once, self.env.afreeca_credential
         )
         recorder.record()
 
@@ -95,5 +95,5 @@ class Runner:
         disable_streamlink_log()
         log.info("Conf", self.conf.to_dict())
         req = self.conf.twitchLive
-        recorder = TwitchLiveRecorder(req.channelName, self.env.out_dir_path, req.cookies)
+        recorder = TwitchLiveRecorder(req.channelName, self.env.out_dir_path, req.once, req.cookies)
         recorder.record()

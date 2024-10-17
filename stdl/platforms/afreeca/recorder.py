@@ -13,6 +13,7 @@ class AfreecaLiveRecorder(StreamRecorder):
             self,
             user_id: str,
             out_dir: str,
+            once: bool,
             cred: Optional[AfreecaCredential] = None,
     ):
         args = StreamlinkArgs(
@@ -21,8 +22,8 @@ class AfreecaLiveRecorder(StreamRecorder):
             out_dir=out_dir,
             options=cred.to_options(),
         )
-        super().__init__(args)
+        super().__init__(args, once)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()
-        AfreecaTV(session, self.url).clear_cookies()
+        AfreecaTV(session, self.streamlink.url).clear_cookies()

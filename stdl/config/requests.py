@@ -21,17 +21,20 @@ class ChzzkVideoRequest:
 @dataclass
 class ChzzkLiveRequest:
     uid: str
+    once: bool
     cookies: Optional[str]
 
 
 @dataclass
 class AfreecaLiveRequest:
     userId: str
+    once: bool
 
 
 @dataclass
 class TwitchLiveRequest:
     channelName: str
+    once: bool
     cookies: Optional[str]
 
 

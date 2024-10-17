@@ -10,6 +10,7 @@ class TwitchLiveRecorder(StreamRecorder):
             self,
             channel_name: str,
             out_dir: str,
+            once: bool,
             cookies: Optional[str] = None,
     ):
         args = StreamlinkArgs(
@@ -18,4 +19,4 @@ class TwitchLiveRecorder(StreamRecorder):
             out_dir=out_dir,
             cookies=cookies,
         )
-        super().__init__(args)
+        super().__init__(args, once)

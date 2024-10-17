@@ -2,8 +2,6 @@ services:
   stdl:
     image: stdl:latest
     container_name: stdl
-    working_dir: /app
-    entrypoint: "python -u main.py"
     environment:
       OUT_DIR_PATH: /app/out
       PY_ENV: dev

@@ -10,6 +10,7 @@ class ChzzkLiveRecorder(StreamRecorder):
             self,
             uid: str,
             out_dir: str,
+            once: bool,
             cookies: Optional[str] = None,
     ):
         args = StreamlinkArgs(
@@ -18,4 +19,4 @@ class ChzzkLiveRecorder(StreamRecorder):
             out_dir=out_dir,
             cookies=cookies,
         )
-        super().__init__(args)
+        super().__init__(args, once)

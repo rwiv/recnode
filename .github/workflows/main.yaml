@@ -1,0 +1,79 @@
+name: Build and Deploy
+on:
+  push:
+    tags:
+      - v**
+env:
+  APP_NAME: stdl
+  IMAGE_PREFIX: private
+  IMAGE_REGISTRY: harbor.rwiv.xyz
+  IMAGE_DOCKERFILE_PATH: docker/Dockerfile
+  CHART_SRC_PATH: kube/chart
+  CHART_OUT_DIRPATH: apps/media/stdl
+  CHART_OUT_FILENAME: main.yaml
+  GITOPS_REPO: rwiv/gitops-prod
+jobs:
+  Set-Version:
+    runs-on: ubuntu-latest
+    outputs:
+      APP_VERSION: ${{ steps.set_version.outputs.APP_VERSION }}
+    steps:
+      - name: Set APP_VERSION env from git tag
+        id: set_version
+        run: |
+          TAG_VERSION=${GITHUB_REF##*/}
+          APP_VERSION=${TAG_VERSION#v}
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_OUTPUT
+  Docker-Build:
+    runs-on: ubuntu-latest
+    needs: Set-Version
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Docker Login
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ env.IMAGE_DOCKERFILE_PATH }}
+          push: true
+          tags: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ env.APP_NAME }}:${{ needs.Set-Version.outputs.APP_VERSION }}
+  Update-Git-Repository:
+    runs-on: ubuntu-latest
+    needs: Set-Version
+    steps:
+      - name: Setup helm
+        uses: azure/setup-helm@v4.2.0
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+        with:
+          path: main
+      - name: Checkout gitops-test repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          path: gitops
+
+      - name: Write k8s manifest files
+        run: |
+          mkdir -p gitops/${{ env.CHART_OUT_DIRPATH }}
+          helm template main/${{ env.CHART_SRC_PATH }} \
+            --set image.tag=${{ needs.Set-Version.outputs.APP_VERSION }} \
+            > gitops/${{ env.CHART_OUT_DIRPATH }}/${{ env.CHART_OUT_FILENAME }}
+
+      - name: Git Push
+        run: |
+          cd gitops
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update from GitHub Actions"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
