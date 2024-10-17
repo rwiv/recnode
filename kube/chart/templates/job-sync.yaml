@@ -19,11 +19,11 @@ spec:
                 - name: PY_ENV
                   value: prod
               volumeMounts:
-                - name: {{ .Values.persistence.mountName }}
+                - name: nfs
                   mountPath: {{ .Values.persistence.mountPath }}
           imagePullSecrets:
             - name: {{ .Values.image.pullSecret }}
           volumes:
-            - name: {{ .Values.persistence.mountName }}
+            - name: nfs
               persistentVolumeClaim:
-                claimName: {{ .Values.persistence.pvcName }}
+                claimName: {{ .Values.global.name }}

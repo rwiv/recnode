@@ -1,8 +1,8 @@
 #!/bin/sh
 
 ENDPOINT=$1
-UID=$2
-ONCE=$3
+ONCE=$2
+UID=$3
 
 curl -X POST -v \
    -H "content-type: application/json"  \

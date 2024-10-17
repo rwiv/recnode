@@ -6,7 +6,5 @@ image:
   tag: 0.1.0
   pullSecret: image-pull-secret
 persistence:
-  pvcName: nfs-pvc
-  mountName: nfs-volume
   storageClass: nfs-nas
   mountPath: /mnt/nfs
