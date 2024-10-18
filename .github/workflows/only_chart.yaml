@@ -4,6 +4,10 @@ on:
     branches:
       - "**"
 env:
+  APP_NAME: stdl
+  IMAGE_PREFIX: private
+  IMAGE_REGISTRY: harbor.rwiv.xyz
+  IMAGE_DOCKERFILE_PATH: docker/Dockerfile
   CHART_SRC_PATH: kube/chart
   CHART_OUT_DIRPATH: apps/media/stdl
   CHART_OUT_FILENAME: main.yaml
