@@ -1,5 +1,6 @@
 import os
 import shutil
+import signal
 import threading
 import time
 
@@ -33,6 +34,7 @@ class StreamRecorder:
         ))
 
     def record(self):
+        signal.signal(signal.SIGTERM, self.__handle_sigterm)
         try:
             if self.__is_locked():
                 log.info("Skip Record because Locked")
@@ -42,6 +44,8 @@ class StreamRecorder:
                 self.__record_once()
             else:
                 self.__record_endless()
+
+            self.__unlock()
         except:
             self.__unlock()
             log.info("Unlock")
@@ -102,3 +106,6 @@ class StreamRecorder:
 
     def __is_locked(self):
         return os.path.exists(self.lock_path)
+
+    def __handle_sigterm(self, *acrgs):
+        self.__unlock()

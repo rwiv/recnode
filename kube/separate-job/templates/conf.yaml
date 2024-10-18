@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMap.namePrefix }}{{ .Values.jobSuffix }}
+  namespace: {{ .Values.global.namespace }}
+data:
+  conf.yaml: |
+    reqType: {{ .Values.reqType }}
+    chzzkLive:
+      uid: {{ .Values.chzzk.uid }}
+      once: {{ .Values.chzzk.once }}
+      cookies: {{ .Values.chzzk.cookies | quote }}

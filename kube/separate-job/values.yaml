@@ -3,11 +3,22 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.1.5
+  tag: 0.1.6
   pullSecret: image-pull-secret
 persistence:
-  mountPath: /mnt/nfs
-jobSuffix: foo
+  nfs:
+    mountPath: /mnt/nfs
+  ceph:
+    mountPath: /mnt/ceph
+    namePrefix: stdl-once-ceph-
+    storageClass: rook-ceph-block
+    requests: 100Gi
+configMap:
+  namePrefix: stdl-once-conf-
+  mountPath: /app/conf
+reqType: chzzk_live
 chzzk:
   uid: foo
   once: false
+  cookies: ""
+jobSuffix: foo

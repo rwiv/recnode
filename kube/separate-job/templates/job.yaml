@@ -10,18 +10,33 @@ spec:
         - name: {{ .Values.global.name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           env:
-            - name: APP_CONFIG
-              value: '{"reqType":"chzzk_live","chzzkLive":{"uid":"{{ .Values.chzzk.uid }}","once":{{.Values.chzzk.once}}}}'
+            - name: CONFIG_PATH
+              value: {{ .Values.configMap.mountPath }}/conf.yaml
             - name: OUT_DIR_PATH
-              value: {{ .Values.persistence.mountPath }}
+              value: {{ .Values.persistence.nfs.mountPath }}
+            - name: TMP_DIR_PATH
+              value: {{ .Values.persistence.ceph.mountPath }}
             - name: PY_ENV
               value: prod
           volumeMounts:
             - name: nfs
-              mountPath: {{ .Values.persistence.mountPath }}
+              mountPath: {{ .Values.persistence.nfs.mountPath }}
+            - name: ceph
+              mountPath: {{ .Values.persistence.ceph.mountPath }}
+            - name: conf
+              mountPath: {{ .Values.configMap.mountPath }}
+              readOnly: true
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
       volumes:
         - name: nfs
           persistentVolumeClaim:
             claimName: {{ .Values.global.name }}
+        - name: ceph
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.ceph.namePrefix }}{{ .Values.jobSuffix }}
+        - name: conf
+          configMap:
+            name: {{ .Values.configMap.namePrefix }}{{ .Values.jobSuffix }}
       restartPolicy: Never
   backoffLimit: 0
