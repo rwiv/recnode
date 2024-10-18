@@ -63,7 +63,7 @@ class StreamlinkManager:
         return session
 
     def wait_for_live(self) -> dict[str, HLSStream]:
-        cnt = 0
+        log.info("Wait For Live")
         while True:
             self.state = RecordState.WAIT
             try:
@@ -74,10 +74,6 @@ class StreamlinkManager:
                 log.error(*get_error_info())
 
             time.sleep(self.wait_delay_sec)
-            cnt += 1
-            if cnt >= 10:
-                log.info("Wait For Live", {"name": self.name})
-                cnt = 0
 
     def record(self, streams: dict[str, HLSStream]) -> Optional[str]:
         formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S")
