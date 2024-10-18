@@ -21,8 +21,7 @@ class StreamRecorder:
         self.once = once
         self.tmp_dir_path = tmp_dir_path
 
-        self.channel_path = f"{args.out_dir_path}/{args.name}"
-        self.lock_path = f"{self.channel_path}/lock.json"
+        self.lock_path = f"{args.out_dir_path}/{args.name}/lock.json"
         self.restart_delay_sec = 3
         self.chunk_threshold = 20
         self.streamlink = StreamlinkManager(StreamlinkArgs(
@@ -34,33 +33,43 @@ class StreamRecorder:
         ))
 
     def record(self):
-        # if os.path.exists(self.lock_path):
-        #     log.info("Skip Record")
-        #     return
+        try:
+            if self.__is_locked():
+                log.info("Skip Record because Locked")
+                return
 
-        if self.once:
-            self.__record_once()
-        else:
-            self.__record_endless()
+            if self.once:
+                self.__record_once()
+            else:
+                self.__record_endless()
+        except:
+            self.__unlock()
+            log.info("Unlock")
+            raise
 
     def __record_once(self):
-        # write_file(self.lock_path, "")
-
         while True:
-            thread = self.__record()
+            self.__lock()
+
+            src_chunks_path = self.__record()
+            thread = self.__postprocess_async(src_chunks_path)
+
+            self.__unlock()
+            if thread is not None:
+                thread.join()
+
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
-                thread.join()
                 break
 
-        # delete_file(self.lock_path)
         log.info("End Record", {"latest_state": self.streamlink.state.name})
 
     def __record_endless(self):
-        # write_file(self.lock_path, "")
+        self.__lock()
 
         while True:
-            self.__record()
+            src_chunks_path = self.__record()
+            self.__postprocess_async(src_chunks_path)
             time.sleep(self.restart_delay_sec)
             log.info("Restart Record", {"latest_state": self.streamlink.state.name})
 
@@ -68,16 +77,28 @@ class StreamRecorder:
         streams = self.streamlink.wait_for_live()
         log.info("Stream Start")
 
-        chunks_path = self.streamlink.record(streams)
+        return self.streamlink.record(streams)
 
+    def __postprocess_async(self, src_chunks_path: str):
         thread = None
-        if len(os.listdir(chunks_path)) < self.chunk_threshold:
-            shutil.rmtree(chunks_path)
+        if len(os.listdir(src_chunks_path)) < self.chunk_threshold:
+            # Remove chunks if not enough
+            shutil.rmtree(src_chunks_path)
         else:
+            # Merge chunks
             thread = threading.Thread(
                 target=merge_chunks,
-                args=(chunks_path, self.tmp_dir_path, self.name),
+                args=(src_chunks_path, self.tmp_dir_path, self.name),
             )
             thread.daemon = True
             thread.start()
         return thread
+
+    def __lock(self):
+        write_file(self.lock_path, "")
+
+    def __unlock(self):
+        delete_file(self.lock_path)
+
+    def __is_locked(self):
+        return os.path.exists(self.lock_path)
