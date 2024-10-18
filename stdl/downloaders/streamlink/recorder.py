@@ -50,11 +50,11 @@ class StreamRecorder:
             thread = self.__record()
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
+                thread.join()
                 break
 
         # delete_file(self.lock_path)
         log.info("End Record", {"latest_state": self.streamlink.state.name})
-        thread.join()
 
     def __record_endless(self):
         # write_file(self.lock_path, "")
