@@ -60,6 +60,10 @@ spec:
                           mountPath: {{ .Values.persistence.nfs.mountPath }}
                         - name: stdl-ceph
                           mountPath: {{ .Values.persistence.ceph.mountPath }}
+                      resources:
+                        requests:
+                          cpu: {{ .Values.resources.requests.cpu }}
+                          memory: {{ .Values.resources.requests.memory }}
                     volumes:
                       - name: stdl-nfs
                         persistentVolumeClaim:

@@ -26,6 +26,10 @@ spec:
             - name: conf
               mountPath: {{ .Values.configMap.mountPath }}
               readOnly: true
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       volumes:

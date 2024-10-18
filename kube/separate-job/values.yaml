@@ -13,6 +13,10 @@ persistence:
     namePrefix: stdl-once-ceph-
     storageClass: rook-ceph-block
     requests: 100Gi
+resources:
+  requests:
+    cpu: 40m
+    memory: 200Mi
 configMap:
   namePrefix: stdl-once-conf-
   mountPath: /app/conf

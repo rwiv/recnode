@@ -15,3 +15,7 @@ persistence:
     storageClass: rook-ceph-block
     mountPath: /mnt/ceph
     requests: 100Gi
+resources:
+  requests:
+    cpu: 40m
+    memory: 200Mi
