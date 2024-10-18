@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ .Values.global.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  template:
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: dep
+      eventSourceName: webhook
+      eventName: {{ .Values.global.name }}
+  triggers:
+    - template:
+        name: stdl-workflow-trigger
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: {{ .Values.global.name }}-
+              spec:
+                entrypoint: {{ .Values.global.name }}
+                imagePullSecrets:
+                  - name: {{ .Values.image.pullSecret }}
+                arguments:
+                  parameters:
+                    - name: message
+                      value: hello
+                templates:
+                  - name: {{ .Values.global.name }}
+                    inputs:
+                      parameters:
+                        - name: message
+                    container:
+                      image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+                      env:
+                        - name: APP_CONFIG
+                          value: "{{`{{inputs.parameters.message}}`}}"
+                        - name: OUT_DIR_PATH
+                          value: {{ .Values.persistence.mountPath }}
+                        - name: PY_ENV
+                          value: prod
+                      volumeMounts:
+                        - name: nfs
+                          mountPath: {{ .Values.persistence.mountPath }}
+                    volumes:
+                      - name: nfs
+                        persistentVolumeClaim:
+                          claimName: {{ .Values.global.name }}
+          parameters:
+            - src:
+                dependencyName: dep
+                dataKey: body
+              dest: spec.arguments.parameters.0.value

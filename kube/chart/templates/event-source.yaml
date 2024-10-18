@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: EventSource
+metadata:
+  name: webhook
+  namespace: {{ .Values.global.namespace }}
+spec:
+  service:
+    ports:
+      - port: 12000
+        targetPort: 12000
+  webhook:
+    stdl:
+      port: "12000"
+      endpoint: /stdl
+      method: POST
+

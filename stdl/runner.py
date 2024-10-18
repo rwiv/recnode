@@ -2,7 +2,7 @@ import asyncio
 import json
 import os
 
-from stdl.config.config import read_app_config_by_file, read_app_config_by_event
+from stdl.config.config import read_app_config_by_file, read_app_config_by_env
 from stdl.config.env import get_env
 from stdl.config.requests import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
@@ -24,10 +24,10 @@ class Runner:
         self.conf = self.__read_config()
 
     def __read_config(self):
-        try:
-            return read_app_config_by_event("/etc/jobsink-event/event")
-        except FileNotFoundError:
-            return read_app_config_by_file(self.env.config_path)
+        conf = read_app_config_by_env()
+        if conf is None:
+            conf = read_app_config_by_file(self.env.config_path)
+        return conf
 
     def run(self):
         os.makedirs(self.env.out_dir_path, exist_ok=True)
