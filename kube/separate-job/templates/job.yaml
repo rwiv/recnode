@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.global.name }}-{{ .Values.jobSuffix }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  template:
+    spec:
+      containers:
+        - name: {{ .Values.global.name }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          env:
+            - name: APP_CONFIG
+              value: '{"reqType":"chzzk_live","chzzkLive":{"uid":"{{ .Values.chzzk.uid }}","once":{{.Values.chzzk.once}}}}'
+            - name: OUT_DIR_PATH
+              value: {{ .Values.persistence.mountPath }}
+            - name: PY_ENV
+              value: prod
+          volumeMounts:
+            - name: nfs
+              mountPath: {{ .Values.persistence.mountPath }}
+      volumes:
+        - name: nfs
+          persistentVolumeClaim:
+            claimName: {{ .Values.global.name }}
+      restartPolicy: Never
+  backoffLimit: 0

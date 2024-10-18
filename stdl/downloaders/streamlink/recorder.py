@@ -5,6 +5,7 @@ import threading
 import time
 
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
+from stdl.utils.file import write_file, delete_file
 from stdl.utils.logger import log
 
 
@@ -13,6 +14,8 @@ class StreamRecorder:
     def __init__(self, args: StreamlinkArgs, once: bool = True):
         self.once = once
 
+        self.channel_path = f"{args.out_dir}/{args.name}"
+        self.lock_path = f"{self.channel_path}/lock.json"
         self.restart_delay_sec = 3
         self.chunk_threshold = 20
         self.streamlink = StreamlinkManager(StreamlinkArgs(
@@ -24,20 +27,31 @@ class StreamRecorder:
         ))
 
     def record(self):
+        # if os.path.exists(self.lock_path):
+        #     log.info("Skip Record")
+        #     return
+
         if self.once:
             self.__record_once()
         else:
             self.__record_endless()
 
     def __record_once(self):
+        # write_file(self.lock_path, "")
+
         while True:
-            self.__record()
+            thread = self.__record()
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
                 break
+
+        # delete_file(self.lock_path)
         log.info("End Record", {"latest_state": self.streamlink.state.name})
+        thread.join()
 
     def __record_endless(self):
+        # write_file(self.lock_path, "")
+
         while True:
             self.__record()
             time.sleep(self.restart_delay_sec)
@@ -49,12 +63,14 @@ class StreamRecorder:
 
         dir_path = self.streamlink.record(streams)
 
+        thread = None
         if len(os.listdir(dir_path)) < self.chunk_threshold:
             shutil.rmtree(dir_path)
         else:
             thread = threading.Thread(target=merge_chunks, args=(dir_path,))
             thread.daemon = True
             thread.start()
+        return thread
 
 
 def merge_chunks(src_dir_path: str):

@@ -1,10 +1,13 @@
 global:
-  name: stdl
+  name: stdl-sep
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.1.2
+  tag: 0.1.1
   pullSecret: image-pull-secret
 persistence:
-  storageClass: nfs-nas
   mountPath: /mnt/nfs
+jobSuffix: foo
+chzzk:
+  uid: foo
+  once: false

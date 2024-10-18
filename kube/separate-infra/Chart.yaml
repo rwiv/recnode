@@ -1,0 +1,5 @@
+apiVersion: v2
+name: stdl-separate-infra
+description: stdl-separate-infra
+type: application
+version: 0.1.0
