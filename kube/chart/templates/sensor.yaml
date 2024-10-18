@@ -64,6 +64,13 @@ spec:
                       - name: stdl-nfs
                         persistentVolumeClaim:
                           claimName: {{ .Values.persistence.nfs.pvcName }}
+                    tolerations:
+                      - effect: NoSchedule
+                        operator: Exists
+                      - key: CriticalAddonsOnly
+                        operator: Exists
+                      - effect: NoExecute
+                        operator: Exists
           parameters:
             - src:
                 dependencyName: dep

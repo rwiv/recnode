@@ -38,5 +38,12 @@ spec:
         - name: conf
           configMap:
             name: {{ .Values.configMap.namePrefix }}{{ .Values.jobSuffix }}
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
       restartPolicy: Never
   backoffLimit: 0
