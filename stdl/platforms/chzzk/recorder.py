@@ -9,14 +9,15 @@ class ChzzkLiveRecorder(StreamRecorder):
     def __init__(
             self,
             uid: str,
-            out_dir: str,
+            out_dir_path: str,
+            tmp_dir_path: str,
             once: bool,
             cookies: Optional[str] = None,
     ):
         args = StreamlinkArgs(
             url=f"https://chzzk.naver.com/live/{uid}",
             name=uid,
-            out_dir=out_dir,
+            out_dir_path=out_dir_path,
             cookies=cookies,
         )
-        super().__init__(args, once)
+        super().__init__(args, tmp_dir_path, once)

@@ -22,7 +22,17 @@ spec:
               metadata:
                 generateName: {{ .Values.global.name }}-
               spec:
-                entrypoint: {{ .Values.global.name }}
+                entrypoint: main
+                volumeClaimTemplates:
+                  - metadata:
+                      name: stdl-ceph
+                    spec:
+                      storageClassName: {{ .Values.persistence.ceph.storageClass }}
+                      accessModes:
+                        - ReadWriteOnce
+                      resources:
+                        requests:
+                          storage: {{ .Values.persistence.ceph.requests }}
                 imagePullSecrets:
                   - name: {{ .Values.image.pullSecret }}
                 arguments:
@@ -30,7 +40,7 @@ spec:
                     - name: message
                       value: hello
                 templates:
-                  - name: {{ .Values.global.name }}
+                  - name: main
                     inputs:
                       parameters:
                         - name: message
@@ -40,16 +50,20 @@ spec:
                         - name: APP_CONFIG
                           value: "{{`{{inputs.parameters.message}}`}}"
                         - name: OUT_DIR_PATH
-                          value: {{ .Values.persistence.mountPath }}
+                          value: {{ .Values.persistence.nfs.mountPath }}
+                        - name: TMP_DIR_PATH
+                          value: {{ .Values.persistence.ceph.mountPath }}
                         - name: PY_ENV
                           value: prod
                       volumeMounts:
-                        - name: nfs
-                          mountPath: {{ .Values.persistence.mountPath }}
+                        - name: stdl-nfs
+                          mountPath: {{ .Values.persistence.nfs.mountPath }}
+                        - name: stdl-ceph
+                          mountPath: {{ .Values.persistence.ceph.mountPath }}
                     volumes:
-                      - name: nfs
+                      - name: stdl-nfs
                         persistentVolumeClaim:
-                          claimName: {{ .Values.global.name }}
+                          claimName: {{ .Values.persistence.nfs.pvcName }}
           parameters:
             - src:
                 dependencyName: dep

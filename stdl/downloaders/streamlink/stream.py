@@ -25,7 +25,7 @@ class RecordState(Enum):
 class StreamlinkArgs:
     url: str
     name: str
-    out_dir: str
+    out_dir_path: str
     cookies: Optional[str] = None
     options: Optional[dict[str, str]] = None
 
@@ -35,7 +35,7 @@ class StreamlinkManager:
     def __init__(self, args: StreamlinkArgs):
         self.url = args.url
         self.name = args.name
-        self.out_dir = args.out_dir
+        self.out_dir_path = args.out_dir_path
         self.cookies = args.cookies
         self.options = args.options
 
@@ -77,7 +77,7 @@ class StreamlinkManager:
 
     def record(self, streams: dict[str, HLSStream]) -> Optional[str]:
         formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        dir_path = f"{self.out_dir}/{self.name}/{formatted_time}"
+        dir_path = f"{self.out_dir_path}/{self.name}/{formatted_time}"
 
         stream = streams["best"]
         input_stream: HLSStreamReader = stream.open()

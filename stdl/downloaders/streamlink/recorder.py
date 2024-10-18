@@ -1,9 +1,9 @@
 import os
 import shutil
-import subprocess
 import threading
 import time
 
+from stdl.downloaders.streamlink.merge import merge_chunks
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.utils.file import write_file, delete_file
 from stdl.utils.logger import log
@@ -11,17 +11,24 @@ from stdl.utils.logger import log
 
 class StreamRecorder:
 
-    def __init__(self, args: StreamlinkArgs, once: bool = True):
+    def __init__(
+            self,
+            args: StreamlinkArgs,
+            tmp_dir_path: str,
+            once: bool = True,
+    ):
+        self.name = args.name
         self.once = once
+        self.tmp_dir_path = tmp_dir_path
 
-        self.channel_path = f"{args.out_dir}/{args.name}"
+        self.channel_path = f"{args.out_dir_path}/{args.name}"
         self.lock_path = f"{self.channel_path}/lock.json"
         self.restart_delay_sec = 3
         self.chunk_threshold = 20
         self.streamlink = StreamlinkManager(StreamlinkArgs(
             url=args.url,
             name=args.name,
-            out_dir=args.out_dir,
+            out_dir_path=args.out_dir_path,
             cookies=args.cookies,
             options=args.options,
         ))
@@ -61,36 +68,16 @@ class StreamRecorder:
         streams = self.streamlink.wait_for_live()
         log.info("Stream Start")
 
-        dir_path = self.streamlink.record(streams)
+        chunks_path = self.streamlink.record(streams)
 
         thread = None
-        if len(os.listdir(dir_path)) < self.chunk_threshold:
-            shutil.rmtree(dir_path)
+        if len(os.listdir(chunks_path)) < self.chunk_threshold:
+            shutil.rmtree(chunks_path)
         else:
-            thread = threading.Thread(target=merge_chunks, args=(dir_path,))
+            thread = threading.Thread(
+                target=merge_chunks,
+                args=(chunks_path, self.tmp_dir_path, self.name),
+            )
             thread.daemon = True
             thread.start()
         return thread
-
-
-def merge_chunks(src_dir_path: str):
-    merged_ts_path = f"{src_dir_path}.ts"
-    mp4_path = f"{src_dir_path}.mp4"
-
-    # merge ts files
-    with open(merged_ts_path, "wb") as outfile:
-        ts_filenames = sorted(
-            [f for f in os.listdir(src_dir_path) if f.endswith(".ts")],
-            key=lambda x: int(x.split(".")[0])
-        )
-        for ts_filename in ts_filenames:
-            with open(os.path.join(src_dir_path, ts_filename), "rb") as infile:
-                outfile.write(infile.read())
-
-    # convert ts to mp4
-    command = ['ffmpeg', '-i', merged_ts_path, '-c', 'copy', mp4_path]
-    subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-    shutil.rmtree(src_dir_path)
-    os.remove(merged_ts_path)
-    log.info("Convert file", {"file_path": mp4_path})

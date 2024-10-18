@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.global.name }}
+  name: {{ .Values.persistence.nfs.pvcName }}
   namespace: {{ .Values.global.namespace }}
 spec:
-  storageClassName: {{ .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.nfs.storageClass }}
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 2000Gi
+      storage: {{ .Values.persistence.nfs.requests }}
