@@ -56,11 +56,11 @@ class StreamRecorder:
             self.__lock()
 
             src_chunks_path = self.__record()
-            thread = self.__postprocess_async(src_chunks_path)
+            # thread = self.__postprocess_async(src_chunks_path)
 
             self.__unlock()
-            if thread is not None:
-                thread.join()
+            # if thread is not None:
+            #     thread.join()
 
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
@@ -73,7 +73,7 @@ class StreamRecorder:
 
         while True:
             src_chunks_path = self.__record()
-            self.__postprocess_async(src_chunks_path)
+            # self.__postprocess_async(src_chunks_path)
             time.sleep(self.restart_delay_sec)
             log.info("Restart Record", {"latest_state": self.streamlink.state.name})
 
