@@ -8,7 +8,6 @@ def write_bfile(file_path: str, data: bytes, dir_check: bool = True):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(data)
-        log.info(f"Write: {file_path}")
 
 
 def write_file(file_path: str, data: str, dir_check: bool = True):
