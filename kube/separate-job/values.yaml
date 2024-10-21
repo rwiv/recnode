@@ -3,7 +3,7 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.1.8
+  tag: 0.1.9
   pullSecret: image-pull-secret
 persistence:
   nfs:

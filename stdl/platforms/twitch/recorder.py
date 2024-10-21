@@ -18,6 +18,7 @@ class TwitchLiveRecorder(StreamRecorder):
             url=f"https://www.twitch.tv/{channel_name}",
             name=channel_name,
             out_dir_path=out_dir_path,
+            tmp_dir_path=tmp_dir_path,
             cookies=cookies,
         )
-        super().__init__(args, tmp_dir_path, once)
+        super().__init__(args, once)

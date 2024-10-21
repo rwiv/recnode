@@ -21,9 +21,10 @@ class AfreecaLiveRecorder(StreamRecorder):
             url=f"https://play.afreecatv.com/{user_id}",
             name=user_id,
             out_dir_path=out_dir_path,
+            tmp_dir_path=tmp_dir_path,
             options=cred.to_options(),
         )
-        super().__init__(args, tmp_dir_path, once)
+        super().__init__(args, once)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()

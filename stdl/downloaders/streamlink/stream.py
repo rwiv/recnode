@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -11,6 +12,8 @@ import streamlink
 from streamlink.options import Options
 from streamlink.stream import HLSStream
 from streamlink.stream.hls import HLSStreamReader
+
+from stdl.utils.file import write_bfile
 from stdl.utils.logger import log, get_error_info
 
 
@@ -26,6 +29,7 @@ class StreamlinkArgs:
     url: str
     name: str
     out_dir_path: str
+    tmp_dir_path: str
     cookies: Optional[str] = None
     options: Optional[dict[str, str]] = None
 
@@ -36,6 +40,7 @@ class StreamlinkManager:
         self.url = args.url
         self.name = args.name
         self.out_dir_path = args.out_dir_path
+        self.tmp_dir_path = args.tmp_dir_path
         self.cookies = args.cookies
         self.options = args.options
 
@@ -75,18 +80,20 @@ class StreamlinkManager:
 
             time.sleep(self.wait_delay_sec)
 
-    def record(self, streams: dict[str, HLSStream]) -> Optional[str]:
+    def record(self, streams: dict[str, HLSStream]) -> str:
         formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        dir_path = f"{self.out_dir_path}/{self.name}/{formatted_time}"
+        out_dir_path = f"{self.out_dir_path}/{self.name}/{formatted_time}"
+        tmp_dir_path = f"{self.tmp_dir_path}/{self.name}/{formatted_time}"
 
-        stream = streams["best"]
-        input_stream: HLSStreamReader = stream.open()
+        input_stream: HLSStreamReader = streams["best"].open()
         self.state = RecordState.RECORDING
 
         idx = 0
 
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
+        if not os.path.exists(out_dir_path):
+            os.makedirs(out_dir_path)
+        if not os.path.exists(tmp_dir_path):
+            os.makedirs(tmp_dir_path)
 
         log.info("Start recording")
         while True:
@@ -96,10 +103,17 @@ class StreamlinkManager:
                 break
 
             data: bytes = input_stream.read(sys.maxsize)
+            if len(data) == 0:
+                continue
 
-            if len(data) > 0:
-                with open(f"{dir_path}/{idx}.ts", "wb") as f:
-                    # log.info("Write .ts file", {"name": self.name, "idx": idx, "size": len(data)})
-                    f.write(data)
-                idx += 1
-        return dir_path
+            idx += 1
+            write_bfile(f"{tmp_dir_path}/{idx}.ts", data, False)
+
+            thread = threading.Thread(
+                target=write_bfile,
+                args=(f"{out_dir_path}/{idx}.ts", data, False),
+            )
+            thread.daemon = True
+            thread.start()
+
+        return tmp_dir_path
