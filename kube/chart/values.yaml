@@ -8,7 +8,7 @@ image:
 persistence:
   nfs:
     pvcName: stdl
-    storageClass: nfs-nas
+    storageClass: nfs-main1
     mountPath: /mnt/nfs
     requests: 2000Gi
   ceph:

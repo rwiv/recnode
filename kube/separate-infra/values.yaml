@@ -2,5 +2,5 @@ global:
   name: stdl-sep
   namespace: media
 persistence:
-  storageClass: nfs-nas
+  storageClass: nfs-main1
   mountPath: /mnt/nfs
