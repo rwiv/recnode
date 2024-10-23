@@ -8,6 +8,7 @@ import requests
 
 from stdl.downloaders.hls.parser import parse_master_playlist, parse_media_playlist
 from stdl.downloaders.hls.utils import sub_lists_with_idx
+from stdl.utils.file import sanitize_filename
 from stdl.utils.logger import log
 from stdl.utils.url import get_base_url
 
@@ -35,7 +36,7 @@ class HlsDownloader:
             self, m3u8_url: str, title: str,
             qs: Optional[str] = None,
     ):
-        out_name = title.replace("?", "？").replace("/", "／")
+        out_name = sanitize_filename(title)
         urls = _get_urls(m3u8_url, qs)
         subs = sub_lists_with_idx(urls, self.parallel)
         for sub in subs:
