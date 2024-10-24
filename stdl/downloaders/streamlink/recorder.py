@@ -81,6 +81,9 @@ class StreamRecorder:
         thread = None
         if len(os.listdir(tmp_chunks_path)) < self.chunk_threshold:
             # Remove chunks if not enough
+            dirname = os.path.basename(tmp_chunks_path)
+            log.info("Skip postprocess chunks", {"dirname": dirname})
+            shutil.rmtree(f"{self.out_dir_path}/{self.name}/{dirname}")
             shutil.rmtree(tmp_chunks_path)
         else:
             # Merge chunks
