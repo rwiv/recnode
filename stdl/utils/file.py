@@ -31,4 +31,5 @@ def sanitize_filename(filename: str) -> str:
             .replace('"', "＂")
             .replace('|', "｜")
             .replace(">", "＞")
-            .replace("<", "＜"))
+            .replace("<", "＜")
+            .strip())
