@@ -52,11 +52,11 @@ class Runner:
             headers = get_headers(json.loads(req.cookies))
         else:
             headers = get_headers()
-        hls = HlsDownloader(base_dir_path=self.env.out_dir_path, headers=headers)
+        hls = HlsDownloader(self.env.tmp_dir_path, self.env.out_dir_path, headers)
         for i, m3u8_url in enumerate(req.urls):
             qs = get_query_string(m3u8_url)
             title = f"hls_{i}"
-            asyncio.run(hls.download(m3u8_url, title, qs))
+            asyncio.run(hls.download(m3u8_url, "hls", title, qs))
         print("end")
 
     def run_ytdl_video(self):
@@ -65,12 +65,14 @@ class Runner:
         print("end")
 
     def run_chzzk_video(self):
-        dl = ChzzkVideoDownloader(self.env.out_dir_path, self.conf.chzzkVideo.cookies)
-        dl_l = ChzzkVideoDownloaderLegacy(self.env.out_dir_path, self.conf.chzzkVideo.cookies)
-        try:
-            dl.download(self.conf.chzzkVideo.videoNoList)
-        except TypeError:
-            dl_l.download(self.conf.chzzkVideo.videoNoList)
+        dl = ChzzkVideoDownloader(self.env.tmp_dir_path, self.env.out_dir_path, self.conf.chzzkVideo.cookies)
+        dl_l = ChzzkVideoDownloaderLegacy(self.env.tmp_dir_path, self.env.out_dir_path, self.conf.chzzkVideo.cookies)
+
+        for video_no in self.conf.chzzkVideo.videoNoList:
+            try:
+                dl.download_one(video_no)
+            except TypeError:
+                dl_l.download_one(video_no)
         print("end")
 
     def run_chzzk_live(self):

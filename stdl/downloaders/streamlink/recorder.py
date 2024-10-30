@@ -4,7 +4,7 @@ import signal
 import threading
 import time
 
-from stdl.downloaders.streamlink.merge import merge_chunks
+from stdl.downloaders.hls.merge import merge_hls_chunks
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.utils.file import write_file, delete_file
 from stdl.utils.logger import log
@@ -88,7 +88,7 @@ class StreamRecorder:
         else:
             # Merge chunks
             thread = threading.Thread(
-                target=merge_chunks,
+                target=merge_hls_chunks,
                 args=(tmp_chunks_path, self.out_dir_path, self.name),
             )
             thread.daemon = True

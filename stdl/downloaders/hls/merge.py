@@ -5,7 +5,7 @@ import subprocess
 from stdl.utils.logger import log
 
 
-def merge_chunks(tmp_chunks_path: str, out_dir_path: str, name: str):
+def merge_hls_chunks(tmp_chunks_path: str, out_dir_path: str, name: str):
     # merge ts files
     merged_ts_path = f"{tmp_chunks_path}.ts"
     with open(merged_ts_path, "wb") as outfile:
@@ -26,9 +26,10 @@ def merge_chunks(tmp_chunks_path: str, out_dir_path: str, name: str):
 
     # move mp4 file
     dirname = os.path.basename(tmp_chunks_path)
-    os.makedirs(f"{out_dir_path}/{name}", exist_ok=True)
-    shutil.move(mp4_path, f"{out_dir_path}/{name}/{dirname}.mp4")
-    shutil.rmtree(f"{out_dir_path}/{name}/{dirname}")
+    dirname_path = f"{out_dir_path}/{name}/{dirname}"
+    os.makedirs(dirname_path, exist_ok=True)
+    shutil.move(mp4_path, f"{dirname_path}.mp4")
+    shutil.rmtree(dirname_path)
 
     # remove tmp files
     log.info("Convert file", {"file_path": mp4_path})

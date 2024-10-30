@@ -8,6 +8,7 @@ import requests
 
 from stdl.downloaders.hls.parser import parse_master_playlist, parse_media_playlist
 from stdl.downloaders.hls.utils import sub_lists_with_idx
+from stdl.downloaders.hls.merge import merge_hls_chunks
 from stdl.utils.file import sanitize_filename
 from stdl.utils.logger import log
 from stdl.utils.url import get_base_url
@@ -24,24 +25,29 @@ class HttpError(Exception):
 class HlsDownloader:
     def __init__(
             self,
-            base_dir_path: str,
+            tmp_dir_path: str,
+            out_dir_path: str,
             headers: Optional[dict] = None,
-            parallel: Optional[int] = 30,
+            # parallel: Optional[int] = 50,
+            parallel: Optional[int] = 10,
     ):
         self.headers = headers
-        self.base_dir_path = base_dir_path
+        self.tmp_dir_path = tmp_dir_path
+        self.out_dir_path = out_dir_path
         self.parallel = parallel
 
     async def download(
-            self, m3u8_url: str, title: str,
+            self, m3u8_url: str, name: str, title: str,
             qs: Optional[str] = None,
     ):
-        out_name = sanitize_filename(title)
+        title_name = sanitize_filename(title)
+        dir_path = os.path.join(self.tmp_dir_path, name, title_name)
         urls = _get_urls(m3u8_url, qs)
         subs = sub_lists_with_idx(urls, self.parallel)
+        # TODO remove
+        subs = [subs[len(subs)-1]]
         for sub in subs:
             log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel}")
-            dir_path = os.path.join(self.base_dir_path, out_name)
             os.makedirs(dir_path, exist_ok=True)
 
             tasks = [
@@ -49,6 +55,8 @@ class HlsDownloader:
                 for elem in sub
             ]
             await asyncio.gather(*tasks)
+
+        merge_hls_chunks(dir_path, self.out_dir_path, name)
 
 
 def _get_urls(m3u8_url: str, qs: Optional[str] = None) -> List[str]:
