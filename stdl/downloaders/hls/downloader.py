@@ -28,8 +28,7 @@ class HlsDownloader:
             tmp_dir_path: str,
             out_dir_path: str,
             headers: Optional[dict] = None,
-            # parallel: Optional[int] = 50,
-            parallel: Optional[int] = 10,
+            parallel: Optional[int] = 30,
     ):
         self.headers = headers
         self.tmp_dir_path = tmp_dir_path
@@ -44,8 +43,6 @@ class HlsDownloader:
         dir_path = os.path.join(self.tmp_dir_path, name, title_name)
         urls = _get_urls(m3u8_url, qs)
         subs = sub_lists_with_idx(urls, self.parallel)
-        # TODO remove
-        subs = [subs[len(subs)-1]]
         for sub in subs:
             log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel}")
             os.makedirs(dir_path, exist_ok=True)
