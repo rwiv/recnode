@@ -10,3 +10,9 @@ data:
       uid: {{ .Values.chzzk.uid }}
       once: {{ .Values.chzzk.once }}
       cookies: {{ .Values.chzzk.cookies | quote }}
+    chzzkVideo:
+      videoNoList:
+      {{- range .Values.chzzk.videoNoList }}
+        - {{ printf "%.0f" . }}
+      {{- end }}
+      cookies: {{ .Values.chzzk.cookies | quote }}

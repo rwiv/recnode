@@ -3,7 +3,7 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.1.11
+  tag: 0.1.12
   pullSecret: image-pull-secret
 persistence:
   nfs:
@@ -24,5 +24,6 @@ reqType: chzzk_live
 chzzk:
   uid: foo
   once: false
+  videoNoList: []
   cookies: ""
 jobSuffix: foo
