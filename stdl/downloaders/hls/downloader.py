@@ -15,6 +15,7 @@ from stdl.utils.url import get_base_url
 
 buf_size = 8192
 retry_count = 5
+non_parallel_delay = 500
 
 
 class HttpError(Exception):
@@ -35,7 +36,7 @@ class HlsDownloader:
         self.out_dir_path = out_dir_path
         self.parallel = parallel
 
-    async def download(
+    async def download_parallel(
             self, m3u8_url: str, name: str, title: str,
             qs: Optional[str] = None,
     ):
@@ -52,6 +53,26 @@ class HlsDownloader:
                 for elem in sub
             ]
             await asyncio.gather(*tasks)
+
+        merge_hls_chunks(dir_path, self.out_dir_path, name)
+
+    async def download_non_parallel(
+            self, m3u8_url: str, name: str, title: str,
+            qs: Optional[str] = None,
+    ):
+        title_name = sanitize_filename(title)
+        dir_path = os.path.join(self.tmp_dir_path, name, title_name)
+        os.makedirs(dir_path, exist_ok=True)
+
+        urls = _get_urls(m3u8_url, qs)
+        cnt = 0
+        for i, url in enumerate(urls):
+            if cnt % 10 == 0:
+                log.info(f"{i}")
+                cnt = 0
+            await _download_file_wrapper(url, self.headers, i, dir_path)
+            time.sleep(non_parallel_delay / 1000)
+            cnt += 1
 
         merge_hls_chunks(dir_path, self.out_dir_path, name)
 

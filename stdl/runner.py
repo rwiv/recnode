@@ -56,7 +56,7 @@ class Runner:
         for i, m3u8_url in enumerate(req.urls):
             qs = get_query_string(m3u8_url)
             title = f"hls_{i}"
-            asyncio.run(hls.download(m3u8_url, "hls", title, qs))
+            asyncio.run(hls.download_parallel(m3u8_url, "hls", title, qs))
         print("end")
 
     def run_ytdl_video(self):

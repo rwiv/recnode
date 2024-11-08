@@ -19,7 +19,7 @@ class ChzzkVideoDownloaderLegacy:
 
     def download_one(self, video_no: int):
         m3u_url, qs, title, channelId = self._get_info(video_no)
-        asyncio.run(self.hls.download(m3u_url, channelId, title, qs))
+        asyncio.run(self.hls.download_non_parallel(m3u_url, channelId, title, qs))
 
     def _get_info(self, video_no: int) -> tuple[str, str, str, str]:
         res = self._request_video_info(video_no)
