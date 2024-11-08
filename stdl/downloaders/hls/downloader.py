@@ -15,7 +15,7 @@ from stdl.utils.url import get_base_url
 
 buf_size = 8192
 retry_count = 5
-non_parallel_delay = 500
+non_parallel_delay = 200
 
 
 class HttpError(Exception):
