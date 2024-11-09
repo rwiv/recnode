@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import time
 
 from stdl.config.config import read_app_config_by_file, read_app_config_by_env
 from stdl.config.env import get_env
@@ -30,7 +31,12 @@ class Runner:
         return conf
 
     def run(self):
+        if self.conf.startDelayMs > 0:
+            log.info(f"Start delay: {self.conf.startDelayMs}ms")
+            time.sleep(self.conf.startDelayMs / 1000)
+
         os.makedirs(self.env.out_dir_path, exist_ok=True)
+
         if self.conf.req_type() == RequestType.CHZZK_LIVE:
             self.run_chzzk_live()
         elif self.conf.req_type() == RequestType.CHZZK_VIDEO:
@@ -65,8 +71,16 @@ class Runner:
         print("end")
 
     def run_chzzk_video(self):
-        dl = ChzzkVideoDownloader(self.env.tmp_dir_path, self.env.out_dir_path, self.conf.chzzkVideo.cookies)
-        dl_l = ChzzkVideoDownloaderLegacy(self.env.tmp_dir_path, self.env.out_dir_path, self.conf.chzzkVideo.cookies)
+        env = self.env
+        vconf = self.conf.chzzkVideo
+        dl = ChzzkVideoDownloader(
+            env.tmp_dir_path, env.out_dir_path,
+            vconf.parallel, vconf.cookies,
+        )
+        dl_l = ChzzkVideoDownloaderLegacy(
+            env.tmp_dir_path, env.out_dir_path,
+            vconf.parallel, vconf.cookies,
+        )
 
         for video_no in self.conf.chzzkVideo.videoNoList:
             try:

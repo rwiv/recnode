@@ -4,3 +4,10 @@ global:
 persistence:
   storageClass: nfs-main1
   mountPath: /mnt/nfs
+vault:
+  mount: kube
+  refreshAfter: 30s
+  proton:
+    path: platform/proton
+    version: 1
+    secretName: stdl-sep-proton-secret

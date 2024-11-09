@@ -3,7 +3,7 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.1.12
+  tag: 0.1.13
   pullSecret: image-pull-secret
 persistence:
   nfs:
@@ -20,10 +20,16 @@ resources:
 configMap:
   namePrefix: stdl-once-conf-
   mountPath: /app/conf
-reqType: chzzk_live
+secret:
+  userKey: user
+  passwordKey: password
+app:
+  reqType: chzzk_live
+  startDelayMs: 0
 chzzk:
   uid: foo
   once: false
   videoNoList: []
+  videoParallel: true
   cookies: ""
 jobSuffix: foo

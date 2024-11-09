@@ -15,6 +15,7 @@ class RequestType(Enum):
 @dataclass
 class ChzzkVideoRequest:
     videoNoList: list[int]
+    parallel: bool
     cookies: Optional[str]
 
 

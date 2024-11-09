@@ -19,6 +19,7 @@ class AppConfig:
     twitchLive: Optional[TwitchLiveRequest]
     youtubeVideo: Optional[YtdlVideoRequest]
     hlsM3u8: Optional[HlsM3u8Request]
+    startDelayMs: int = 0
 
     def req_type(self) -> RequestType:
         return RequestType(self.reqType)

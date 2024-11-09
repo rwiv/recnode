@@ -12,15 +12,19 @@ from stdl.utils.http import get_headers
 
 class ChzzkVideoDownloader:
 
-    def __init__(self, tmp_dir: str, out_dir: str, cookie_str: Optional[str] = None):
+    def __init__(self, tmp_dir: str, out_dir: str, parallel: bool = False, cookie_str: Optional[str] = None):
         if cookie_str is None:
             raise ValueError("cookie_str is required")
         self.cookies = json.loads(cookie_str)
+        self.parallel = parallel
         self.hls = HlsDownloader(tmp_dir, out_dir, get_headers(self.cookies))
 
     def download_one(self, video_no: int):
         m3u8_url, title, channelId = self._get_info(video_no)
-        asyncio.run(self.hls.download_non_parallel(m3u8_url, channelId, title))
+        if self.parallel:
+            asyncio.run(self.hls.download_parallel(m3u8_url, channelId, title))
+        else:
+            asyncio.run(self.hls.download_non_parallel(m3u8_url, channelId, title))
 
     def _get_info(self, video_no: int) -> tuple[str, str, str]:
         res = self._request_video_info(video_no)

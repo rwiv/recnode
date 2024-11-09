@@ -5,7 +5,8 @@ metadata:
   namespace: {{ .Values.global.namespace }}
 data:
   conf.yaml: |
-    reqType: {{ .Values.reqType }}
+    reqType: {{ .Values.app.reqType }}
+    startDelayMs: {{ .Values.app.startDelayMs }}
     chzzkLive:
       uid: {{ .Values.chzzk.uid }}
       once: {{ .Values.chzzk.once }}
@@ -15,4 +16,5 @@ data:
       {{- range .Values.chzzk.videoNoList }}
         - {{ printf "%.0f" . }}
       {{- end }}
+      parallel: {{ .Values.chzzk.videoParallel }}
       cookies: {{ .Values.chzzk.cookies | quote }}
