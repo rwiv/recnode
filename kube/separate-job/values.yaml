@@ -12,7 +12,7 @@ persistence:
     mountPath: /mnt/ceph
     namePrefix: stdl-once-ceph-
     storageClass: rook-ceph-block
-    requests: 100Gi
+    requests: 200Gi
 resources:
   requests:
     cpu: 40m

@@ -8,7 +8,7 @@ spec:
     spec:
       containers:
         - name: gluetun
-          image: qmcgaw/gluetun:pr-2537
+          image: qmcgaw/gluetun:v3.39.1
           securityContext:
             capabilities:
               add: ["NET_ADMIN"]
