@@ -8,13 +8,15 @@ data:
     reqType: {{ .Values.app.reqType }}
     startDelayMs: {{ .Values.app.startDelayMs }}
     chzzkLive:
-      uid: {{ .Values.chzzk.uid }}
-      once: {{ .Values.chzzk.once }}
+      uid: {{ .Values.chzzk.live.uid }}
+      once: {{ .Values.chzzk.live.once }}
       cookies: {{ .Values.chzzk.cookies | quote }}
     chzzkVideo:
       videoNoList:
-      {{- range .Values.chzzk.videoNoList }}
+      {{- range .Values.chzzk.video.noList}}
         - {{ printf "%.0f" . }}
       {{- end }}
-      parallel: {{ .Values.chzzk.videoParallel }}
+      isParallel: {{ .Values.chzzk.video.isParallel }}
+      parallelNum: {{ .Values.chzzk.video.parallelNum }}
+      nonParallelDelayMs: {{ .Values.chzzk.video.nonParallelDelayMs }}
       cookies: {{ .Values.chzzk.cookies | quote }}

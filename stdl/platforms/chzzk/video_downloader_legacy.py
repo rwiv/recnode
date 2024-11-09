@@ -4,6 +4,7 @@ from xml.etree.ElementTree import fromstring, Element
 
 import requests
 
+from stdl.config.requests import ChzzkVideoRequest
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.utils.url import find_query_value_one, get_base_url
 from stdl.utils.http import get_headers
@@ -11,16 +12,19 @@ from stdl.utils.http import get_headers
 
 class ChzzkVideoDownloaderLegacy:
 
-    def __init__(self, tmp_dir: str, out_dir: str, parallel: bool = False, cookie_str: str = None):
+    def __init__(self, tmp_dir: str, out_dir: str, req: ChzzkVideoRequest):
         self.cookies = None
-        if cookie_str is not None:
-            self.cookies = json.loads(cookie_str)
-        self.parallel = parallel
-        self.hls = HlsDownloader(tmp_dir, out_dir, get_headers(self.cookies))
+        if req.cookies is not None:
+            self.cookies = json.loads(req.cookies)
+        self.req = req
+        self.hls = HlsDownloader(
+            tmp_dir, out_dir, get_headers(self.cookies),
+            req.parallelNum, req.nonParallelDelayMs,
+        )
 
     def download_one(self, video_no: int):
         m3u_url, qs, title, channelId = self._get_info(video_no)
-        if self.parallel:
+        if self.req.isParallel:
             asyncio.run(self.hls.download_parallel(m3u_url, channelId, title, qs))
         else:
             asyncio.run(self.hls.download_non_parallel(m3u_url, channelId, title, qs))

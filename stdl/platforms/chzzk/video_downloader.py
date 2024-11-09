@@ -1,10 +1,10 @@
 import asyncio
 import json
-from typing import Optional
 
 import requests
 from dacite import from_dict
 
+from stdl.config.requests import ChzzkVideoRequest
 from stdl.platforms.chzzk.type_playback import ChzzkPlayback
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.utils.http import get_headers
@@ -12,16 +12,19 @@ from stdl.utils.http import get_headers
 
 class ChzzkVideoDownloader:
 
-    def __init__(self, tmp_dir: str, out_dir: str, parallel: bool = False, cookie_str: Optional[str] = None):
-        if cookie_str is None:
+    def __init__(self, tmp_dir: str, out_dir: str, req: ChzzkVideoRequest):
+        if req.cookies is None:
             raise ValueError("cookie_str is required")
-        self.cookies = json.loads(cookie_str)
-        self.parallel = parallel
-        self.hls = HlsDownloader(tmp_dir, out_dir, get_headers(self.cookies))
+        self.cookies = json.loads(req.cookies)
+        self.req = req
+        self.hls = HlsDownloader(
+            tmp_dir, out_dir, get_headers(self.cookies),
+            req.parallelNum, req.nonParallelDelayMs,
+        )
 
     def download_one(self, video_no: int):
         m3u8_url, title, channelId = self._get_info(video_no)
-        if self.parallel:
+        if self.req.isParallel:
             asyncio.run(self.hls.download_parallel(m3u8_url, channelId, title))
         else:
             asyncio.run(self.hls.download_non_parallel(m3u8_url, channelId, title))

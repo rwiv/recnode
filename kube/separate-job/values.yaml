@@ -3,7 +3,7 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.1.13
+  tag: 0.1.14
   pullSecret: image-pull-secret
 persistence:
   nfs:
@@ -27,9 +27,13 @@ app:
   reqType: chzzk_live
   startDelayMs: 0
 chzzk:
-  uid: foo
-  once: false
-  videoNoList: []
-  videoParallel: true
+  live:
+    uid: foo
+    once: false
+  video:
+    noList: []
+    isParallel: true
+    parallelNum: 3
+    nonParallelDelayMs: 200
   cookies: ""
 jobSuffix: foo

@@ -15,15 +15,17 @@ class RequestType(Enum):
 @dataclass
 class ChzzkVideoRequest:
     videoNoList: list[int]
-    parallel: bool
-    cookies: Optional[str]
+    isParallel: bool
+    parallelNum: int = 3
+    nonParallelDelayMs: int = 200
+    cookies: Optional[str] = None
 
 
 @dataclass
 class ChzzkLiveRequest:
     uid: str
     once: bool
-    cookies: Optional[str]
+    cookies: Optional[str] = None
 
 
 @dataclass
@@ -36,7 +38,7 @@ class AfreecaLiveRequest:
 class TwitchLiveRequest:
     channelName: str
     once: bool
-    cookies: Optional[str]
+    cookies: Optional[str] = None
 
 
 @dataclass
@@ -47,4 +49,4 @@ class YtdlVideoRequest:
 @dataclass
 class HlsM3u8Request:
     urls: list[str]
-    cookies: Optional[str]
+    cookies: Optional[str] = None

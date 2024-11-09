@@ -15,7 +15,6 @@ from stdl.utils.url import get_base_url
 
 buf_size = 8192
 retry_count = 5
-non_parallel_delay = 200
 
 
 class HttpError(Exception):
@@ -29,12 +28,14 @@ class HlsDownloader:
             tmp_dir_path: str,
             out_dir_path: str,
             headers: Optional[dict] = None,
-            parallel: Optional[int] = 30,
+            parallel_num: Optional[int] = 3,
+            non_parallel_delay_ms: int = 0,
     ):
         self.headers = headers
         self.tmp_dir_path = tmp_dir_path
         self.out_dir_path = out_dir_path
-        self.parallel = parallel
+        self.parallel_num = parallel_num
+        self.non_parallel_delay_ms = non_parallel_delay_ms
 
     async def download_parallel(
             self, m3u8_url: str, name: str, title: str,
@@ -43,9 +44,9 @@ class HlsDownloader:
         title_name = sanitize_filename(title)
         dir_path = os.path.join(self.tmp_dir_path, name, title_name)
         urls = _get_urls(m3u8_url, qs)
-        subs = sub_lists_with_idx(urls, self.parallel)
+        subs = sub_lists_with_idx(urls, self.parallel_num)
         for sub in subs:
-            log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel}")
+            log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel_num}")
             os.makedirs(dir_path, exist_ok=True)
 
             tasks = [
@@ -71,7 +72,8 @@ class HlsDownloader:
                 log.info(f"{i}")
                 cnt = 0
             await _download_file_wrapper(url, self.headers, i, dir_path)
-            time.sleep(non_parallel_delay / 1000)
+            if self.non_parallel_delay_ms > 0:
+                time.sleep(self.non_parallel_delay_ms / 1000)
             cnt += 1
 
         merge_hls_chunks(dir_path, self.out_dir_path, name)

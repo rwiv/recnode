@@ -58,7 +58,11 @@ class Runner:
             headers = get_headers(json.loads(req.cookies))
         else:
             headers = get_headers()
-        hls = HlsDownloader(self.env.tmp_dir_path, self.env.out_dir_path, headers)
+
+        parallel_num = 30
+        hls = HlsDownloader(
+            self.env.tmp_dir_path, self.env.out_dir_path, headers, parallel_num,
+        )
         for i, m3u8_url in enumerate(req.urls):
             qs = get_query_string(m3u8_url)
             title = f"hls_{i}"
@@ -73,14 +77,8 @@ class Runner:
     def run_chzzk_video(self):
         env = self.env
         vconf = self.conf.chzzkVideo
-        dl = ChzzkVideoDownloader(
-            env.tmp_dir_path, env.out_dir_path,
-            vconf.parallel, vconf.cookies,
-        )
-        dl_l = ChzzkVideoDownloaderLegacy(
-            env.tmp_dir_path, env.out_dir_path,
-            vconf.parallel, vconf.cookies,
-        )
+        dl = ChzzkVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
+        dl_l = ChzzkVideoDownloaderLegacy(env.tmp_dir_path, env.out_dir_path, vconf)
 
         for video_no in self.conf.chzzkVideo.videoNoList:
             try:
