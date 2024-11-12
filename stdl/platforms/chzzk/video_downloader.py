@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 import requests
 from dacite import from_dict
@@ -24,10 +25,11 @@ class ChzzkVideoDownloader:
 
     def download_one(self, video_no: int):
         m3u8_url, title, channelId = self._get_info(video_no)
+        file_title = f"{str(time.time_ns() // 1000)[-6:]}_{title}"
         if self.req.isParallel:
-            asyncio.run(self.hls.download_parallel(m3u8_url, channelId, title))
+            asyncio.run(self.hls.download_parallel(m3u8_url, channelId, file_title))
         else:
-            asyncio.run(self.hls.download_non_parallel(m3u8_url, channelId, title))
+            asyncio.run(self.hls.download_non_parallel(m3u8_url, channelId, file_title))
 
     def _get_info(self, video_no: int) -> tuple[str, str, str]:
         res = self._request_video_info(video_no)

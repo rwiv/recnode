@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import subprocess
+import time
 from os.path import join
 
 import requests
@@ -43,7 +44,7 @@ class AfreecaVideoDownloader:
 
         list_path = f"{join(base_path, "list")}.txt"
         write_file(list_path, "\n".join([f"file '{f}'" for f in new_paths]))
-        out_path = join(base_path, f"{title}.mp4")
+        out_path = join(base_path, f"{str(time.time_ns() // 1000)[-6:]}_{title}.mp4")
         command = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", list_path, "-c", "copy", out_path]
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
