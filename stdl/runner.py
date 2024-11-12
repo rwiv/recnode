@@ -9,6 +9,7 @@ from stdl.config.requests import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.downloaders.ytdl.downloader import YtdlDownloader
 from stdl.platforms.afreeca.recorder import AfreecaLiveRecorder
+from stdl.platforms.afreeca.video_downloader import SoopVideoDownloader
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
@@ -43,6 +44,8 @@ class Runner:
             self.run_chzzk_video()
         elif self.conf.req_type() == RequestType.AFREECA_LIVE:
             self.run_afreeca_live()
+        elif self.conf.req_type() == RequestType.AFREECA_VIDEO:
+            self.run_afreeca_video()
         elif self.conf.req_type() == RequestType.TWITCH_LIVE:
             self.run_twitch_live()
         elif self.conf.req_type() == RequestType.YTDL_VIDEO:
@@ -79,12 +82,19 @@ class Runner:
         vconf = self.conf.chzzkVideo
         dl = ChzzkVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
         dl_l = ChzzkVideoDownloaderLegacy(env.tmp_dir_path, env.out_dir_path, vconf)
-
-        for video_no in self.conf.chzzkVideo.videoNoList:
+        for video_no in vconf.videoNoList:
             try:
                 dl.download_one(video_no)
             except TypeError:
                 dl_l.download_one(video_no)
+        print("end")
+
+    def run_afreeca_video(self):
+        env = self.env
+        vconf = self.conf.afreecaVideo
+        dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
+        for video_no in vconf.titleNoList:
+            dl.download_one(video_no)
         print("end")
 
     def run_chzzk_live(self):

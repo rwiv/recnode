@@ -7,6 +7,7 @@ class RequestType(Enum):
     CHZZK_VIDEO = "chzzk_video"
     CHZZK_LIVE = "chzzk_live"
     AFREECA_LIVE = "afreeca_live"
+    AFREECA_VIDEO = "afreeca_video"
     TWITCH_LIVE = "twitch_live"
     YTDL_VIDEO = "ytdl_video"
     HLS_M3U8 = "hls_m3u8"
@@ -32,6 +33,15 @@ class ChzzkLiveRequest:
 class AfreecaLiveRequest:
     userId: str
     once: bool
+
+
+@dataclass
+class AfreecaVideoRequest:
+    titleNoList: list[int]
+    isParallel: bool
+    parallelNum: int = 3
+    nonParallelDelayMs: int = 200
+    cookies: Optional[str] = None
 
 
 @dataclass

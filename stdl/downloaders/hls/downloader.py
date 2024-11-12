@@ -1,17 +1,15 @@
 import asyncio
 import os
 import time
-from typing import List, Optional
+from typing import Optional
 
 import aiohttp
-import requests
 
-from stdl.downloaders.hls.parser import parse_master_playlist, parse_media_playlist
-from stdl.downloaders.hls.utils import sub_lists_with_idx
+from stdl.downloaders.hls.hls_url_extractor import HlsUrlExtractor
 from stdl.downloaders.hls.merge import merge_hls_chunks
+from stdl.downloaders.hls.utils import sub_lists_with_idx
 from stdl.utils.file import sanitize_filename
 from stdl.utils.logger import log
-from stdl.utils.url import get_base_url
 
 buf_size = 8192
 retry_count = 5
@@ -30,12 +28,14 @@ class HlsDownloader:
             headers: Optional[dict] = None,
             parallel_num: Optional[int] = 3,
             non_parallel_delay_ms: int = 0,
+            url_extractor=HlsUrlExtractor(),
     ):
         self.headers = headers
         self.tmp_dir_path = tmp_dir_path
         self.out_dir_path = out_dir_path
         self.parallel_num = parallel_num
         self.non_parallel_delay_ms = non_parallel_delay_ms
+        self.url_extractor = url_extractor
 
     async def download_parallel(
             self, m3u8_url: str, name: str, title: str,
@@ -43,7 +43,7 @@ class HlsDownloader:
     ):
         title_name = sanitize_filename(title)
         dir_path = os.path.join(self.tmp_dir_path, name, title_name)
-        urls = _get_urls(m3u8_url, qs)
+        urls = self.url_extractor.get_urls(m3u8_url, qs)
         subs = sub_lists_with_idx(urls, self.parallel_num)
         for sub in subs:
             log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel_num}")
@@ -64,8 +64,7 @@ class HlsDownloader:
         title_name = sanitize_filename(title)
         dir_path = os.path.join(self.tmp_dir_path, name, title_name)
         os.makedirs(dir_path, exist_ok=True)
-
-        urls = _get_urls(m3u8_url, qs)
+        urls = self.url_extractor.get_urls(m3u8_url, qs)
         cnt = 0
         for i, url in enumerate(urls):
             if cnt % 10 == 0:
@@ -77,26 +76,6 @@ class HlsDownloader:
             cnt += 1
 
         merge_hls_chunks(dir_path, self.out_dir_path, name)
-
-
-def _get_urls(m3u8_url: str, qs: Optional[str] = None) -> List[str]:
-    m3u8 = requests.get(m3u8_url).text
-    pl = parse_master_playlist(m3u8)
-
-    if len(pl.resolutions) == 0:
-        raise ValueError("No resolutions found")
-
-    r = pl.resolutions[0]
-    for cur in pl.resolutions:
-        if cur.resolution > r.resolution:
-            r = cur
-
-    base_url = f"{get_base_url(m3u8_url)}/{r.name}"
-    if qs is not None and qs != "":
-        base_url += f"?{qs}"
-    m3u8 = requests.get(base_url).text
-    pl = parse_media_playlist(m3u8, get_base_url(base_url), qs)
-    return pl.segment_paths
 
 
 async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
