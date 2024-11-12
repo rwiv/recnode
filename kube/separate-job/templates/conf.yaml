@@ -20,3 +20,12 @@ data:
       parallelNum: {{ .Values.chzzk.video.parallelNum }}
       nonParallelDelayMs: {{ .Values.chzzk.video.nonParallelDelayMs }}
       cookies: {{ .Values.chzzk.cookies | quote }}
+    afreecaVideo:
+      titleNoList:
+      {{- range .Values.afreeca.video.noList}}
+        - {{ printf "%.0f" . }}
+      {{- end }}
+      isParallel: {{ .Values.afreeca.video.isParallel }}
+      parallelNum: {{ .Values.afreeca.video.parallelNum }}
+      nonParallelDelayMs: {{ .Values.afreeca.video.nonParallelDelayMs }}
+      cookies: {{ .Values.afreeca.cookies | quote }}

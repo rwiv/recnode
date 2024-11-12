@@ -35,5 +35,12 @@ chzzk:
     isParallel: true
     parallelNum: 3
     nonParallelDelayMs: 200
-  cookies: ""
+  cookies: ~
+afreeca:
+  video:
+    noList: []
+    isParallel: true
+    parallelNum: 3
+    nonParallelDelayMs: 200
+  cookies: ~
 jobSuffix: foo
