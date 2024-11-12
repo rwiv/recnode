@@ -20,7 +20,7 @@ def merge_hls_chunks(tmp_chunks_path: str, out_dir_path: str, name: str):
 
     # convert ts to mp4
     mp4_path = f"{tmp_chunks_path}.mp4"
-    command = ['ffmpeg', '-i', merged_ts_path, '-c', 'copy', mp4_path]
+    command = ["ffmpeg", "-i", merged_ts_path, "-c", "copy", mp4_path]
     subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     os.remove(merged_ts_path)
 
