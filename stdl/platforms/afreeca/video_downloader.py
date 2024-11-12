@@ -42,7 +42,7 @@ class AfreecaVideoDownloader:
         for i, out_path in enumerate(out_paths):
             os.rename(out_path, new_paths[i])
 
-        list_path = f"{join(base_path, "list")}.txt"
+        list_path = join(base_path, "list.txt")
         write_file(list_path, "\n".join([f"file '{f}'" for f in new_paths]))
         out_path = join(base_path, f"{str(time.time_ns() // 1000)[-6:]}_{title}.mp4")
         command = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", list_path, "-c", "copy", out_path]
