@@ -9,7 +9,7 @@ from stdl.platforms.afreeca.afreeca_hls_url_extractor import AfreecaHlsUrlExtrac
 from stdl.utils.http import get_headers
 
 
-class SoopVideoDownloader:
+class AfreecaVideoDownloader:
     def __init__(self, tmp_dir: str, out_dir: str, req: AfreecaVideoRequest):
         self.cookies = None
         if req.cookies is not None:

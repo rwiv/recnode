@@ -9,7 +9,7 @@ from stdl.config.requests import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.downloaders.ytdl.downloader import YtdlDownloader
 from stdl.platforms.afreeca.recorder import AfreecaLiveRecorder
-from stdl.platforms.afreeca.video_downloader import SoopVideoDownloader
+from stdl.platforms.afreeca.video_downloader import AfreecaVideoDownloader
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
@@ -92,7 +92,7 @@ class Runner:
     def run_afreeca_video(self):
         env = self.env
         vconf = self.conf.afreecaVideo
-        dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
+        dl = AfreecaVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
         for video_no in vconf.titleNoList:
             dl.download_one(video_no)
         print("end")
