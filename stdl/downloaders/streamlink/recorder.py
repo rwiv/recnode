@@ -1,7 +1,6 @@
 import os
 import shutil
 import signal
-import threading
 import time
 
 from stdl.downloaders.hls.merge import merge_hls_chunks
@@ -48,52 +47,39 @@ class StreamRecorder:
     def __record_once(self):
         while True:
             self.__lock()
-
-            tmp_chunks_path = self.__record()
-            thread = self.__postprocess_async(tmp_chunks_path)
-
+            chunks_path = self.__record()
+            self.__postprocess_async(chunks_path)
             self.__unlock()
-            if thread is not None:
-                thread.join()
 
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
                 break
-
         log.info("End Record", {"latest_state": self.streamlink.state.name})
 
     def __record_endless(self):
         self.__lock()
-
         while True:
-            tmp_chunks_path = self.__record()
-            self.__postprocess_async(tmp_chunks_path)
+            chunks_path = self.__record()
+            self.__postprocess_async(chunks_path)
             time.sleep(self.restart_delay_sec)
             log.info("Restart Record", {"latest_state": self.streamlink.state.name})
 
     def __record(self) -> str:
         streams = self.streamlink.wait_for_live()
         log.info("Stream Start")
-
         return self.streamlink.record(streams)
 
-    def __postprocess_async(self, tmp_chunks_path: str):
-        thread = None
-        if len(os.listdir(tmp_chunks_path)) < self.chunk_threshold:
+    def __postprocess_async(self, chunks_path: str):
+        if len(os.listdir(chunks_path)) < self.chunk_threshold:
             # Remove chunks if not enough
-            dirname = os.path.basename(tmp_chunks_path)
-            log.info("Skip postprocess chunks", {"dirname": dirname})
-            shutil.rmtree(f"{self.out_dir_path}/{self.name}/{dirname}")
-            shutil.rmtree(tmp_chunks_path)
+            log.info("Skip postprocess chunks")
+            shutil.rmtree(chunks_path)
         else:
-            # Merge chunks
-            thread = threading.Thread(
-                target=merge_hls_chunks,
-                args=(tmp_chunks_path, self.out_dir_path, self.name),
-            )
-            thread.daemon = True
-            thread.start()
-        return thread
+            # move to tmp dir
+            tmp_chunks_path = chunks_path.replace(self.out_dir_path, self.tmp_dir_path)
+            shutil.copytree(chunks_path, tmp_chunks_path)
+            merge_hls_chunks(tmp_chunks_path, self.out_dir_path, self.name)
+            shutil.rmtree(chunks_path)
 
     def __lock(self):
         write_file(self.lock_path, "")

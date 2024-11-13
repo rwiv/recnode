@@ -1,7 +1,5 @@
 import os
 
-from stdl.utils.logger import log
-
 
 def write_bfile(file_path: str, data: bytes, dir_check: bool = True):
     if dir_check:
@@ -26,6 +24,7 @@ def sanitize_filename(filename: str) -> str:
     return (filename
             .replace("?", "？")
             .replace("/", "／")
+            .replace("\\", "＼")
             .replace(":", "：")
             .replace("*", "＊")
             .replace('"', "＂")

@@ -1,7 +1,6 @@
 import json
 import os
 import sys
-import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -40,7 +39,6 @@ class StreamlinkManager:
         self.url = args.url
         self.name = args.name
         self.out_dir_path = args.out_dir_path
-        self.tmp_dir_path = args.tmp_dir_path
         self.cookies = args.cookies
         self.options = args.options
 
@@ -83,7 +81,6 @@ class StreamlinkManager:
     def record(self, streams: dict[str, HLSStream]) -> str:
         formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         out_dir_path = f"{self.out_dir_path}/{self.name}/{formatted_time}"
-        tmp_dir_path = f"{self.tmp_dir_path}/{self.name}/{formatted_time}"
 
         input_stream: HLSStreamReader = streams["best"].open()
         self.state = RecordState.RECORDING
@@ -92,8 +89,6 @@ class StreamlinkManager:
 
         if not os.path.exists(out_dir_path):
             os.makedirs(out_dir_path)
-        if not os.path.exists(tmp_dir_path):
-            os.makedirs(tmp_dir_path)
 
         log.info("Start recording")
         while True:
@@ -107,13 +102,6 @@ class StreamlinkManager:
                 continue
 
             idx += 1
-            write_bfile(f"{tmp_dir_path}/{idx}.ts", data, False)
+            write_bfile(f"{out_dir_path}/{idx}.ts", data, False)
 
-            thread = threading.Thread(
-                target=write_bfile,
-                args=(f"{out_dir_path}/{idx}.ts", data, False),
-            )
-            thread.daemon = True
-            thread.start()
-
-        return tmp_dir_path
+        return out_dir_path

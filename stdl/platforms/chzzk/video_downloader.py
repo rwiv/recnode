@@ -1,6 +1,6 @@
 import asyncio
 import json
-import time
+import random
 
 import requests
 from dacite import from_dict
@@ -25,7 +25,8 @@ class ChzzkVideoDownloader:
 
     def download_one(self, video_no: int):
         m3u8_url, title, channelId = self._get_info(video_no)
-        file_title = f"{str(time.time_ns() // 1000)[-6:]}_{title}"
+        rand_num = random.randint(100000, 999999)
+        file_title = f"{rand_num}_{title}"
         if self.req.isParallel:
             asyncio.run(self.hls.download_parallel(m3u8_url, channelId, file_title))
         else:

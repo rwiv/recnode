@@ -42,40 +42,40 @@ class HlsDownloader:
             qs: Optional[str] = None,
     ):
         title_name = sanitize_filename(title)
-        dir_path = os.path.join(self.tmp_dir_path, name, title_name)
+        chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
         urls = self.url_extractor.get_urls(m3u8_url, qs)
         subs = sub_lists_with_idx(urls, self.parallel_num)
         for sub in subs:
             log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel_num}")
-            os.makedirs(dir_path, exist_ok=True)
+            os.makedirs(chunks_path, exist_ok=True)
 
             tasks = [
-                _download_file_wrapper(elem.value, self.headers, elem.idx, dir_path)
+                _download_file_wrapper(elem.value, self.headers, elem.idx, chunks_path)
                 for elem in sub
             ]
             await asyncio.gather(*tasks)
 
-        merge_hls_chunks(dir_path, self.out_dir_path, name)
+        merge_hls_chunks(chunks_path, self.out_dir_path, name)
 
     async def download_non_parallel(
             self, m3u8_url: str, name: str, title: str,
             qs: Optional[str] = None,
     ):
         title_name = sanitize_filename(title)
-        dir_path = os.path.join(self.tmp_dir_path, name, title_name)
-        os.makedirs(dir_path, exist_ok=True)
+        chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
+        os.makedirs(chunks_path, exist_ok=True)
         urls = self.url_extractor.get_urls(m3u8_url, qs)
         cnt = 0
         for i, url in enumerate(urls):
             if cnt % 10 == 0:
                 log.info(f"{i}")
                 cnt = 0
-            await _download_file_wrapper(url, self.headers, i, dir_path)
+            await _download_file_wrapper(url, self.headers, i, chunks_path)
             if self.non_parallel_delay_ms > 0:
                 time.sleep(self.non_parallel_delay_ms / 1000)
             cnt += 1
 
-        merge_hls_chunks(dir_path, self.out_dir_path, name)
+        merge_hls_chunks(chunks_path, self.out_dir_path, name)
 
 
 async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
