@@ -65,4 +65,4 @@ class AfreecaVideoDownloader:
             "nTitleNo": title_no, "nApiLevel": 10, "nPlaylistIdx": 0,
         }).json()
         data = res["data"]
-        return [f["file"] for f in data["files"]], data["full_title"], data["bj_id"]
+        return [f["file"] for f in data["files"]], data["full_title"].strip(), data["bj_id"]
