@@ -1,6 +1,6 @@
 from typing import Optional
 
-from streamlink.plugins.afreeca import AfreecaTV
+from streamlink.plugins.soop import Soop
 
 from stdl.downloaders.streamlink.recorder import StreamRecorder
 from stdl.downloaders.streamlink.stream import StreamlinkArgs
@@ -17,15 +17,18 @@ class AfreecaLiveRecorder(StreamRecorder):
             once: bool,
             cred: Optional[AfreecaCredential] = None,
     ):
-        args = StreamlinkArgs(
-            url=f"https://play.afreecatv.com/{user_id}",
-            name=user_id,
-            out_dir_path=out_dir_path,
-            tmp_dir_path=tmp_dir_path,
-            options=cred.to_options(),
-        )
+        url = f"https://play.sooplive.co.kr/{user_id}"
+        if cred is not None:
+            args = StreamlinkArgs(
+                url=url, name=user_id, out_dir_path=out_dir_path, tmp_dir_path=tmp_dir_path,
+                options=cred.to_dict(),
+            )
+        else:
+            args = StreamlinkArgs(
+                url=url, name=user_id, out_dir_path=out_dir_path, tmp_dir_path=tmp_dir_path,
+            )
         super().__init__(args, once)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()
-        AfreecaTV(session, self.streamlink.url).clear_cookies()
+        Soop(session, self.streamlink.url).clear_cookies()

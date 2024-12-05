@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from stdl.platforms.afreeca.types import AfreecaCredential
+
 
 class RequestType(Enum):
     CHZZK_VIDEO = "chzzk_video"
@@ -33,6 +35,7 @@ class ChzzkLiveRequest:
 class AfreecaLiveRequest:
     userId: str
     once: bool
+    cred: Optional[AfreecaCredential] = None
 
 
 @dataclass

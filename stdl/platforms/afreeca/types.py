@@ -6,7 +6,7 @@ class AfreecaCredential:
     username: str
     password: str
 
-    def to_options(self) -> dict:
+    def to_dict(self) -> dict:
         return {
             "username": self.username,
             "password": self.password,

@@ -15,6 +15,10 @@ from streamlink.stream.hls import HLSStreamReader
 from stdl.utils.file import write_bfile
 from stdl.utils.logger import log, get_error_info
 
+retry_count = 5
+buf_size = sys.maxsize
+# buf_size = 4 * 1024 * 1024
+
 
 class RecordState(Enum):
     WAIT = 0
@@ -97,7 +101,14 @@ class StreamlinkManager:
                 self.state = RecordState.DONE
                 break
 
-            data: bytes = input_stream.read(sys.maxsize)
+            data = b""
+            for i in range(retry_count):
+                try:
+                    data: bytes = input_stream.read(buf_size)
+                    break
+                except Exception as e:
+                    print(f"HTTP Error: cnt={i} error={e}")
+
             if len(data) == 0:
                 continue
 

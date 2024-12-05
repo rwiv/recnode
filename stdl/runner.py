@@ -115,7 +115,7 @@ class Runner:
         req = self.conf.afreecaLive
         recorder = AfreecaLiveRecorder(
             req.userId, self.env.out_dir_path, self.env.tmp_dir_path,
-            req.once, self.env.afreeca_credential,
+            req.once, req.cred,
         )
         recorder.record()
 
