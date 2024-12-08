@@ -111,6 +111,8 @@ class Runner:
 
     def run_afreeca_live(self):
         disable_streamlink_log()
+        url = f"https://ch.sooplive.co.kr/{self.conf.afreecaLive.userId}"
+        log.info(f"Start record: {url}")
         log.info("Conf", self.conf.to_dict())
         req = self.conf.afreecaLive
         recorder = AfreecaLiveRecorder(
