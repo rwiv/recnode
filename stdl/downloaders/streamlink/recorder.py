@@ -41,15 +41,14 @@ class StreamRecorder:
             self.__unlock()
         except:
             self.__unlock()
-            log.info("Unlock")
             raise
 
     def __record_once(self):
         while True:
             self.__lock()
             chunks_path = self.__record()
-            self.__postprocess_async(chunks_path)
             self.__unlock()
+            self.__postprocess_async(chunks_path)
 
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
@@ -86,6 +85,7 @@ class StreamRecorder:
 
     def __unlock(self):
         delete_file(self.lock_path)
+        log.info("Unlock")
 
     def __is_locked(self):
         return os.path.exists(self.lock_path)
