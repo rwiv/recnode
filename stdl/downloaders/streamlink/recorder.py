@@ -79,7 +79,8 @@ class StreamRecorder:
             if os.path.exists(tmp_chunks_path) is False:
                 shutil.copytree(chunks_path, tmp_chunks_path)
             merge_hls_chunks(tmp_chunks_path, self.out_dir_path, self.name)
-            shutil.rmtree(chunks_path)
+            if os.path.exists(chunks_path):
+                shutil.rmtree(chunks_path)
 
     def __lock(self):
         write_file(self.lock_path, "")
