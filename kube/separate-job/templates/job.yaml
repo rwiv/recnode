@@ -37,14 +37,15 @@ spec:
             - name: OUT_DIR_PATH
               value: {{ .Values.persistence.nfs.mountPath }}
             - name: TMP_DIR_PATH
-              value: {{ .Values.persistence.ceph.mountPath }}
+{{/*              value: {{ .Values.persistence.ceph.mountPath }}*/}}
+              value: {{ .Values.persistence.nfs.mountPath }}
             - name: PY_ENV
               value: prod
           volumeMounts:
             - name: nfs
               mountPath: {{ .Values.persistence.nfs.mountPath }}
-            - name: ceph
-              mountPath: {{ .Values.persistence.ceph.mountPath }}
+{{/*            - name: ceph*/}}
+{{/*              mountPath: {{ .Values.persistence.ceph.mountPath }}*/}}
             - name: conf
               mountPath: {{ .Values.configMap.mountPath }}
               readOnly: true
@@ -58,12 +59,17 @@ spec:
         - name: nfs
           persistentVolumeClaim:
             claimName: {{ .Values.global.name }}
-        - name: ceph
-          persistentVolumeClaim:
-            claimName: {{ .Values.persistence.ceph.namePrefix }}{{ .Values.jobSuffix }}
+{{/*        - name: ceph*/}}
+{{/*          persistentVolumeClaim:*/}}
+{{/*            claimName: {{ .Values.persistence.ceph.namePrefix }}{{ .Values.jobSuffix }}*/}}
         - name: conf
           configMap:
             name: {{ .Values.configMap.namePrefix }}{{ .Values.jobSuffix }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions: [{ key: memory, operator: In, values: [high] }]
       tolerations:
         - effect: NoSchedule
           operator: Exists

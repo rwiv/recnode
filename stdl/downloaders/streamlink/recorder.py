@@ -76,7 +76,8 @@ class StreamRecorder:
         else:
             # move to tmp dir
             tmp_chunks_path = chunks_path.replace(self.out_dir_path, self.tmp_dir_path)
-            shutil.copytree(chunks_path, tmp_chunks_path)
+            if os.path.exists(tmp_chunks_path) is False:
+                shutil.copytree(chunks_path, tmp_chunks_path)
             merge_hls_chunks(tmp_chunks_path, self.out_dir_path, self.name)
             shutil.rmtree(chunks_path)
 

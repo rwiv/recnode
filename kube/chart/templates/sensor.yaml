@@ -23,16 +23,16 @@ spec:
                 generateName: {{ .Values.global.name }}-
               spec:
                 entrypoint: main
-                volumeClaimTemplates:
-                  - metadata:
-                      name: stdl-ceph
-                    spec:
-                      storageClassName: {{ .Values.persistence.ceph.storageClass }}
-                      accessModes:
-                        - ReadWriteOnce
-                      resources:
-                        requests:
-                          storage: {{ .Values.persistence.ceph.requests }}
+{{/*                volumeClaimTemplates:*/}}
+{{/*                  - metadata:*/}}
+{{/*                      name: stdl-ceph*/}}
+{{/*                    spec:*/}}
+{{/*                      storageClassName: {{ .Values.persistence.ceph.storageClass }}*/}}
+{{/*                      accessModes:*/}}
+{{/*                        - ReadWriteOnce*/}}
+{{/*                      resources:*/}}
+{{/*                        requests:*/}}
+{{/*                          storage: {{ .Values.persistence.ceph.requests }}*/}}
                 imagePullSecrets:
                   - name: {{ .Values.image.pullSecret }}
                 arguments:
@@ -52,14 +52,15 @@ spec:
                         - name: OUT_DIR_PATH
                           value: {{ .Values.persistence.nfs.mountPath }}
                         - name: TMP_DIR_PATH
-                          value: {{ .Values.persistence.ceph.mountPath }}
+                          value: {{ .Values.persistence.nfs.mountPath }}
+{{/*                          value: {{ .Values.persistence.ceph.mountPath }}*/}}
                         - name: PY_ENV
                           value: prod
                       volumeMounts:
                         - name: stdl-nfs
                           mountPath: {{ .Values.persistence.nfs.mountPath }}
-                        - name: stdl-ceph
-                          mountPath: {{ .Values.persistence.ceph.mountPath }}
+{{/*                        - name: stdl-ceph*/}}
+{{/*                          mountPath: {{ .Values.persistence.ceph.mountPath }}*/}}
                       resources:
                         requests:
                           cpu: {{ .Values.resources.requests.cpu }}
@@ -68,6 +69,11 @@ spec:
                       - name: stdl-nfs
                         persistentVolumeClaim:
                           claimName: {{ .Values.persistence.nfs.pvcName }}
+                    affinity:
+                      nodeAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                          nodeSelectorTerms:
+                            - matchExpressions: [{ key: memory, operator: In, values: [high] }]
                     tolerations:
                       - effect: NoSchedule
                         operator: Exists
