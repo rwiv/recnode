@@ -1,8 +1,6 @@
 cd ..
-set IMG=harbor.rwiv.xyz/test/stdl:0.0.0
+set IMG=harbor.rwiv.xyz/private/stdl:0.1.21
 set DOCKERFILE=./docker/Dockerfile
-
-docker rmi %IMG%
 
 docker build -t %IMG% -f %DOCKERFILE% .
 docker push %IMG%
