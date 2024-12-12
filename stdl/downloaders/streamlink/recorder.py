@@ -49,6 +49,8 @@ class StreamRecorder:
             chunks_path = self.__record()
             self.__unlock()
             self.__postprocess_async(chunks_path)
+            if self.__is_locked():
+                break
 
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
