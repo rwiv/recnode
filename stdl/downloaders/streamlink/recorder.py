@@ -37,8 +37,6 @@ class StreamRecorder:
                 self.__record_once()
             else:
                 self.__record_endless()
-
-            self.__unlock()
         except:
             self.__unlock()
             raise
