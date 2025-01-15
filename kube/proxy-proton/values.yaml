@@ -22,7 +22,7 @@ resources:
 workflow:
   webhook:
     endpoint: /stdl-proton
-    port: 12001
+    port: 12000
     method: POST
 secret:
   userKey: user
