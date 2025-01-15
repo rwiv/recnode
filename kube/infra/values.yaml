@@ -1,5 +1,5 @@
 global:
-  name: stdl-sep
+  name: stdl
   namespace: media
 persistence:
   storageClass: nfs-main1
@@ -10,4 +10,4 @@ vault:
   proton:
     path: platform/proton
     version: 1
-    secretName: stdl-sep-proton-secret
+    secretName: stdl-proton-secret

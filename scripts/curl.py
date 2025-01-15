@@ -24,10 +24,10 @@ def create_req(req_type: str, userid: str, once: bool = True):
         raise ValueError(f"Unknown request type: {req_type}")
 
 
-def request(host: str, data: dict):
+def request(host: str, data: dict, path: str = "/stdl"):
     conn = http.client.HTTPConnection(host)
     conn.request(
-        "POST", "/stdl", json.dumps(data),
+        "POST", path, json.dumps(data),
         {"Content-Type": "application/json"}
     )
     return conn.getresponse()
@@ -36,4 +36,5 @@ def request(host: str, data: dict):
 if __name__ == "__main__":
     req = create_req(sys.argv[2], sys.argv[3], True)
     res = request(sys.argv[1], req)
+    # res = request(sys.argv[1], req, "/stdl-proton")
     print(f"{res.status} {res.reason}")

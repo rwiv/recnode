@@ -5,6 +5,9 @@ image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.2.1
   pullSecret: image-pull-secret
+gluetun:
+  repository: qmcgaw/gluetun
+  tag: v3.40
 persistence:
   nfs:
     mountPath: /mnt/nfs

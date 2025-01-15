@@ -1,5 +1,0 @@
-apiVersion: v2
-name: stdl-separate-job
-description: stdl-separate-job
-type: application
-version: 0.1.0

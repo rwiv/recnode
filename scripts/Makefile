@@ -1,8 +1,8 @@
-sep-infra-run:
-	helm install stdl-sep-infra ../kube/separate-infra -n media
+infra-run:
+	helm install stdl-infra ../kube/infra -n media
 
-sep-infra-rm:
-	helm uninstall stdl-sep-infra -n media
+infra-rm:
+	helm uninstall stdl-infra -n media
 
 sep-infra-up:
 	helm upgrade stdl-sep-infra ../kube/separate-infra -n media

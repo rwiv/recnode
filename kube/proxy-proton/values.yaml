@@ -1,10 +1,14 @@
 global:
   name: stdl
   namespace: media
+  suffix: proton
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.0.0
+  tag: 0.2.1
   pullSecret: image-pull-secret
+gluetun:
+  repository: qmcgaw/gluetun
+  tag: v3.40
 persistence:
   nfs:
     pvcName: stdl
@@ -17,6 +21,9 @@ resources:
     memory: 200Mi
 workflow:
   webhook:
-    endpoint: /stdl
-    port: 12000
+    endpoint: /stdl-proton
+    port: 12001
     method: POST
+secret:
+  userKey: user
+  passwordKey: password

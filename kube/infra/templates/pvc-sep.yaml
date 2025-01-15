@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.global.name }}
+  name: {{ .Values.global.name }}-sep
   namespace: {{ .Values.global.namespace }}
 spec:
   storageClassName: {{ .Values.persistence.storageClass }}
