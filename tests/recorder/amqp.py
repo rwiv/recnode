@@ -35,6 +35,5 @@ async def test_amqp():
         body=json.dumps({"message": "hello World!", "author": "john"}),
     )
 
-    await asyncio.sleep(3)
-
     amqp.close()
+    await asyncio.sleep(3)

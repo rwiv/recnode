@@ -18,27 +18,31 @@ class Amqp:
         self.ch: Optional[Channel] = None
 
     async def connect(self) -> AsyncioConnection:
-        loop = asyncio.get_event_loop()
-        future = loop.create_future()
+        future = asyncio.get_event_loop().create_future()
 
         def on_open(conn: AsyncioConnection):
-            if not future.done():
-                future.set_result(conn)
+            future.set_result(conn)
 
-        AsyncioConnection(pika.URLParameters(self.url), on_open_callback=on_open)
+        def on_error(conn: AsyncioConnection, err: BaseException):
+            future.set_exception(err)
+
+        AsyncioConnection(
+            pika.URLParameters(self.url),
+            on_open_callback=on_open,
+            on_open_error_callback=on_error,
+        )
         self.conn = await future
         return self.conn
 
     async def create_channel(self) -> Channel:
-        loop = asyncio.get_event_loop()
-        future = loop.create_future()
+        future = asyncio.get_event_loop().create_future()
 
         def on_open(channel: Channel):
-            if not future.done():
-                future.set_result(channel)
+            future.set_result(channel)
 
         self.conn.channel(on_open_callback=on_open)
-        return await future
+        self.ch = await future
+        return self.ch
 
     async def consume(self, callback: Callable[[Channel, Basic.Deliver, BasicProperties, bytes], None]):
         self.ch = await self.create_channel()
