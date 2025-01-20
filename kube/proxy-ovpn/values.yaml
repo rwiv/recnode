@@ -1,0 +1,28 @@
+global:
+  name: stdl
+  namespace: media
+  suffix: sub
+image:
+  repository: harbor.rwiv.xyz/private/stdl
+  tag: 0.2.1
+  pullSecret: image-pull-secret
+gluetun:
+  repository: qmcgaw/gluetun
+  tag: v3.40
+persistence:
+  nfs:
+    pvcName: stdl
+    storageClass: nfs-main1
+    mountPath: /mnt/nfs
+    requests: 2000Gi
+resources:
+  requests:
+    cpu: 40m
+    memory: 200Mi
+workflow:
+  webhook:
+    endpoint: /stdl-sub
+    port: 12000
+    method: POST
+configmap:
+  confFilePath: conf/client.ovpn

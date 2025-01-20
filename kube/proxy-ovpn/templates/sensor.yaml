@@ -1,0 +1,99 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Sensor
+metadata:
+  name: {{ .Values.global.name }}-{{ .Values.global.suffix }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  template:
+    serviceAccountName: operate-workflow-sa
+  dependencies:
+    - name: dep
+      eventSourceName: webhook-{{ .Values.global.suffix }}
+      eventName: {{ .Values.global.name }}
+  triggers:
+    - template:
+        name: stdl-workflow-trigger
+        k8s:
+          operation: create
+          source:
+            resource:
+              apiVersion: argoproj.io/v1alpha1
+              kind: Workflow
+              metadata:
+                generateName: {{ .Values.global.name }}-{{ .Values.global.suffix }}-
+              spec:
+                entrypoint: main
+                imagePullSecrets:
+                  - name: {{ .Values.image.pullSecret }}
+                arguments:
+                  parameters:
+                    - name: message
+                      value: hello
+                templates:
+                  - name: main
+                    inputs:
+                      parameters:
+                        - name: message
+                    container:
+                      image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+                      env:
+                        - name: APP_CONFIG
+                          value: "{{`{{inputs.parameters.message}}`}}"
+                        - name: OUT_DIR_PATH
+                          value: {{ .Values.persistence.nfs.mountPath }}
+                        - name: TMP_DIR_PATH
+                          value: {{ .Values.persistence.nfs.mountPath }}
+                        - name: PY_ENV
+                          value: prod
+                      volumeMounts:
+                        - name: stdl-nfs
+                          mountPath: {{ .Values.persistence.nfs.mountPath }}
+                      resources:
+                        requests:
+                          cpu: {{ .Values.resources.requests.cpu }}
+                          memory: {{ .Values.resources.requests.memory }}
+                    sidecars:
+                      - name: gluetun
+                        image: {{ .Values.gluetun.repository }}:{{ .Values.gluetun.tag }}
+                        securityContext:
+                          capabilities:
+                            add: ["NET_ADMIN"]
+                        env:
+                          - name: VPN_SERVICE_PROVIDER
+                            value: "custom"
+                          - name: VPN_TYPE
+                            value: "openvpn"
+                          - name: OPENVPN_CUSTOM_CONFIG
+                            value: "/ovpn/client.ovpn"
+                          - name: DNS_KEEP_NAMESERVER
+                            value: "on"
+                          - name: FIREWALL_OUTBOUND_SUBNETS
+                            value: "10.43.0.0/16"
+                        volumeMounts:
+                          - name: ovpn-conf
+                            mountPath: /ovpn
+                            readOnly: true
+                    volumes:
+                      - name: stdl-nfs
+                        persistentVolumeClaim:
+                          claimName: {{ .Values.persistence.nfs.pvcName }}
+                      - name: ovpn-conf
+                        configMap:
+                          name: {{ .Values.global.name }}-{{ .Values.global.suffix }}
+                    affinity:
+                      nodeAffinity:
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                          nodeSelectorTerms:
+                            - matchExpressions: [{ key: memory, operator: In, values: [high] }]
+                    tolerations:
+                      - effect: NoSchedule
+                        operator: Exists
+                      - key: CriticalAddonsOnly
+                        operator: Exists
+                      - effect: NoExecute
+                        operator: Exists
+          parameters:
+            - src:
+                dependencyName: dep
+                dataKey: body
+              dest: spec.arguments.parameters.0.value
