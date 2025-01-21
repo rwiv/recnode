@@ -63,6 +63,18 @@ spec:
                             value: "custom"
                           - name: VPN_TYPE
                             value: "openvpn"
+                          {{- if .Values.ovpn.secretName }}
+                          - name: OPENVPN_USER
+                            valueFrom:
+                              secretKeyRef:
+                                name: {{ .Values.ovpn.secretName }}
+                                key: {{ .Values.ovpn.userKey }}
+                          - name: OPENVPN_PASSWORD
+                            valueFrom:
+                              secretKeyRef:
+                                name: {{ .Values.ovpn.secretName }}
+                                key: {{ .Values.ovpn.passwordKey }}
+                          {{- end }}
                           - name: OPENVPN_CUSTOM_CONFIG
                             value: "/ovpn/client.ovpn"
                           - name: DNS_KEEP_NAMESERVER

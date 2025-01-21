@@ -8,15 +8,28 @@ infra-up:
 	helm upgrade stdl-infra ../kube/infra -n media
 
 proton-run:
-	helm install stdl-proxy-proton ../kube/proxy-proton -n media
+	helm install stdl-proxy-proton ../kube/proxy-cloud -n media \
+		--set global.suffix=proton \
+		--set gluetun.provider=protonvpn \
+		--set gluetun.countries=Korea \
+		--set secret.name=stdl-proton-secret
 
 proton-rm:
 	helm uninstall stdl-proxy-proton -n media
 
+nordvpn-run:
+	helm install stdl-proxy-nordvpn ../kube/proxy-ovpn -n media \
+		--set global.suffix=nordvpn \
+		--set ovpn.confFilePath=conf/kr95.nordvpn.com.udp.ovpn \
+		--set ovpn.secretName=stdl-nordvpn-secret
+
+nordvpn-rm:
+	helm uninstall stdl-proxy-nordvpn -n media
+
 sub1-run:
 	helm install stdl-proxy-sub1 ../kube/proxy-ovpn -n media \
 		--set global.suffix=sub1 \
-		--set configmap.confFilePath=conf/client1.ovpn
+		--set ovpn.confFilePath=conf/client1.ovpn
 
 sub1-rm:
 	helm uninstall stdl-proxy-sub1 -n media

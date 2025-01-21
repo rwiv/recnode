@@ -9,6 +9,8 @@ image:
 gluetun:
   repository: qmcgaw/gluetun
   tag: v3.40
+  provider: protonvpn
+  countries: Korea
 persistence:
   nfs:
     pvcName: stdl
@@ -25,5 +27,6 @@ workflow:
     port: 12000
     method: POST
 secret:
+  name: stdl-proton-secret
   userKey: user
   passwordKey: password

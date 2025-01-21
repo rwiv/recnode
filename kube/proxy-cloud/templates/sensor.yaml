@@ -60,19 +60,19 @@ spec:
                             add: ["NET_ADMIN"]
                         env:
                           - name: VPN_SERVICE_PROVIDER
-                            value: "protonvpn"
+                            value: {{ .Values.gluetun.provider }}
                           - name: OPENVPN_USER
                             valueFrom:
                               secretKeyRef:
-                                name: {{ .Values.global.name }}-proton-secret
+                                name: {{ .Values.secret.name }}
                                 key: {{ .Values.secret.userKey }}
                           - name: OPENVPN_PASSWORD
                             valueFrom:
                               secretKeyRef:
-                                name: {{ .Values.global.name }}-proton-secret
+                                name: {{ .Values.secret.name }}
                                 key: {{ .Values.secret.passwordKey }}
                           - name: SERVER_COUNTRIES
-                            value: "Korea"
+                            value: {{ .Values.gluetun.countries }}
                           - name: DNS_KEEP_NAMESERVER
                             value: "on"
                           - name: FIREWALL_OUTBOUND_SUBNETS

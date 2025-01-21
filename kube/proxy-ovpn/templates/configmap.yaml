@@ -5,4 +5,4 @@ metadata:
   namespace: {{ .Values.global.namespace }}
 data:
   client.ovpn: |
-{{ .Files.Get .Values.configmap.confFilePath | indent 4 }}
+{{ .Files.Get .Values.ovpn.confFilePath | indent 4 }}

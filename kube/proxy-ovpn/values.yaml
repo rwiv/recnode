@@ -24,5 +24,8 @@ workflow:
     endpoint: /stdl-sub
     port: 12000
     method: POST
-configmap:
+ovpn:
   confFilePath: conf/client.ovpn
+  secretName: ~
+  userKey: user
+  passwordKey: password
