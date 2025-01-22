@@ -43,17 +43,17 @@ spec:
               value: {{ .Values.persistence.nfs.mountPath }}
             - name: PY_ENV
               value: prod
-           - name: AMQP_HOST
-             value: {{ .Values.app.rabbitmq.host }}
-           - name: AMQP_PORT
-             value: "{{ .Values.app.rabbitmq.port }}"
-           - name: AMQP_USERNAME
-             value: {{ .Values.app.rabbitmq.username }}
-           - name: AMQP_PASSWORD
-             valueFrom:
-               secretKeyRef:
-                 name: {{ .Values.app.rabbitmq.secretName }}
-                 key: {{ .Values.app.rabbitmq.passwordKey }}
+            - name: AMQP_HOST
+              value: {{ .Values.app.rabbitmq.host }}
+            - name: AMQP_PORT
+              value: "{{ .Values.app.rabbitmq.port }}"
+            - name: AMQP_USERNAME
+              value: {{ .Values.app.rabbitmq.username }}
+            - name: AMQP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.app.rabbitmq.secretName }}
+                  key: {{ .Values.app.rabbitmq.passwordKey }}
           volumeMounts:
             - name: nfs
               mountPath: {{ .Values.persistence.nfs.mountPath }}
