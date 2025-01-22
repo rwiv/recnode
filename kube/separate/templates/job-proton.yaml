@@ -7,42 +7,41 @@ spec:
   template:
     spec:
       containers:
-        # - name: gluetun
-        #   image: {{ .Values.gluetun.repository }}:{{ .Values.gluetun.tag }}
-        #   securityContext:
-        #     capabilities:
-        #       add: ["NET_ADMIN"]
-        #   env:
-        #     - name: VPN_SERVICE_PROVIDER
-        #       value: "protonvpn"
-        #     - name: OPENVPN_USER
-        #       valueFrom:
-        #         secretKeyRef:
-        #           name: stdl-proton-secret
-        #           key: {{ .Values.secret.userKey }}
-        #     - name: OPENVPN_PASSWORD
-        #       valueFrom:
-        #         secretKeyRef:
-        #           name: stdl-proton-secret
-        #           key: {{ .Values.secret.passwordKey }}
-        #     - name: SERVER_COUNTRIES
-        #       value: "Korea"
-        #     - name: DNS_KEEP_NAMESERVER
-        #       value: "on"
-        #     - name: FIREWALL_OUTBOUND_SUBNETS
-        #       value: "10.43.0.0/16"
+{{/*        - name: gluetun*/}}
+{{/*          image: {{ .Values.gluetun.repository }}:{{ .Values.gluetun.tag }}*/}}
+{{/*          securityContext:*/}}
+{{/*            capabilities:*/}}
+{{/*              add: ["NET_ADMIN"]*/}}
+{{/*          env:*/}}
+{{/*            - name: VPN_SERVICE_PROVIDER*/}}
+{{/*              value: "protonvpn"*/}}
+{{/*            - name: OPENVPN_USER*/}}
+{{/*              valueFrom:*/}}
+{{/*                secretKeyRef:*/}}
+{{/*                  name: stdl-proton-secret*/}}
+{{/*                  key: {{ .Values.ovpn.userKey }}*/}}
+{{/*            - name: OPENVPN_PASSWORD*/}}
+{{/*              valueFrom:*/}}
+{{/*                secretKeyRef:*/}}
+{{/*                  name: stdl-proton-secret*/}}
+{{/*                  key: {{ .Values.ovpn.passwordKey }}*/}}
+{{/*            - name: SERVER_COUNTRIES*/}}
+{{/*              value: "Korea"*/}}
+{{/*            - name: DNS_KEEP_NAMESERVER*/}}
+{{/*              value: "on"*/}}
+{{/*            - name: FIREWALL_OUTBOUND_SUBNETS*/}}
+{{/*              value: "10.43.0.0/16"*/}}
         - name: {{ .Values.global.name }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           env:
+            - name: PY_ENV
+              value: prod
             - name: CONFIG_PATH
               value: {{ .Values.configMap.mountPath }}/conf.yaml
             - name: OUT_DIR_PATH
               value: {{ .Values.persistence.nfs.mountPath }}
             - name: TMP_DIR_PATH
-{{/*              value: {{ .Values.persistence.ceph.mountPath }}*/}}
               value: {{ .Values.persistence.nfs.mountPath }}
-            - name: PY_ENV
-              value: prod
             - name: AMQP_HOST
               value: {{ .Values.app.rabbitmq.host }}
             - name: AMQP_PORT
@@ -57,8 +56,6 @@ spec:
           volumeMounts:
             - name: nfs
               mountPath: {{ .Values.persistence.nfs.mountPath }}
-{{/*            - name: ceph*/}}
-{{/*              mountPath: {{ .Values.persistence.ceph.mountPath }}*/}}
             - name: conf
               mountPath: {{ .Values.configMap.mountPath }}
               readOnly: true
@@ -72,9 +69,6 @@ spec:
         - name: nfs
           persistentVolumeClaim:
             claimName: {{ .Values.global.name }}
-{{/*        - name: ceph*/}}
-{{/*          persistentVolumeClaim:*/}}
-{{/*            claimName: {{ .Values.persistence.ceph.namePrefix }}{{ .Values.jobSuffix }}*/}}
         - name: conf
           configMap:
             name: {{ .Values.configMap.namePrefix }}{{ .Values.jobSuffix }}

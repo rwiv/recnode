@@ -11,11 +11,6 @@ gluetun:
 persistence:
   nfs:
     mountPath: /mnt/nfs
-  ceph:
-    mountPath: /mnt/ceph
-    namePrefix: stdl-once-ceph-
-    storageClass: rook-ceph-block
-    requests: 200Gi
 resources:
   requests:
     cpu: 40m
@@ -23,9 +18,12 @@ resources:
 configMap:
   namePrefix: stdl-once-conf-
   mountPath: /app/conf
-secret:
+ovpn:
+  confFilePath: conf/kr96.nordvpn.com.udp.ovpn
+  secretName: stdl-nordvpn-secret
   userKey: user
   passwordKey: password
+
 app:
   rabbitmq:
     host: rabbitmq.infra.svc.cluster.local
