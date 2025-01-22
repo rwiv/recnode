@@ -20,3 +20,10 @@ workflow:
     endpoint: /stdl
     port: 12000
     method: POST
+app:
+  rabbitmq:
+    host: rabbitmq.infra.svc.cluster.local
+    port: 5672
+    username: admin
+    secretName: rabbitmq-main
+    passwordKey: password

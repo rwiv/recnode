@@ -27,6 +27,12 @@ secret:
   userKey: user
   passwordKey: password
 app:
+  rabbitmq:
+    host: rabbitmq.infra.svc.cluster.local
+    port: 5672
+    username: admin
+    secretName: rabbitmq-main
+    passwordKey: password
   reqType: chzzk_live
   startDelayMs: 0
 chzzk:

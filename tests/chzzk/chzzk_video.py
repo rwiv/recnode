@@ -1,4 +1,4 @@
-from stdl.config.config import read_app_config_by_file
+from stdl.common.config import read_app_config_by_file
 
 
 def test_chzzk():

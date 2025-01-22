@@ -1,3 +1,5 @@
+APP_VERSION=0.2.1
+
 infra-run:
 	helm install stdl-infra ../kube/infra -n media
 
@@ -9,6 +11,7 @@ infra-up:
 
 proton-run:
 	helm install stdl-proxy-proton ../kube/proxy-cloud -n media \
+		--set image.tag=$(APP_VERSION) \
 		--set global.suffix=proton \
 		--set gluetun.provider=protonvpn \
 		--set gluetun.countries=Korea \
@@ -19,6 +22,7 @@ proton-rm:
 
 nordvpn-run:
 	helm install stdl-proxy-nordvpn ../kube/proxy-ovpn -n media \
+		--set image.tag=$(APP_VERSION) \
 		--set global.suffix=nordvpn \
 		--set ovpn.confFilePath=conf/kr95.nordvpn.com.udp.ovpn \
 		--set ovpn.secretName=stdl-nordvpn-secret
@@ -26,22 +30,14 @@ nordvpn-run:
 nordvpn-rm:
 	helm uninstall stdl-proxy-nordvpn -n media
 
-sub1-run:
+sub-run:
 	helm install stdl-proxy-sub1 ../kube/proxy-ovpn -n media \
+		--set image.tag=$(APP_VERSION) \
 		--set global.suffix=sub1 \
 		--set ovpn.confFilePath=conf/client1.ovpn
 
-sub1-rm:
+sub-rm:
 	helm uninstall stdl-proxy-sub1 -n media
-
-
-sub2-run:
-	helm install stdl-proxy-sub2 ../kube/proxy-ovpn -n media \
-		--set global.suffix=sub2 \
-		--set configmap.confFilePath=conf/client2.ovpn
-
-sub2-rm:
-	helm uninstall stdl-proxy-sub2 -n media
 
 test-run:
 	helm install stdl ../kube/chart \

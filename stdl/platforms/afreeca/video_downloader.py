@@ -8,7 +8,7 @@ from os.path import join
 
 import requests
 
-from stdl.config.requests import AfreecaVideoRequest
+from stdl.common.requests import AfreecaVideoRequest
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.platforms.afreeca.afreeca_hls_url_extractor import AfreecaHlsUrlExtractor
 from stdl.utils.file import write_file, sanitize_filename

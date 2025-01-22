@@ -5,7 +5,7 @@ import random
 import requests
 from dacite import from_dict
 
-from stdl.config.requests import ChzzkVideoRequest
+from stdl.common.requests import ChzzkVideoRequest
 from stdl.platforms.chzzk.type_playback import ChzzkPlayback
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.utils.http import get_headers

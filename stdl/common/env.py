@@ -13,6 +13,7 @@ class AmqpConfig:
 
 @dataclass
 class Env:
+    env: str
     out_dir_path: str
     tmp_dir_path: str
     config_path: Optional[str]
@@ -20,6 +21,10 @@ class Env:
 
 
 def get_env() -> Env:
+    env = os.getenv("PY_ENV") or None
+    if env is None:
+        env = "dev"
+
     out_dir_path = os.getenv("OUT_DIR_PATH") or None
     if out_dir_path is None:
         raise ValueError("OUT_DIR_PATH is not set")
@@ -40,6 +45,7 @@ def get_env() -> Env:
     )
 
     return Env(
+        env=env,
         out_dir_path=out_dir_path,
         tmp_dir_path=tmp_dir_path,
         config_path=config_path,

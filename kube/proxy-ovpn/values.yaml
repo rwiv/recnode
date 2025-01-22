@@ -4,7 +4,7 @@ global:
   suffix: sub
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.2.1
+  tag: 0.0.0
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
@@ -29,3 +29,10 @@ ovpn:
   secretName: ~
   userKey: user
   passwordKey: password
+app:
+  rabbitmq:
+    host: rabbitmq.infra.svc.cluster.local
+    port: 5672
+    username: admin
+    secretName: rabbitmq-main
+    passwordKey: password

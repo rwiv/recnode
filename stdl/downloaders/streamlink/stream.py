@@ -48,6 +48,7 @@ class StreamlinkManager:
 
         self.wait_delay_sec = 1
         self.state: RecordState = RecordState.WAIT
+        self.abort_flag = False
 
     def get_streams(self) -> dict[str, HLSStream]:
         session = self.get_session()
@@ -83,8 +84,8 @@ class StreamlinkManager:
             time.sleep(self.wait_delay_sec)
 
     def record(self, streams: dict[str, HLSStream]) -> str:
-        formatted_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir_path = f"{self.out_dir_path}/{self.name}/{formatted_time}"
+        vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_dir_path = f"{self.out_dir_path}/{self.name}/{vid_name}"
 
         input_stream: HLSStreamReader = streams["best"].open()
         self.state = RecordState.RECORDING
@@ -96,8 +97,14 @@ class StreamlinkManager:
 
         log.info("Start recording")
         while True:
+            if self.abort_flag:
+                input_stream.close()
+                log.info("Abort Recording")
+                self.state = RecordState.DONE
+                break
+
             if input_stream.closed:
-                log.info("Stream closed")
+                log.info("Stream Closed")
                 self.state = RecordState.DONE
                 break
 

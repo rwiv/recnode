@@ -1,7 +1,7 @@
 import json
 from dataclasses import asdict, is_dataclass
 
-from stdl.config.config import read_app_config_by_file
+from stdl.common.config import read_app_config_by_file
 
 
 def test_by_file():

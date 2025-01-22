@@ -2,7 +2,7 @@ import json
 import os
 from dataclasses import dataclass, asdict
 from typing import Optional
-from stdl.config.requests import RequestType, \
+from stdl.common.requests import RequestType, \
     ChzzkLiveRequest, ChzzkVideoRequest, \
     AfreecaLiveRequest, TwitchLiveRequest, \
     YtdlVideoRequest, HlsM3u8Request, AfreecaVideoRequest
