@@ -11,7 +11,7 @@ from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.utils.logger import log
 
 
-queue_name = "stdl:exit"
+queue_prefix = "stdl:exit"
 
 
 class ExitCommand(Enum):
@@ -37,7 +37,7 @@ class Listener:
         try:
             content = json.loads(body.decode("utf-8"))
             message = ExitMessage(ExitCommand(content["cmd"]), PlatformType(content["platform"]), content["uid"])
-            if message.uid != self.recorder.get_name():
+            if message.uid != self.recorder.get_uid():
                 return
             ch.basic_ack(method.delivery_tag)
 
@@ -54,6 +54,8 @@ class Listener:
             log.error(e)
 
     def consume(self):
+        platform = self.recorder.get_platform_type().value
+        queue_name = f"{queue_prefix}:{platform}:{self.recorder.get_uid()}"
         self.amqp.connect()
         self.amqp.assert_queue(queue_name)
         self.amqp.consume(queue_name, self.on_message)

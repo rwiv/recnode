@@ -3,10 +3,12 @@ import shutil
 import signal
 import threading
 import time
+from dataclasses import dataclass
 from os.path import dirname, join
 from typing import Optional
 
 from stdl.common.amqp import Amqp
+from stdl.common.types import PlatformType
 from stdl.downloaders.hls.merge import merge_ts, convert_vid
 from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.downloaders.streamlink.listener import Listener
@@ -21,20 +23,28 @@ incomplete = "incomplete"
 complete = "complete"
 
 
+@dataclass
+class RecorderArgs:
+    out_dir_path: str
+    platform_type: PlatformType
+    once: bool
+
+
 class StreamRecorder(IRecorder):
 
-    def __init__(self, args: StreamlinkArgs, out_dir_path: str, once: bool, amqp: Amqp):
-        self.name = args.name
-        self.once = once
+    def __init__(self, sargs: StreamlinkArgs, rargs: RecorderArgs, amqp: Amqp):
+        self.uid = sargs.uid
+        self.once = rargs.once
+        self.platform_type = rargs.platform_type
 
-        self.complete_dir_path = join(out_dir_path, complete)
-        self.incomplete_dir_path = join(out_dir_path, incomplete)
+        self.complete_dir_path = join(rargs.out_dir_path, complete)
+        self.incomplete_dir_path = join(rargs.out_dir_path, incomplete)
         os.makedirs(self.incomplete_dir_path, exist_ok=True)
-        self.lock_path = f"{self.incomplete_dir_path}/{args.name}/lock.json"
+        self.lock_path = f"{self.incomplete_dir_path}/{sargs.uid}/lock.json"
 
         self.restart_delay_sec = default_restart_delay_sec
         self.chunk_threshold = default_chunk_threshold
-        self.streamlink = StreamlinkManager(args, self.incomplete_dir_path)
+        self.streamlink = StreamlinkManager(sargs, self.incomplete_dir_path)
         self.listener = Listener(self, amqp)
 
         self.is_done = False
@@ -44,11 +54,14 @@ class StreamRecorder(IRecorder):
         self.record_thread: Optional[threading.Thread] = None
         self.amqp_thread: Optional[threading.Thread] = None
 
-    def get_name(self) -> str:
-        return self.name
+    def get_uid(self) -> str:
+        return self.uid
 
     def get_state(self) -> RecordState:
         return self.streamlink.state
+
+    def get_platform_type(self) -> PlatformType:
+        return self.platform_type
 
     def close(self):
         self.listener.close()
@@ -152,12 +165,12 @@ class StreamRecorder(IRecorder):
         shutil.rmtree(chunks_path)
 
         # convert ts to mp4
-        os.makedirs(join(self.complete_dir_path, self.name), exist_ok=True)
+        os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
         mp4_path = f"{chunks_path}.mp4".replace(incomplete, complete)
         convert_vid(merged_ts_path, mp4_path)
         os.remove(merged_ts_path)
 
-        incomplete_name_dir_path = join(self.incomplete_dir_path, self.name)
+        incomplete_name_dir_path = join(self.incomplete_dir_path, self.uid)
         if len(os.listdir(incomplete_name_dir_path)) == 0:
             os.rmdir(incomplete_name_dir_path)
         if len(os.listdir(self.incomplete_dir_path)) == 0:

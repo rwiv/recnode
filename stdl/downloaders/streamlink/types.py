@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from enum import Enum
 
+from stdl.common.types import PlatformType
+
 
 class RecordState(Enum):
     WAIT = 0
@@ -11,11 +13,15 @@ class RecordState(Enum):
 
 class IRecorder:
     @abstractmethod
-    def get_name(self) -> str:
+    def get_uid(self) -> str:
         pass
 
     @abstractmethod
     def get_state(self) -> RecordState:
+        pass
+
+    @abstractmethod
+    def get_platform_type(self) -> PlatformType:
         pass
 
     @abstractmethod

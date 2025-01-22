@@ -57,7 +57,10 @@ class AmqpBlocking(Amqp):
     def assert_queue(self, queue: str):
         if not self.ch:
             raise ValueError("Channel not created")
-        self.ch.queue_declare(queue=queue, passive=False, durable=False, auto_delete=False, exclusive=False)
+        self.ch.queue_declare(
+            queue=queue, auto_delete=True,
+            passive=False, durable=False, exclusive=False,
+        )
 
     def consume(self, queue: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
         if not self.ch:

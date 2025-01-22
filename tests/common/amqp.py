@@ -35,11 +35,9 @@ def test_blocking():
     amqp.assert_queue(queue)
 
     def wait():
-        time.sleep(1)
-        publish(ch)
-        time.sleep(1)
-        publish(ch)
-        time.sleep(1)
+        for i in range(10):
+            time.sleep(1)
+            publish(ch)
         ch.stop_consuming()
     thread = threading.Thread(target=wait)
     thread.Daemon = True

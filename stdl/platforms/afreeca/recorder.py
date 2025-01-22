@@ -3,7 +3,8 @@ from typing import Optional
 from streamlink.plugins.soop import Soop
 
 from stdl.common.amqp import Amqp
-from stdl.downloaders.streamlink.recorder import StreamRecorder
+from stdl.common.types import PlatformType
+from stdl.downloaders.streamlink.recorder import StreamRecorder, RecorderArgs
 from stdl.downloaders.streamlink.stream import StreamlinkArgs
 from stdl.platforms.afreeca.types import AfreecaCredential
 
@@ -20,10 +21,11 @@ class AfreecaLiveRecorder(StreamRecorder):
     ):
         url = f"https://play.sooplive.co.kr/{user_id}"
         if cred is not None:
-            args = StreamlinkArgs(url=url, name=user_id, options=cred.to_dict())
+            sargs = StreamlinkArgs(url=url, uid=user_id, options=cred.to_dict())
         else:
-            args = StreamlinkArgs(url=url, name=user_id)
-        super().__init__(args, out_dir_path, once, amqp)
+            sargs = StreamlinkArgs(url=url, uid=user_id)
+        rargs = RecorderArgs(out_dir_path, PlatformType.SOOP, once)
+        super().__init__(sargs, rargs, amqp)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()

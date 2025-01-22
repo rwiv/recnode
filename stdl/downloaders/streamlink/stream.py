@@ -23,7 +23,7 @@ buf_size = sys.maxsize
 @dataclass
 class StreamlinkArgs:
     url: str
-    name: str
+    uid: str
     cookies: Optional[str] = None
     options: Optional[dict[str, str]] = None
 
@@ -32,7 +32,7 @@ class StreamlinkManager:
 
     def __init__(self, args: StreamlinkArgs, out_dir_path: str):
         self.url = args.url
-        self.name = args.name
+        self.uid = args.uid
         self.out_dir_path = out_dir_path
         self.cookies = args.cookies
         self.options = args.options
@@ -79,7 +79,7 @@ class StreamlinkManager:
 
     def record(self, streams: dict[str, HLSStream]) -> str:
         vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_dir_path = f"{self.out_dir_path}/{self.name}/{vid_name}"
+        out_dir_path = f"{self.out_dir_path}/{self.uid}/{vid_name}"
 
         input_stream: HLSStreamReader = streams["best"].open()
         self.state = RecordState.RECORDING

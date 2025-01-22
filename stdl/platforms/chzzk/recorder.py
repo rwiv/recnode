@@ -1,7 +1,8 @@
 from typing import Optional
 
 from stdl.common.amqp import Amqp
-from stdl.downloaders.streamlink.recorder import StreamRecorder
+from stdl.common.types import PlatformType
+from stdl.downloaders.streamlink.recorder import StreamRecorder, RecorderArgs
 from stdl.downloaders.streamlink.stream import StreamlinkArgs
 
 
@@ -16,5 +17,6 @@ class ChzzkLiveRecorder(StreamRecorder):
             amqp: Amqp,
     ):
         url = f"https://chzzk.naver.com/live/{uid}"
-        args = StreamlinkArgs(url=url, name=uid, cookies=cookies)
-        super().__init__(args, out_dir_path, once, amqp)
+        sargs = StreamlinkArgs(url=url, uid=uid, cookies=cookies)
+        rargs = RecorderArgs(out_dir_path=out_dir_path, platform_type=PlatformType.CHZZK, once=once)
+        super().__init__(sargs, rargs, amqp)
