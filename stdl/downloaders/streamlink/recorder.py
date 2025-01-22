@@ -165,11 +165,16 @@ class StreamRecorder(IRecorder):
         shutil.rmtree(chunks_path)
 
         # convert ts to mp4
-        os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
-        mp4_path = f"{chunks_path}.mp4".replace(incomplete, complete)
-        convert_vid(merged_ts_path, mp4_path)
+        incomplete_mp4_path = f"{chunks_path}.mp4"
+        convert_vid(merged_ts_path, incomplete_mp4_path)
         os.remove(merged_ts_path)
 
+        # move mp4 file
+        mp4_path = incomplete_mp4_path.replace(incomplete, complete)
+        os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
+        shutil.move(incomplete_mp4_path, mp4_path)
+
+        # remove incomplete directory
         incomplete_name_dir_path = join(self.incomplete_dir_path, self.uid)
         if len(os.listdir(incomplete_name_dir_path)) == 0:
             os.rmdir(incomplete_name_dir_path)
