@@ -4,10 +4,11 @@ import signal
 import threading
 import time
 from os.path import dirname, join
+from typing import Optional
 
 from stdl.common.amqp import Amqp
 from stdl.downloaders.hls.merge import merge_ts, convert_vid
-from stdl.downloaders.streamlink.interface import IRecorder
+from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.downloaders.streamlink.listener import Listener
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.utils.file import write_file, delete_file
@@ -40,53 +41,61 @@ class StreamRecorder(IRecorder):
         self.cancel_flag = False
         self.finish_flag = False
 
+        self.record_thread: Optional[threading.Thread] = None
+        self.amqp_thread: Optional[threading.Thread] = None
+
     def get_name(self) -> str:
         return self.name
 
+    def get_state(self) -> RecordState:
+        return self.streamlink.state
+
     def close(self):
         self.listener.close()
+        self.amqp_thread.join()
         self.is_done = True
 
     def record(self):
         signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
-        record_thread = threading.Thread(target=self._record)
-        record_thread.daemon = True
-        record_thread.start()
+        if self.__is_locked():
+            log.info("Skip Record because Locked")
+            return
 
-        amqp_thread = threading.Thread(target=self.listener.consume)
-        amqp_thread.daemon = True
-        amqp_thread.start()
+        self.record_thread = threading.Thread(target=self._record)
+        self.record_thread.daemon = True
+        self.record_thread.start()
+
+        self.amqp_thread = threading.Thread(target=self.listener.consume)
+        self.amqp_thread.daemon = True
+        self.amqp_thread.start()
 
         while True:
             if self.is_done:
+                self.record_thread.join()
+                log.info("Done")
                 break
             time.sleep(1)
 
     def cancel(self):
-        log.info("Cancel")
+        log.info("Cancel Request")
         self.streamlink.abort_flag = True
         self.cancel_flag = True
         self.finish_flag = True  # postprocess 도중 종료되는 경우를 대비
 
     def finish(self):
-        log.info("Finish")
+        log.info("Finish Request")
         self.streamlink.abort_flag = True
         self.finish_flag = True
 
     def _record(self):
         try:
-            if self.__is_locked():
-                log.info("Skip Record because Locked")
-                self.close()
-                return
-
             if self.once:
                 self.__record_once()
                 self.close()
             else:
                 self.__record_endless()
-            log.info("End Record", {"latest_state": self.streamlink.state.name})
+            log.info("Complete Recording", {"latest_state": self.streamlink.state.name})
         except:
             self.__unlock()
             self.close()
@@ -120,18 +129,17 @@ class StreamRecorder(IRecorder):
             if self.finish_flag:
                 break
             time.sleep(self.restart_delay_sec)
-            log.info("Restart Record", {"latest_state": self.streamlink.state.name})
+            log.info("Restart Recording", {"latest_state": self.streamlink.state.name})
         self.__unlock()
 
     def __record(self) -> str:
         streams = self.streamlink.wait_for_live()
-        log.info("Stream Start")
         return self.streamlink.record(streams)
 
     def __postprocess(self, chunks_path: str):
         if len(os.listdir(chunks_path)) < self.chunk_threshold:
             # Remove chunks if not enough
-            log.info("Skip postprocess chunks")
+            log.info("Skip Postprocess")
             shutil.rmtree(chunks_path)
         else:
             self.merge_hls_chunks(chunks_path)

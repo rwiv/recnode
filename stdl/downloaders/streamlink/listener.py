@@ -7,7 +7,7 @@ from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType
-from stdl.downloaders.streamlink.interface import IRecorder
+from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.utils.logger import log
 
 
@@ -34,20 +34,24 @@ class Listener:
         self.amqp = amqp
 
     def on_message(self, ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
-        content = json.loads(body.decode("utf-8"))
-        message = ExitMessage(ExitCommand(content["cmd"]), PlatformType(content["platform"]), content["uid"])
-        if message.uid != self.recorder.get_name():
-            return
-        print(message)
+        try:
+            content = json.loads(body.decode("utf-8"))
+            message = ExitMessage(ExitCommand(content["cmd"]), PlatformType(content["platform"]), content["uid"])
+            if message.uid != self.recorder.get_name():
+                return
+            ch.basic_ack(method.delivery_tag)
 
-        if message.cmd == ExitCommand.CANCEL:
-            log.info("Receive Cancel Command")
-            self.recorder.cancel()
-        elif message.cmd == ExitCommand.FINISH:
-            log.info("Receive Finish Command")
-            self.recorder.finish()
-        ch.basic_ack(method.delivery_tag)
-        self.close()
+            if self.recorder.get_state() == RecordState.WAIT:
+                log.info("Still waiting for the Stream")
+                return
+
+            if message.cmd == ExitCommand.CANCEL:
+                self.recorder.cancel()
+            elif message.cmd == ExitCommand.FINISH:
+                self.recorder.finish()
+            self.close()
+        except Exception as e:
+            log.error(e)
 
     def consume(self):
         self.amqp.connect()

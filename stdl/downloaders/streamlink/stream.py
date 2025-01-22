@@ -4,7 +4,6 @@ import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from enum import Enum
 from typing import Optional
 
 import streamlink
@@ -12,19 +11,13 @@ from streamlink.options import Options
 from streamlink.stream import HLSStream
 from streamlink.stream.hls import HLSStreamReader
 
+from stdl.downloaders.streamlink.types import RecordState
 from stdl.utils.file import write_bfile
 from stdl.utils.logger import log, get_error_info
 
 retry_count = 5
 buf_size = sys.maxsize
 # buf_size = 4 * 1024 * 1024
-
-
-class RecordState(Enum):
-    WAIT = 0
-    RECORDING = 1
-    DONE = 2
-    FAILED = 3
 
 
 @dataclass
@@ -69,9 +62,8 @@ class StreamlinkManager:
         return session
 
     def wait_for_live(self) -> dict[str, HLSStream]:
-        log.info("Wait For Live")
+        cnt = 0
         while True:
-            self.state = RecordState.WAIT
             try:
                 streams = self.get_streams()
                 if streams != {}:
@@ -79,7 +71,11 @@ class StreamlinkManager:
             except (Exception,):
                 log.error(*get_error_info())
 
+            if cnt == 0:
+                log.info("Wait For Live")
+            self.state = RecordState.WAIT
             time.sleep(self.wait_delay_sec)
+            cnt += 1
 
     def record(self, streams: dict[str, HLSStream]) -> str:
         vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -93,11 +89,11 @@ class StreamlinkManager:
         if not os.path.exists(out_dir_path):
             os.makedirs(out_dir_path)
 
-        log.info("Start recording")
+        log.info("Start Recording")
         while True:
             if self.abort_flag:
                 input_stream.close()
-                log.info("Abort Recording")
+                log.info("Abort Stream")
                 self.state = RecordState.DONE
                 break
 
