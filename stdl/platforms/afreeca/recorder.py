@@ -14,24 +14,17 @@ class AfreecaLiveRecorder(StreamRecorder):
             self,
             user_id: str,
             out_dir_path: str,
-            tmp_dir_path: str,
             once: bool,
             cred: Optional[AfreecaCredential],
             amqp: Amqp,
     ):
         url = f"https://play.sooplive.co.kr/{user_id}"
         if cred is not None:
-            args = StreamlinkArgs(
-                url=url, name=user_id, out_dir_path=out_dir_path, tmp_dir_path=tmp_dir_path,
-                options=cred.to_dict(),
-            )
+            args = StreamlinkArgs(url=url, name=user_id, options=cred.to_dict())
         else:
-            args = StreamlinkArgs(
-                url=url, name=user_id, out_dir_path=out_dir_path, tmp_dir_path=tmp_dir_path,
-            )
-        super().__init__(args, once, amqp)
+            args = StreamlinkArgs(url=url, name=user_id)
+        super().__init__(args, out_dir_path, once, amqp)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()
         Soop(session, self.streamlink.url).clear_cookies()
-

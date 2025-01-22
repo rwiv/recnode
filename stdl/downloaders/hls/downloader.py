@@ -1,12 +1,13 @@
 import asyncio
 import os
+import shutil
 import time
 from typing import Optional
 
 import aiohttp
 
 from stdl.downloaders.hls.hls_url_extractor import HlsUrlExtractor
-from stdl.downloaders.hls.merge import merge_hls_chunks
+from stdl.downloaders.hls.merge import merge_ts, convert_vid
 from stdl.downloaders.hls.utils import sub_lists_with_idx
 from stdl.utils.file import sanitize_filename
 from stdl.utils.logger import log
@@ -54,8 +55,7 @@ class HlsDownloader:
                 for elem in sub
             ]
             await asyncio.gather(*tasks)
-
-        merge_hls_chunks(chunks_path, self.out_dir_path, name)
+        merge_hls_chunks(chunks_path)
 
     async def download_non_parallel(
             self, m3u8_url: str, name: str, title: str,
@@ -74,8 +74,7 @@ class HlsDownloader:
             if self.non_parallel_delay_ms > 0:
                 time.sleep(self.non_parallel_delay_ms / 1000)
             cnt += 1
-
-        merge_hls_chunks(chunks_path, self.out_dir_path, name)
+        merge_hls_chunks(chunks_path)
 
 
 async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
@@ -103,3 +102,17 @@ async def _download_file(url: str, headers: Optional[dict[str, str]], num: int, 
                     if not chunk:
                         break
                     file.write(chunk)
+
+
+def merge_hls_chunks(chunks_path: str):
+    # merge ts files
+    merged_ts_path = merge_ts(chunks_path)
+    shutil.rmtree(chunks_path)
+
+    # convert ts to mp4
+    mp4_path = f"{chunks_path}.mp4"
+    convert_vid(merged_ts_path, mp4_path)
+    os.remove(merged_ts_path)
+
+    log.info("Convert file", {"file_path": mp4_path})
+    return mp4_path

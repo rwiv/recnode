@@ -3,10 +3,10 @@ import shutil
 import signal
 import threading
 import time
-from os.path import dirname
+from os.path import dirname, join
 
 from stdl.common.amqp import Amqp
-from stdl.downloaders.hls.merge import merge_hls_chunks
+from stdl.downloaders.hls.merge import merge_ts, convert_vid
 from stdl.downloaders.streamlink.interface import IRecorder
 from stdl.downloaders.streamlink.listener import Listener
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
@@ -16,19 +16,24 @@ from stdl.utils.logger import log
 default_restart_delay_sec = 3
 default_chunk_threshold = 10
 
+incomplete = "incomplete"
+complete = "complete"
+
 
 class StreamRecorder(IRecorder):
 
-    def __init__(self, args: StreamlinkArgs, once: bool, amqp: Amqp):
+    def __init__(self, args: StreamlinkArgs, out_dir_path: str, once: bool, amqp: Amqp):
         self.name = args.name
         self.once = once
-        self.out_dir_path = args.out_dir_path
-        self.tmp_dir_path = args.tmp_dir_path
 
-        self.lock_path = f"{args.out_dir_path}/{args.name}/lock.json"
+        self.complete_dir_path = join(out_dir_path, complete)
+        self.incomplete_dir_path = join(out_dir_path, incomplete)
+        os.makedirs(self.incomplete_dir_path, exist_ok=True)
+        self.lock_path = f"{self.incomplete_dir_path}/{args.name}/lock.json"
+
         self.restart_delay_sec = default_restart_delay_sec
         self.chunk_threshold = default_chunk_threshold
-        self.streamlink = StreamlinkManager(args)
+        self.streamlink = StreamlinkManager(args, self.incomplete_dir_path)
         self.listener = Listener(self, amqp)
 
         self.is_done = False
@@ -129,13 +134,29 @@ class StreamRecorder(IRecorder):
             log.info("Skip postprocess chunks")
             shutil.rmtree(chunks_path)
         else:
-            # move to tmp dir
-            tmp_chunks_path = chunks_path.replace(self.out_dir_path, self.tmp_dir_path)
-            if os.path.exists(tmp_chunks_path) is False:
-                shutil.copytree(chunks_path, tmp_chunks_path)
-            merge_hls_chunks(tmp_chunks_path, self.out_dir_path, self.name)
+            self.merge_hls_chunks(chunks_path)
             if os.path.exists(chunks_path):
                 shutil.rmtree(chunks_path)
+
+    def merge_hls_chunks(self, chunks_path: str):
+        # merge ts files
+        merged_ts_path = merge_ts(chunks_path)
+        shutil.rmtree(chunks_path)
+
+        # convert ts to mp4
+        os.makedirs(join(self.complete_dir_path, self.name), exist_ok=True)
+        mp4_path = f"{chunks_path}.mp4".replace(incomplete, complete)
+        convert_vid(merged_ts_path, mp4_path)
+        os.remove(merged_ts_path)
+
+        incomplete_name_dir_path = join(self.incomplete_dir_path, self.name)
+        if len(os.listdir(incomplete_name_dir_path)) == 0:
+            os.rmdir(incomplete_name_dir_path)
+        if len(os.listdir(self.incomplete_dir_path)) == 0:
+            os.rmdir(self.incomplete_dir_path)
+
+        log.info("Convert file", {"file_path": mp4_path})
+        return mp4_path
 
     def __lock(self):
         write_file(self.lock_path, "")

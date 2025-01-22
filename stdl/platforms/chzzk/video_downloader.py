@@ -14,9 +14,9 @@ from stdl.utils.http import get_headers
 class ChzzkVideoDownloader:
 
     def __init__(self, tmp_dir: str, out_dir: str, req: ChzzkVideoRequest):
-        if req.cookies is None:
-            raise ValueError("cookie_str is required")
-        self.cookies = json.loads(req.cookies)
+        self.cookies = None
+        if req.cookies is not None:
+            self.cookies = json.loads(req.cookies)
         self.req = req
         self.hls = HlsDownloader(
             tmp_dir, out_dir, get_headers(self.cookies),

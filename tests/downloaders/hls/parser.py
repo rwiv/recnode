@@ -3,7 +3,7 @@ from stdl.downloaders.hls.parser import parse_master_playlist, merge_intersected
 
 def test_master_playlist():
     print()
-    path = "../../dev/test_master.m3u8"
+    path = "../../../dev/test_master.m3u8"
     with open(path, 'r') as f:
         m3u8 = f.read()
     p = parse_master_playlist(m3u8)
@@ -13,7 +13,7 @@ def test_master_playlist():
 
 def test_media_playlist():
     print()
-    path = "../../dev/test_media.m3u8"
+    path = "../../../dev/test_media.m3u8"
     with open(path, 'r') as f:
         m3u8 = f.read()
     p = parse_media_playlist(m3u8, "https://hello/")

@@ -3,6 +3,7 @@ import json
 import os
 import time
 
+from stdl.common.amqp import AmqpBlocking, AmqpMock
 from stdl.common.config import read_app_config_by_file, read_app_config_by_env
 from stdl.common.env import get_env
 from stdl.common.requests import RequestType
@@ -14,7 +15,6 @@ from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
 from stdl.platforms.twitch.recorder import TwitchLiveRecorder
-from stdl.common.amqp import AmqpBlocking, AmqpMock
 from stdl.utils.http import get_headers
 from stdl.utils.logger import log
 from stdl.utils.streamlink import disable_streamlink_log
@@ -105,7 +105,7 @@ class Runner:
         log.info("Conf", self.conf.to_dict())
         req = self.conf.chzzkLive
         recorder = ChzzkLiveRecorder(
-            req.uid, self.env.out_dir_path, self.env.tmp_dir_path,
+            req.uid, self.env.out_dir_path,
             req.once, req.cookies, self.create_amqp(),
         )
         recorder.record()
@@ -117,7 +117,7 @@ class Runner:
         log.info("Conf", self.conf.to_dict())
         req = self.conf.afreecaLive
         recorder = AfreecaLiveRecorder(
-            req.userId, self.env.out_dir_path, self.env.tmp_dir_path,
+            req.userId, self.env.out_dir_path,
             req.once, req.cred, self.create_amqp(),
         )
         recorder.record()
@@ -127,7 +127,7 @@ class Runner:
         log.info("Conf", self.conf.to_dict())
         req = self.conf.twitchLive
         recorder = TwitchLiveRecorder(
-            req.channelName, self.env.out_dir_path, self.env.tmp_dir_path,
+            req.channelName, self.env.out_dir_path,
             req.once, req.cookies, self.create_amqp(),
         )
         recorder.record()
@@ -138,4 +138,3 @@ class Runner:
             return AmqpBlocking(self.env.amqp)
         else:
             return AmqpMock()
-

@@ -11,16 +11,10 @@ class ChzzkLiveRecorder(StreamRecorder):
             self,
             uid: str,
             out_dir_path: str,
-            tmp_dir_path: str,
             once: bool,
             cookies: Optional[str],
             amqp: Amqp,
     ):
-        args = StreamlinkArgs(
-            url=f"https://chzzk.naver.com/live/{uid}",
-            name=uid,
-            out_dir_path=out_dir_path,
-            tmp_dir_path=tmp_dir_path,
-            cookies=cookies,
-        )
-        super().__init__(args, once, amqp)
+        url = f"https://chzzk.naver.com/live/{uid}"
+        args = StreamlinkArgs(url=url, name=uid, cookies=cookies)
+        super().__init__(args, out_dir_path, once, amqp)

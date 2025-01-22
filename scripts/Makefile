@@ -1,4 +1,4 @@
-APP_VERSION=0.2.1
+APP_VERSION=0.2.2
 
 infra-run:
 	helm install stdl-infra ../kube/infra -n media

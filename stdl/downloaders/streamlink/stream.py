@@ -31,18 +31,16 @@ class RecordState(Enum):
 class StreamlinkArgs:
     url: str
     name: str
-    out_dir_path: str
-    tmp_dir_path: str
     cookies: Optional[str] = None
     options: Optional[dict[str, str]] = None
 
 
 class StreamlinkManager:
 
-    def __init__(self, args: StreamlinkArgs):
+    def __init__(self, args: StreamlinkArgs, out_dir_path: str):
         self.url = args.url
         self.name = args.name
-        self.out_dir_path = args.out_dir_path
+        self.out_dir_path = out_dir_path
         self.cookies = args.cookies
         self.options = args.options
 
