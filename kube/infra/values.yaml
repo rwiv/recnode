@@ -11,7 +11,11 @@ vault:
     path: platform/proton
     version: 1
     secretName: stdl-proton-secret
-  nordvpn:
-    path: platform/nordvpn
+  nordvpn1:
+    path: platform/nordvpn1
     version: 1
-    secretName: stdl-nordvpn-secret
+    secretName: stdl-nordvpn1-secret
+  nordvpn2:
+    path: platform/nordvpn2
+    version: 1
+    secretName: stdl-nordvpn2-secret
