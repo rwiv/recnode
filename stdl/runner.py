@@ -101,8 +101,9 @@ class Runner:
     def run_chzzk_live(self):
         disable_streamlink_log()
         url = f"https://chzzk.naver.com/{self.conf.chzzkLive.uid}"
-        log.info(f"Start record: {url}")
-        log.info("Conf", self.conf.to_dict())
+        log.info(f"Start Record: {url}")
+        if self.conf.chzzkLive.cookies:
+            log.info("Using Credentials")
         req = self.conf.chzzkLive
         recorder = ChzzkLiveRecorder(
             req.uid, self.env.out_dir_path,
@@ -113,8 +114,9 @@ class Runner:
     def run_soop_live(self):
         disable_streamlink_log()
         url = f"https://ch.sooplive.co.kr/{self.conf.soopLive.userId}"
-        log.info(f"Start record: {url}")
-        log.info("Conf", self.conf.to_dict())
+        log.info(f"Start Record: {url}")
+        if self.conf.soopLive.cred:
+            log.info("Using Credentials")
         req = self.conf.soopLive
         recorder = SoopLiveRecorder(
             req.userId, self.env.out_dir_path,
@@ -124,7 +126,10 @@ class Runner:
 
     def run_twitch_live(self):
         disable_streamlink_log()
-        log.info("Conf", self.conf.to_dict())
+        url = f"https://www.twitch.tv/{self.conf.twitchLive.channelName}"
+        log.info(f"Start Record: {url}")
+        if self.conf.twitchLive.cookies:
+            log.info("Using Credentials")
         req = self.conf.twitchLive
         recorder = TwitchLiveRecorder(
             req.channelName, self.env.out_dir_path,
