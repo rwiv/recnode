@@ -9,8 +9,8 @@ from stdl.common.env import get_env
 from stdl.common.requests import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.downloaders.ytdl.downloader import YtdlDownloader
-from stdl.platforms.afreeca.recorder import AfreecaLiveRecorder
-from stdl.platforms.afreeca.video_downloader import AfreecaVideoDownloader
+from stdl.platforms.soop.recorder import SoopLiveRecorder
+from stdl.platforms.soop.video_downloader import SoopVideoDownloader
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
@@ -43,10 +43,10 @@ class Runner:
             self.run_chzzk_live()
         elif self.conf.req_type() == RequestType.CHZZK_VIDEO:
             self.run_chzzk_video()
-        elif self.conf.req_type() == RequestType.AFREECA_LIVE:
-            self.run_afreeca_live()
-        elif self.conf.req_type() == RequestType.AFREECA_VIDEO:
-            self.run_afreeca_video()
+        elif self.conf.req_type() == RequestType.SOOP_LIVE:
+            self.run_soop_live()
+        elif self.conf.req_type() == RequestType.SOOP_VIDEO:
+            self.run_soop_video()
         elif self.conf.req_type() == RequestType.TWITCH_LIVE:
             self.run_twitch_live()
         elif self.conf.req_type() == RequestType.YTDL_VIDEO:
@@ -90,10 +90,10 @@ class Runner:
                 dl_l.download_one(video_no)
         print("end")
 
-    def run_afreeca_video(self):
+    def run_soop_video(self):
         env = self.env
-        vconf = self.conf.afreecaVideo
-        dl = AfreecaVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
+        vconf = self.conf.soopVideo
+        dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
         for video_no in vconf.titleNoList:
             dl.download_one(video_no)
         print("end")
@@ -106,19 +106,19 @@ class Runner:
         req = self.conf.chzzkLive
         recorder = ChzzkLiveRecorder(
             req.uid, self.env.out_dir_path,
-            req.once, req.cookies, self.create_amqp(),
+            req.cookies, self.create_amqp(),
         )
         recorder.record()
 
-    def run_afreeca_live(self):
+    def run_soop_live(self):
         disable_streamlink_log()
-        url = f"https://ch.sooplive.co.kr/{self.conf.afreecaLive.userId}"
+        url = f"https://ch.sooplive.co.kr/{self.conf.soopLive.userId}"
         log.info(f"Start record: {url}")
         log.info("Conf", self.conf.to_dict())
-        req = self.conf.afreecaLive
-        recorder = AfreecaLiveRecorder(
+        req = self.conf.soopLive
+        recorder = SoopLiveRecorder(
             req.userId, self.env.out_dir_path,
-            req.once, req.cred, self.create_amqp(),
+            req.cred, self.create_amqp(),
         )
         recorder.record()
 
@@ -128,7 +128,7 @@ class Runner:
         req = self.conf.twitchLive
         recorder = TwitchLiveRecorder(
             req.channelName, self.env.out_dir_path,
-            req.once, req.cookies, self.create_amqp(),
+            req.cookies, self.create_amqp(),
         )
         recorder.record()
 

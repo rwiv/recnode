@@ -11,9 +11,10 @@ from stdl.utils.env import load_env
 
 load_env("../../dev/.env")
 conf = get_env().amqp
-queue = "tasks"
 amqp = AmqpBlocking(conf)
 
+uid = "asd"
+queue = f"stdl:exit:chzzk:{uid}"
 
 def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
     content = json.loads(body.decode("utf-8"))
@@ -23,10 +24,17 @@ def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicPropertie
 
 
 def publish(ch: BlockingChannel):
-    ch.basic_publish(
-        exchange="", routing_key=queue,
-        body=json.dumps({"message": "hello World!", "author": "john"}),
-    )
+    body = json.dumps({
+        "cmd": "cancel",
+        "platform": "chzzk",
+        "uid": uid
+    })
+    ch.basic_publish(exchange="", routing_key=queue, body=body)
+
+
+def test_publish():
+    conn, ch = amqp.connect()
+    publish(ch)
 
 
 def test_blocking():

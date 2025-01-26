@@ -1,13 +1,13 @@
 const fs = require("fs/promises");
 const crypto = require("crypto");
 
-function createReq(reqType, userId, once = true, cookieStr = undefined) {
+function createReq(reqType, userId, cookieStr = undefined) {
   if (reqType === "chzzk_live") {
-    const req = { uid: userId, once: once };
+    const req = { uid: userId };
     if (cookieStr) req["cookies"] = cookieStr;
     return { reqType: reqType, chzzkLive: req };
-  } else if (reqType === "afreeca_live") {
-    return { reqType: reqType, afreecaLive: { userId: userId, once: once } };
+  } else if (reqType === "soop_live") {
+    return { reqType: reqType, soopLive: { userId: userId } };
   } else {
     throw new Error(`Unknown request type: ${reqType}`);
   }
@@ -34,7 +34,7 @@ function decrypt(encryptedText, key) {
   // send request
   const res = await fetch(url, {
     method: "POST", headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(createReq(reqType, userId, true, cookieStr)),
+    body: JSON.stringify(createReq(reqType, userId, cookieStr)),
   });
   console.log(await res.text())
 })();

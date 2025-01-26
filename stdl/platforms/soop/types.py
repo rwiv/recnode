@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class AfreecaCredential:
+class SoopCredential:
     username: str
     password: str
 

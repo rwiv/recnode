@@ -4,15 +4,15 @@ import signal
 import threading
 import time
 from dataclasses import dataclass
-from os.path import dirname, join
+from os.path import join
 from typing import Optional
 
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType
 from stdl.downloaders.hls.merge import merge_ts, convert_vid
-from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.downloaders.streamlink.listener import Listener
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
+from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.utils.file import write_file, delete_file
 from stdl.utils.logger import log
 
@@ -27,14 +27,12 @@ complete = "complete"
 class RecorderArgs:
     out_dir_path: str
     platform_type: PlatformType
-    once: bool
 
 
 class StreamRecorder(IRecorder):
 
     def __init__(self, sargs: StreamlinkArgs, rargs: RecorderArgs, amqp: Amqp):
         self.uid = sargs.uid
-        self.once = rargs.once
         self.platform_type = rargs.platform_type
 
         self.complete_dir_path = join(rargs.out_dir_path, complete)
@@ -50,6 +48,7 @@ class StreamRecorder(IRecorder):
         self.is_done = False
         self.cancel_flag = False
         self.finish_flag = False
+        self.should_convert = False
 
         self.record_thread: Optional[threading.Thread] = None
         self.amqp_thread: Optional[threading.Thread] = None
@@ -75,7 +74,7 @@ class StreamRecorder(IRecorder):
             log.info("Skip Record because Locked")
             return
 
-        self.record_thread = threading.Thread(target=self._record)
+        self.record_thread = threading.Thread(target=self.__record)
         self.record_thread.daemon = True
         self.record_thread.start()
 
@@ -101,13 +100,10 @@ class StreamRecorder(IRecorder):
         self.streamlink.abort_flag = True
         self.finish_flag = True
 
-    def _record(self):
+    def __record(self):
         try:
-            if self.once:
-                self.__record_once()
-                self.close()
-            else:
-                self.__record_endless()
+            self.__record_once()
+            self.close()
             log.info("Complete Recording", {"latest_state": self.streamlink.state.name})
         except:
             self.__unlock()
@@ -117,13 +113,20 @@ class StreamRecorder(IRecorder):
     def __record_once(self):
         while True:
             self.__lock()
-            chunks_path = self.__record()
+            streams = self.streamlink.wait_for_live()
+            chunks_path = self.streamlink.record(streams)
             self.__unlock()
 
             if self.cancel_flag:
-                clear_chunks_path(chunks_path)
+                shutil.rmtree(chunks_path)
+                self.clear_incomplete_dir()
                 break
-            self.__postprocess(chunks_path)
+
+            if self.should_convert:
+                self.__convert_video(chunks_path)
+            else:
+                self.__move_chunks(chunks_path)
+
             if self.finish_flag or self.__is_locked():
                 break
 
@@ -131,25 +134,11 @@ class StreamRecorder(IRecorder):
             if self.streamlink.get_streams() == {}:
                 break
 
-    def __record_endless(self):
-        self.__lock()
-        while True:
-            chunks_path = self.__record()
-            if self.cancel_flag:
-                clear_chunks_path(chunks_path)
-                break
-            self.__postprocess(chunks_path)
-            if self.finish_flag:
-                break
-            time.sleep(self.restart_delay_sec)
-            log.info("Restart Recording", {"latest_state": self.streamlink.state.name})
-        self.__unlock()
+    def __move_chunks(self, chunks_path: str):
+        shutil.move(chunks_path, chunks_path.replace(incomplete, complete))
+        self.clear_incomplete_dir()
 
-    def __record(self) -> str:
-        streams = self.streamlink.wait_for_live()
-        return self.streamlink.record(streams)
-
-    def __postprocess(self, chunks_path: str):
+    def __convert_video(self, chunks_path: str):
         if len(os.listdir(chunks_path)) < self.chunk_threshold:
             # Remove chunks if not enough
             log.info("Skip Postprocess")
@@ -174,15 +163,18 @@ class StreamRecorder(IRecorder):
         os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
         shutil.move(incomplete_mp4_path, mp4_path)
 
-        # remove incomplete directory
+        # clear incomplete directory
+        self.clear_incomplete_dir()
+
+        log.info("Convert file", {"file_path": mp4_path})
+        return mp4_path
+
+    def clear_incomplete_dir(self):
         incomplete_name_dir_path = join(self.incomplete_dir_path, self.uid)
         if len(os.listdir(incomplete_name_dir_path)) == 0:
             os.rmdir(incomplete_name_dir_path)
         if len(os.listdir(self.incomplete_dir_path)) == 0:
             os.rmdir(self.incomplete_dir_path)
-
-        log.info("Convert file", {"file_path": mp4_path})
-        return mp4_path
 
     def __lock(self):
         write_file(self.lock_path, "")
@@ -197,10 +189,3 @@ class StreamRecorder(IRecorder):
     def __handle_sigterm(self, *acrgs):
         self.__unlock()
         self.close()
-
-
-def clear_chunks_path(chunks_path):
-    shutil.rmtree(chunks_path)
-    dir_path = dirname(chunks_path)
-    if len(os.listdir(dir_path)) == 0:
-        os.rmdir(dir_path)

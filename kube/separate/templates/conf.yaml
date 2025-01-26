@@ -9,7 +9,6 @@ data:
     startDelayMs: {{ .Values.app.startDelayMs }}
     chzzkLive:
       uid: {{ .Values.chzzk.live.uid }}
-      once: {{ .Values.chzzk.live.once }}
       cookies: {{ .Values.chzzk.cookies | quote }}
     chzzkVideo:
       videoNoList:
@@ -20,12 +19,12 @@ data:
       parallelNum: {{ .Values.chzzk.video.parallelNum }}
       nonParallelDelayMs: {{ .Values.chzzk.video.nonParallelDelayMs }}
       cookies: {{ .Values.chzzk.cookies | quote }}
-    afreecaVideo:
+    soopVideo:
       titleNoList:
-      {{- range .Values.afreeca.video.noList}}
+      {{- range .Values.soop.video.noList}}
         - {{ printf "%.0f" . }}
       {{- end }}
-      isParallel: {{ .Values.afreeca.video.isParallel }}
-      parallelNum: {{ .Values.afreeca.video.parallelNum }}
-      nonParallelDelayMs: {{ .Values.afreeca.video.nonParallelDelayMs }}
-      cookies: {{ .Values.afreeca.cookies | quote }}
+      isParallel: {{ .Values.soop.video.isParallel }}
+      parallelNum: {{ .Values.soop.video.parallelNum }}
+      nonParallelDelayMs: {{ .Values.soop.video.nonParallelDelayMs }}
+      cookies: {{ .Values.soop.cookies | quote }}

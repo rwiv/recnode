@@ -8,15 +8,15 @@ from os.path import join
 
 import requests
 
-from stdl.common.requests import AfreecaVideoRequest
+from stdl.common.requests import SoopVideoRequest
 from stdl.downloaders.hls.downloader import HlsDownloader
-from stdl.platforms.afreeca.afreeca_hls_url_extractor import AfreecaHlsUrlExtractor
+from stdl.platforms.soop.hls_url_extractor import SoopHlsUrlExtractor
 from stdl.utils.file import write_file, sanitize_filename
 from stdl.utils.http import get_headers
 
 
-class AfreecaVideoDownloader:
-    def __init__(self, tmp_dir: str, out_dir: str, req: AfreecaVideoRequest):
+class SoopVideoDownloader:
+    def __init__(self, tmp_dir: str, out_dir: str, req: SoopVideoRequest):
         self.cookies = None
         if req.cookies is not None:
             self.cookies = json.loads(req.cookies)
@@ -26,7 +26,7 @@ class AfreecaVideoDownloader:
         self.hls = HlsDownloader(
             tmp_dir, out_dir, get_headers(self.cookies),
             req.parallelNum, req.nonParallelDelayMs,
-            AfreecaHlsUrlExtractor(),
+            SoopHlsUrlExtractor(),
         )
 
     def download_one(self, title_no: int):

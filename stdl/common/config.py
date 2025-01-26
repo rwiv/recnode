@@ -4,8 +4,8 @@ from dataclasses import dataclass, asdict
 from typing import Optional
 from stdl.common.requests import RequestType, \
     ChzzkLiveRequest, ChzzkVideoRequest, \
-    AfreecaLiveRequest, TwitchLiveRequest, \
-    YtdlVideoRequest, HlsM3u8Request, AfreecaVideoRequest
+    SoopLiveRequest, TwitchLiveRequest, \
+    YtdlVideoRequest, HlsM3u8Request, SoopVideoRequest
 import yaml
 from dacite import from_dict
 
@@ -15,8 +15,8 @@ class AppConfig:
     reqType: str
     chzzkLive: Optional[ChzzkLiveRequest]
     chzzkVideo: Optional[ChzzkVideoRequest]
-    afreecaLive: Optional[AfreecaLiveRequest]
-    afreecaVideo: Optional[AfreecaVideoRequest]
+    soopLive: Optional[SoopLiveRequest]
+    soopVideo: Optional[SoopVideoRequest]
     twitchLive: Optional[TwitchLiveRequest]
     youtubeVideo: Optional[YtdlVideoRequest]
     hlsM3u8: Optional[HlsM3u8Request]

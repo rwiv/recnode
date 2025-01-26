@@ -2,14 +2,14 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from stdl.platforms.afreeca.types import AfreecaCredential
+from stdl.platforms.soop.types import SoopCredential
 
 
 class RequestType(Enum):
     CHZZK_VIDEO = "chzzk_video"
     CHZZK_LIVE = "chzzk_live"
-    AFREECA_LIVE = "afreeca_live"
-    AFREECA_VIDEO = "afreeca_video"
+    SOOP_LIVE = "soop_live"
+    SOOP_VIDEO = "soop_video"
     TWITCH_LIVE = "twitch_live"
     YTDL_VIDEO = "ytdl_video"
     HLS_M3U8 = "hls_m3u8"
@@ -27,19 +27,17 @@ class ChzzkVideoRequest:
 @dataclass
 class ChzzkLiveRequest:
     uid: str
-    once: bool
     cookies: Optional[str] = None
 
 
 @dataclass
-class AfreecaLiveRequest:
+class SoopLiveRequest:
     userId: str
-    once: bool
-    cred: Optional[AfreecaCredential] = None
+    cred: Optional[SoopCredential] = None
 
 
 @dataclass
-class AfreecaVideoRequest:
+class SoopVideoRequest:
     titleNoList: list[int]
     isParallel: bool
     parallelNum: int = 3
@@ -50,7 +48,6 @@ class AfreecaVideoRequest:
 @dataclass
 class TwitchLiveRequest:
     channelName: str
-    once: bool
     cookies: Optional[str] = None
 
 

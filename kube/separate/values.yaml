@@ -3,7 +3,7 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.2.5
+  tag: 0.2.6
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
@@ -36,14 +36,13 @@ app:
 chzzk:
   live:
     uid: foo
-    once: false
   video:
     noList: []
     isParallel: true
     parallelNum: 3
     nonParallelDelayMs: 200
   cookies: ~
-afreeca:
+soop:
   video:
     noList: []
     isParallel: true

@@ -12,11 +12,10 @@ class TwitchLiveRecorder(StreamRecorder):
             self,
             channel_name: str,
             out_dir_path: str,
-            once: bool,
             cookies: Optional[str],
             amqp: Amqp,
     ):
         url = f"https://www.twitch.tv/{channel_name}"
         sargs = StreamlinkArgs(url=url, uid=channel_name, cookies=cookies)
-        rargs = RecorderArgs(out_dir_path=out_dir_path, platform_type=PlatformType.TWITCH, once=once)
+        rargs = RecorderArgs(out_dir_path=out_dir_path, platform_type=PlatformType.TWITCH)
         super().__init__(sargs, rargs, amqp)
