@@ -47,7 +47,6 @@ class StreamRecorder(IRecorder):
 
         self.is_done = False
         self.cancel_flag = False
-        self.finish_flag = False
         self.should_convert = False
 
         self.record_thread: Optional[threading.Thread] = None
@@ -93,12 +92,6 @@ class StreamRecorder(IRecorder):
         log.info("Cancel Request")
         self.streamlink.abort_flag = True
         self.cancel_flag = True
-        self.finish_flag = True  # postprocess 도중 종료되는 경우를 대비
-
-    def finish(self):
-        log.info("Finish Request")
-        self.streamlink.abort_flag = True
-        self.finish_flag = True
 
     def __record(self):
         try:
@@ -127,7 +120,7 @@ class StreamRecorder(IRecorder):
             else:
                 self.__move_chunks(chunks_path)
 
-            if self.finish_flag or self.__is_locked():
+            if self.cancel_flag or self.__is_locked():
                 break
 
             time.sleep(self.restart_delay_sec)

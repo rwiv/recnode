@@ -27,7 +27,3 @@ class IRecorder:
     @abstractmethod
     def cancel(self):
         pass
-
-    @abstractmethod
-    def finish(self):
-        pass

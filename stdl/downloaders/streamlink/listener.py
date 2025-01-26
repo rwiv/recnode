@@ -17,7 +17,6 @@ queue_prefix = "stdl:exit"
 class ExitCommand(Enum):
     DELETE = "delete"
     CANCEL = "cancel"
-    FINISH = "finish"
 
 
 @dataclass
@@ -47,8 +46,7 @@ class Listener:
 
             if message.cmd == ExitCommand.CANCEL:
                 self.recorder.cancel()
-            elif message.cmd == ExitCommand.FINISH:
-                self.recorder.finish()
+
             self.close()
         except Exception as e:
             log.error(e)
