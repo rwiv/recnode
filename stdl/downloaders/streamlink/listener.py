@@ -9,6 +9,7 @@ from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.logger import log
 
 
+# TODO: change `:` to `.`
 queue_prefix = "stdl:exit"
 
 
@@ -38,9 +39,10 @@ class RecorderListener:
 
     def consume(self):
         platform = self.recorder.get_platform_type().value
+        # TODO: change `:` to `.`
         queue_name = f"{queue_prefix}:{platform}:{self.recorder.get_uid()}"
         self.amqp.connect()
-        self.amqp.assert_queue(queue_name)
+        self.amqp.assert_queue(queue_name, auto_delete=True)
         self.amqp.consume(queue_name, self.on_message)
 
     def close(self):

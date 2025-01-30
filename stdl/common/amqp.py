@@ -23,11 +23,11 @@ class Amqp:
         pass
 
     @abstractmethod
-    def assert_queue(self, queue: str):
+    def assert_queue(self, queue_name: str, auto_delete: bool = False):
         pass
 
     @abstractmethod
-    def consume(self, queue: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
+    def consume(self, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
         pass
 
     @abstractmethod
@@ -54,18 +54,18 @@ class AmqpBlocking(Amqp):
             raise ValueError("Connection not created")
         return self.conn.channel()
 
-    def assert_queue(self, queue: str):
+    def assert_queue(self, queue_name: str, auto_delete: bool = False):
         if not self.ch:
             raise ValueError("Channel not created")
         self.ch.queue_declare(
-            queue=queue, auto_delete=True,
+            queue=queue_name, auto_delete=auto_delete,
             passive=False, durable=False, exclusive=False,
         )
 
-    def consume(self, queue: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
+    def consume(self, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
         if not self.ch:
             raise ValueError("Channel not created")
-        self.ch.basic_consume(queue=queue, on_message_callback=callback)
+        self.ch.basic_consume(queue=queue_name, on_message_callback=callback)
         self.ch.start_consuming()
 
     def close(self):
@@ -91,12 +91,12 @@ class AmqpMock(Amqp):
         log.info("AmqpMock.create_channel()")
         return None
 
-    def assert_queue(self, queue: str):
-        log.info(f"AmqpMock.assert_queue({queue})")
+    def assert_queue(self, queue_name: str, auto_delete: bool = False):
+        log.info(f"AmqpMock.assert_queue({queue_name}, {auto_delete})")
         pass
 
-    def consume(self, queue: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
-        log.info(f"AmqpMock.consume({queue})")
+    def consume(self, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
+        log.info(f"AmqpMock.consume({queue_name})")
         pass
 
     def close(self):

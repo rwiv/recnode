@@ -14,7 +14,9 @@ conf = get_env().amqp
 amqp = AmqpBlocking(conf)
 
 uid = "asd"
-queue = f"stdl:exit:chzzk:{uid}"
+# TODO: change `:` to `.`
+queue_name = f"stdl:exit:chzzk:{uid}"
+
 
 def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
     content = json.loads(body.decode("utf-8"))
@@ -29,7 +31,7 @@ def publish(ch: BlockingChannel):
         "platform": "chzzk",
         "uid": uid
     })
-    ch.basic_publish(exchange="", routing_key=queue, body=body)
+    ch.basic_publish(exchange="", routing_key=queue_name, body=body)
 
 
 def test_publish():
@@ -40,7 +42,7 @@ def test_publish():
 def test_blocking():
     print()
     conn, ch = amqp.connect()
-    amqp.assert_queue(queue)
+    amqp.assert_queue(queue_name, auto_delete=True)
 
     def wait():
         for i in range(10):
@@ -51,5 +53,5 @@ def test_blocking():
     thread.Daemon = True
     thread.start()
 
-    amqp.consume(queue, on_message)
+    amqp.consume(queue_name, on_message)
     print("Done")
