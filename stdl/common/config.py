@@ -22,22 +22,15 @@ class AppConfig(BaseModel):
     hlsM3u8: Optional[HlsM3u8Request] = None
     startDelayMs: int = 0
 
-    @staticmethod
-    def from_dict(data: dict) -> "AppConfig":
-        return AppConfig(**data)
-
-    def to_dict(self) -> dict:
-        return self.model_dump(mode="json")
-
 
 def read_app_config_by_file(config_path: str) -> AppConfig:
     with open(config_path, "r") as file:
         text = file.read()
-    return AppConfig.from_dict(yaml.load(text, Loader=yaml.FullLoader))
+    return AppConfig(**yaml.load(text, Loader=yaml.FullLoader))
 
 
 def read_app_config_by_env() -> Optional[AppConfig]:
     text = os.getenv("APP_CONFIG") or None
     if text is None:
         return None
-    return AppConfig.from_dict(json.loads(text))
+    return AppConfig(**json.loads(text))

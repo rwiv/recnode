@@ -1,32 +1,18 @@
 import json
-from dataclasses import dataclass
-from enum import Enum
 
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import Amqp
-from stdl.common.types import PlatformType
 from stdl.downloaders.streamlink.types import IRecorder, RecordState
+from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.logger import log
 
 
 queue_prefix = "stdl:exit"
 
 
-class ExitCommand(Enum):
-    DELETE = "delete"
-    CANCEL = "cancel"
-
-
-@dataclass
-class ExitMessage:
-    cmd: ExitCommand
-    platform: PlatformType
-    uid: str
-
-
-class Listener:
+class RecorderListener:
 
     def __init__(self, recorder: IRecorder, amqp: Amqp):
         self.recorder = recorder
@@ -34,8 +20,7 @@ class Listener:
 
     def on_message(self, ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
         try:
-            content = json.loads(body.decode("utf-8"))
-            message = ExitMessage(ExitCommand(content["cmd"]), PlatformType(content["platform"]), content["uid"])
+            message = ExitMessage(**json.loads(body.decode("utf-8")))
             if message.uid != self.recorder.get_uid():
                 return
             ch.basic_ack(method.delivery_tag)

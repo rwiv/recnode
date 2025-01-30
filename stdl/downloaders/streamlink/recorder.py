@@ -10,7 +10,7 @@ from typing import Optional
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType
 from stdl.downloaders.hls.merge import merge_ts, convert_vid
-from stdl.downloaders.streamlink.listener import Listener
+from stdl.downloaders.streamlink.listener import RecorderListener
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.downloaders.streamlink.types import IRecorder, RecordState
 from stdl.utils.file import write_file, delete_file
@@ -43,7 +43,7 @@ class StreamRecorder(IRecorder):
         self.restart_delay_sec = default_restart_delay_sec
         self.chunk_threshold = default_chunk_threshold
         self.streamlink = StreamlinkManager(sargs, self.incomplete_dir_path)
-        self.listener = Listener(self, amqp)
+        self.listener = RecorderListener(self, amqp)
 
         self.is_done = False
         self.cancel_flag = False
