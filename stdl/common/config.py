@@ -1,45 +1,43 @@
 import json
 import os
-from dataclasses import dataclass, asdict
 from typing import Optional
+
+from pydantic import BaseModel
+
 from stdl.common.requests import RequestType, \
     ChzzkLiveRequest, ChzzkVideoRequest, \
     SoopLiveRequest, TwitchLiveRequest, \
     YtdlVideoRequest, HlsM3u8Request, SoopVideoRequest
 import yaml
-from dacite import from_dict
 
 
-@dataclass
-class AppConfig:
-    reqType: str
-    chzzkLive: Optional[ChzzkLiveRequest]
-    chzzkVideo: Optional[ChzzkVideoRequest]
-    soopLive: Optional[SoopLiveRequest]
-    soopVideo: Optional[SoopVideoRequest]
-    twitchLive: Optional[TwitchLiveRequest]
-    youtubeVideo: Optional[YtdlVideoRequest]
-    hlsM3u8: Optional[HlsM3u8Request]
+class AppConfig(BaseModel):
+    reqType: RequestType
+    chzzkLive: Optional[ChzzkLiveRequest] = None
+    chzzkVideo: Optional[ChzzkVideoRequest] = None
+    soopLive: Optional[SoopLiveRequest] = None
+    soopVideo: Optional[SoopVideoRequest] = None
+    twitchLive: Optional[TwitchLiveRequest] = None
+    youtubeVideo: Optional[YtdlVideoRequest] = None
+    hlsM3u8: Optional[HlsM3u8Request] = None
     startDelayMs: int = 0
 
-    def req_type(self) -> RequestType:
-        return RequestType(self.reqType)
+    @staticmethod
+    def from_dict(data: dict) -> "AppConfig":
+        return AppConfig(**data)
 
-    def to_dict(self):
-        return asdict(self)
+    def to_dict(self) -> dict:
+        return self.model_dump(mode="json")
 
 
 def read_app_config_by_file(config_path: str) -> AppConfig:
     with open(config_path, "r") as file:
         text = file.read()
-
-    d = yaml.load(text, Loader=yaml.FullLoader)
-    return from_dict(data_class=AppConfig, data=d)
+    return AppConfig.from_dict(yaml.load(text, Loader=yaml.FullLoader))
 
 
 def read_app_config_by_env() -> Optional[AppConfig]:
     text = os.getenv("APP_CONFIG") or None
     if text is None:
         return None
-    d = json.loads(text)
-    return from_dict(data_class=AppConfig, data=d)
+    return AppConfig.from_dict(json.loads(text))

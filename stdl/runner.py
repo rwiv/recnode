@@ -39,19 +39,19 @@ class Runner:
 
         os.makedirs(self.env.out_dir_path, exist_ok=True)
 
-        if self.conf.req_type() == RequestType.CHZZK_LIVE:
+        if self.conf.req_type == RequestType.CHZZK_LIVE:
             self.run_chzzk_live()
-        elif self.conf.req_type() == RequestType.CHZZK_VIDEO:
+        elif self.conf.req_type == RequestType.CHZZK_VIDEO:
             self.run_chzzk_video()
-        elif self.conf.req_type() == RequestType.SOOP_LIVE:
+        elif self.conf.req_type == RequestType.SOOP_LIVE:
             self.run_soop_live()
-        elif self.conf.req_type() == RequestType.SOOP_VIDEO:
+        elif self.conf.req_type == RequestType.SOOP_VIDEO:
             self.run_soop_video()
-        elif self.conf.req_type() == RequestType.TWITCH_LIVE:
+        elif self.conf.req_type == RequestType.TWITCH_LIVE:
             self.run_twitch_live()
-        elif self.conf.req_type() == RequestType.YTDL_VIDEO:
+        elif self.conf.req_type == RequestType.YTDL_VIDEO:
             self.run_ytdl_video()
-        elif self.conf.req_type() == RequestType.HLS_M3U8:
+        elif self.conf.req_type == RequestType.HLS_M3U8:
             self.run_hls_m3u8()
         else:
             raise ValueError("Invalid Request Type", self.conf.reqType)
