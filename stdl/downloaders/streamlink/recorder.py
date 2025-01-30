@@ -1,5 +1,4 @@
 import os
-import shutil
 import signal
 import threading
 import time
@@ -9,7 +8,6 @@ from typing import Optional
 
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType
-from stdl.downloaders.hls.merge import merge_ts, convert_vid
 from stdl.downloaders.streamlink.listener import RecorderListener
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.downloaders.streamlink.types import IRecorder, RecordState
@@ -18,9 +16,6 @@ from stdl.utils.logger import log
 
 default_restart_delay_sec = 3
 default_chunk_threshold = 10
-
-incomplete = "incomplete"
-complete = "complete"
 
 
 @dataclass
@@ -35,8 +30,7 @@ class StreamRecorder(IRecorder):
         self.uid = sargs.uid
         self.platform_type = rargs.platform_type
 
-        self.complete_dir_path = join(rargs.out_dir_path, complete)
-        self.incomplete_dir_path = join(rargs.out_dir_path, incomplete)
+        self.incomplete_dir_path = join(rargs.out_dir_path, "incomplete")
         os.makedirs(self.incomplete_dir_path, exist_ok=True)
         self.lock_path = f"{self.incomplete_dir_path}/{sargs.uid}/lock.json"
 
@@ -107,18 +101,18 @@ class StreamRecorder(IRecorder):
         while True:
             self.__lock()
             streams = self.streamlink.wait_for_live()
-            chunks_path = self.streamlink.record(streams)
+            self.streamlink.record(streams)
             self.__unlock()
 
-            if self.cancel_flag:
-                shutil.rmtree(chunks_path)
-                self.clear_incomplete_dir()
-                break
+            # if self.cancel_flag:
+            #     shutil.rmtree(chunks_path)
+            #     self.clear_incomplete_dir()
+            #     break
 
-            if self.should_convert:
-                self.__convert_video(chunks_path)
-            else:
-                self.__move_chunks(chunks_path)
+            # if self.should_convert:
+            #     self.__convert_video(chunks_path)
+            # else:
+            #     self.__move_chunks(chunks_path)
 
             if self.cancel_flag or self.__is_locked():
                 break
@@ -127,47 +121,47 @@ class StreamRecorder(IRecorder):
             if self.streamlink.get_streams() == {}:
                 break
 
-    def __move_chunks(self, chunks_path: str):
-        shutil.move(chunks_path, chunks_path.replace(incomplete, complete))
-        self.clear_incomplete_dir()
-
-    def __convert_video(self, chunks_path: str):
-        if len(os.listdir(chunks_path)) < self.chunk_threshold:
-            # Remove chunks if not enough
-            log.info("Skip Postprocess")
-            shutil.rmtree(chunks_path)
-        else:
-            self.merge_hls_chunks(chunks_path)
-            if os.path.exists(chunks_path):
-                shutil.rmtree(chunks_path)
-
-    def merge_hls_chunks(self, chunks_path: str):
-        # merge ts files
-        merged_ts_path = merge_ts(chunks_path)
-        shutil.rmtree(chunks_path)
-
-        # convert ts to mp4
-        incomplete_mp4_path = f"{chunks_path}.mp4"
-        convert_vid(merged_ts_path, incomplete_mp4_path)
-        os.remove(merged_ts_path)
-
-        # move mp4 file
-        mp4_path = incomplete_mp4_path.replace(incomplete, complete)
-        os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
-        shutil.move(incomplete_mp4_path, mp4_path)
-
-        # clear incomplete directory
-        self.clear_incomplete_dir()
-
-        log.info("Convert file", {"file_path": mp4_path})
-        return mp4_path
-
-    def clear_incomplete_dir(self):
-        incomplete_name_dir_path = join(self.incomplete_dir_path, self.uid)
-        if len(os.listdir(incomplete_name_dir_path)) == 0:
-            os.rmdir(incomplete_name_dir_path)
-        if len(os.listdir(self.incomplete_dir_path)) == 0:
-            os.rmdir(self.incomplete_dir_path)
+    # def __move_chunks(self, chunks_path: str):
+    #     shutil.move(chunks_path, chunks_path.replace(incomplete, complete))
+    #     self.clear_incomplete_dir()
+    #
+    # def __convert_video(self, chunks_path: str):
+    #     if len(os.listdir(chunks_path)) < self.chunk_threshold:
+    #         # Remove chunks if not enough
+    #         log.info("Skip Postprocess")
+    #         shutil.rmtree(chunks_path)
+    #     else:
+    #         self.merge_hls_chunks(chunks_path)
+    #         if os.path.exists(chunks_path):
+    #             shutil.rmtree(chunks_path)
+    #
+    # def merge_hls_chunks(self, chunks_path: str):
+    #     # merge ts files
+    #     merged_ts_path = merge_ts(chunks_path)
+    #     shutil.rmtree(chunks_path)
+    #
+    #     # convert ts to mp4
+    #     incomplete_mp4_path = f"{chunks_path}.mp4"
+    #     convert_vid(merged_ts_path, incomplete_mp4_path)
+    #     os.remove(merged_ts_path)
+    #
+    #     # move mp4 file
+    #     mp4_path = incomplete_mp4_path.replace(incomplete, complete)
+    #     os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
+    #     shutil.move(incomplete_mp4_path, mp4_path)
+    #
+    #     # clear incomplete directory
+    #     self.clear_incomplete_dir()
+    #
+    #     log.info("Convert file", {"file_path": mp4_path})
+    #     return mp4_path
+    #
+    # def clear_incomplete_dir(self):
+    #     incomplete_name_dir_path = join(self.incomplete_dir_path, self.uid)
+    #     if len(os.listdir(incomplete_name_dir_path)) == 0:
+    #         os.rmdir(incomplete_name_dir_path)
+    #     if len(os.listdir(self.incomplete_dir_path)) == 0:
+    #         os.rmdir(self.incomplete_dir_path)
 
     def __lock(self):
         write_file(self.lock_path, "")
