@@ -31,6 +31,10 @@ class Amqp:
         pass
 
     @abstractmethod
+    def publish(self, queue_name: str, body: bytes):
+        pass
+
+    @abstractmethod
     def close(self):
         pass
 
@@ -42,8 +46,12 @@ class AmqpBlocking(Amqp):
         self.ch: Optional[BlockingChannel] = None
 
     def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
-        self.conn = self.create_connection()
-        self.ch = self.create_channel()
+        if self.conn is None or self.conn.is_closed:
+            self.conn = self.create_connection()
+            log.debug("AMQP connection created")
+        if self.ch is None or self.ch.is_closed:
+            self.ch = self.create_channel()
+            log.debug("AMQP channel created")
         return self.conn, self.ch
 
     def create_connection(self) -> BlockingConnection:
@@ -68,14 +76,24 @@ class AmqpBlocking(Amqp):
         self.ch.basic_consume(queue=queue_name, on_message_callback=callback)
         self.ch.start_consuming()
 
+    def publish(self, queue_name: str, body: bytes):
+        if not self.ch:
+            raise ValueError("Channel not created")
+        self.ch.basic_publish(exchange="", routing_key=queue_name, body=body)
+
     def close(self):
         try:
-            self.ch.close()
-            self.conn.close()
-            self.ch = None
+            if self.conn is not None and self.conn.is_open:
+                self.conn.close()
+                log.debug("AMQP connection closed")
+            if self.ch is not None and self.ch.is_open:
+                self.ch.close()
+                log.debug("AMQP channel closed")
             self.conn = None
-        except:
-            pass
+            self.ch = None
+        except Exception as e:
+            log.error("Error closing AMQP connection")
+            log.error(e)
 
 
 class AmqpMock(Amqp):
@@ -97,6 +115,10 @@ class AmqpMock(Amqp):
 
     def consume(self, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
         log.info(f"AmqpMock.consume({queue_name})")
+        pass
+
+    def publish(self, queue_name: str, body: bytes):
+        log.info(f"AmqpMock.publish({queue_name}, {body})")
         pass
 
     def close(self):

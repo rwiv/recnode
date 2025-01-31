@@ -3,7 +3,6 @@ import os
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Optional
 
 import streamlink
@@ -77,8 +76,7 @@ class StreamlinkManager:
             time.sleep(self.wait_delay_sec)
             cnt += 1
 
-    def record(self, streams: dict[str, HLSStream]) -> str:
-        vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+    def record(self, streams: dict[str, HLSStream], vid_name: str) -> str:
         out_dir_path = f"{self.out_dir_path}/{self.uid}/{vid_name}"
 
         input_stream: HLSStreamReader = streams["best"].open()

@@ -1,14 +1,12 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class CdnInfo:
+class CdnInfo(BaseModel):
     cdnType: str
     zeroRating: bool
 
 
-@dataclass
-class Meta:
+class Meta(BaseModel):
     videoId: str
     streamSeq: int
     liveId: str
@@ -19,8 +17,7 @@ class Meta:
     duration: float
 
 
-@dataclass
-class EncodingTrack:
+class EncodingTrack(BaseModel):
     encodingTrackId: str
     videoProfile: str
     audioProfile: str
@@ -36,22 +33,19 @@ class EncodingTrack:
     videoDynamicRange: str
 
 
-@dataclass
-class Media:
+class Media(BaseModel):
     mediaId: str
     protocol: str
     path: str
     encodingTrack: list[EncodingTrack]
 
 
-@dataclass
-class ApiInfo:
+class ApiInfo(BaseModel):
     name: str
     path: str
 
 
-@dataclass
-class ChzzkPlayback:
+class ChzzkPlayback(BaseModel):
     meta: Meta
     api: list[ApiInfo]
     media: list[Media]

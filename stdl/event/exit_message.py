@@ -6,8 +6,8 @@ from stdl.common.types import PlatformType
 
 
 class ExitCommand(Enum):
-    DELETE = "delete"
     CANCEL = "cancel"
+    FINISH = "finish"
 
 
 class ExitMessage(BaseModel):

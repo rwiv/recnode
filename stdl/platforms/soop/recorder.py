@@ -16,7 +16,8 @@ class SoopLiveRecorder(StreamRecorder):
             user_id: str,
             out_dir_path: str,
             cred: Optional[SoopCredential],
-            amqp: Amqp,
+            pub: Amqp,
+            sub: Amqp,
     ):
         url = f"https://play.sooplive.co.kr/{user_id}"
         if cred is not None:
@@ -24,7 +25,7 @@ class SoopLiveRecorder(StreamRecorder):
         else:
             sargs = StreamlinkArgs(url=url, uid=user_id)
         rargs = RecorderArgs(out_dir_path, PlatformType.SOOP)
-        super().__init__(sargs, rargs, amqp)
+        super().__init__(sargs, rargs, pub, sub)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()

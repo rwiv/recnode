@@ -3,7 +3,6 @@ import json
 import random
 
 import requests
-from dacite import from_dict
 
 from stdl.common.requests import ChzzkVideoRequest
 from stdl.platforms.chzzk.type_playback import ChzzkPlayback
@@ -36,7 +35,7 @@ class ChzzkVideoDownloader:
         res = self._request_video_info(video_no)
         channelId = res["content"]["channel"]["channelId"]
         title = res["content"]["videoTitle"]
-        pb = from_dict(data_class=ChzzkPlayback, data=json.loads(res["content"]["liveRewindPlaybackJson"]))
+        pb = ChzzkPlayback(**json.loads(res["content"]["liveRewindPlaybackJson"]))
         if len(pb.media) != 1:
             raise ValueError("media should be 1")
 

@@ -11,19 +11,19 @@ class RecordState(Enum):
     FAILED = 3
 
 
-class IRecorder:
-    @abstractmethod
-    def get_uid(self) -> str:
-        pass
+class AbstractRecorder:
+    def __init__(self, uid: str, platform_type: PlatformType):
+        self.uid = uid
+        self.platform_type = platform_type
 
     @abstractmethod
     def get_state(self) -> RecordState:
         pass
 
     @abstractmethod
-    def get_platform_type(self) -> PlatformType:
+    def cancel(self):
         pass
 
     @abstractmethod
-    def cancel(self):
+    def finish(self):
         pass

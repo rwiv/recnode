@@ -7,6 +7,7 @@ from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import AmqpBlocking
 from stdl.common.env import get_env
+from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
 from stdl.utils.env import load_env
 
 load_env("../../dev/.env")
@@ -15,28 +16,26 @@ amqp = AmqpBlocking(conf)
 
 uid = "asd"
 # TODO: change `:` to `.`
-queue_name = f"stdl:exit:chzzk:{uid}"
+queue_name = f"{EXIT_QUEUE_PREFIX}:chzzk:{uid}"
 
 
 def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
-    content = json.loads(body.decode("utf-8"))
-    print(type(ch))
-    print(content)
+    print(json.loads(body.decode("utf-8")))
     ch.basic_ack(method.delivery_tag)
 
 
-def publish(ch: BlockingChannel):
+def publish(client: AmqpBlocking):
     body = json.dumps({
         "cmd": "cancel",
         "platform": "chzzk",
         "uid": uid
     })
-    ch.basic_publish(exchange="", routing_key=queue_name, body=body)
+    client.publish(queue_name, body.encode("utf-8"))
 
 
 def test_publish():
-    conn, ch = amqp.connect()
-    publish(ch)
+    amqp.connect()
+    publish(amqp)
 
 
 def test_blocking():
@@ -45,13 +44,16 @@ def test_blocking():
     amqp.assert_queue(queue_name, auto_delete=True)
 
     def wait():
-        for i in range(10):
+        for i in range(5):
             time.sleep(1)
-            publish(ch)
+            publish(amqp)
         ch.stop_consuming()
     thread = threading.Thread(target=wait)
     thread.Daemon = True
     thread.start()
 
-    amqp.consume(queue_name, on_message)
+    try:
+        amqp.consume(queue_name, on_message)
+    except Exception as e:
+        print(e)
     print("Done")
