@@ -11,8 +11,9 @@ from streamlink.stream import HLSStream
 from streamlink.stream.hls import HLSStreamReader
 
 from stdl.downloaders.streamlink.types import RecordState
+from stdl.utils.error import stacktrace
 from stdl.utils.file import write_bfile
-from stdl.utils.logger import log, get_error_info
+from stdl.utils.logger import log
 
 retry_count = 5
 buf_size = sys.maxsize
@@ -67,8 +68,9 @@ class StreamlinkManager:
                 streams = self.get_streams()
                 if streams != {}:
                     return streams
-            except (Exception,):
-                log.error(*get_error_info())
+            except:
+                log.error("Failed to get streams")
+                print(stacktrace())
 
             if cnt == 0:
                 log.info("Wait For Live")

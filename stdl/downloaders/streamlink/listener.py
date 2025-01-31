@@ -6,6 +6,7 @@ from pika.spec import Basic, BasicProperties
 from stdl.common.amqp import Amqp
 from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
 from stdl.event.exit_message import ExitMessage, ExitCommand
+from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
 
 
@@ -35,21 +36,28 @@ class RecorderListener:
             elif message.cmd == ExitCommand.FINISH:
                 self.recorder.finish()
 
-            self.close()
-        except Exception as e:
+            ch.stop_consuming()
+        except:
             log.error("Failed to handle message")
-            log.error(e)
+            print(stacktrace())
 
     def consume(self):
         try:
+            self.__consume()
+        except:
+            log.error("Failed to consume")
+            print(stacktrace())
+
+    def __consume(self):
+        conn = self.amqp.create_connection()
+        try:
             platform = self.recorder.platform_type.value
             vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
-            self.amqp.connect()
-            self.amqp.assert_queue(vid_queue_name, auto_delete=True)
-            self.amqp.consume(vid_queue_name, self.on_message)
-        except Exception as e:
-            log.error("Failed to consume")
-            log.error(e)
-
-    def close(self):
-        self.amqp.close()
+            chan = conn.channel()
+            self.amqp.assert_queue(chan, vid_queue_name, auto_delete=True)
+            self.amqp.consume(chan, vid_queue_name, self.on_message)
+            self.amqp.close(conn)
+        except:
+            log.error("Failed to __consume")
+            print(stacktrace())
+            self.amqp.close(conn)

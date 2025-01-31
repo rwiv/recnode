@@ -97,7 +97,6 @@ class StreamRecorder(AbstractRecorder):
             raise
 
     def __close(self):
-        self.listener.close()
         self.amqp_thread.join()
         self.pub.close()
         self.is_done = True
@@ -133,10 +132,11 @@ class StreamRecorder(AbstractRecorder):
             vidname=vid_name,
             fstype=FsType.LOCAL,
         ).model_dump(mode="json")).encode("utf-8")
-        self.pub.connect()
-        self.pub.assert_queue(DONE_QUEUE_NAME, auto_delete=False)
-        self.pub.publish(DONE_QUEUE_NAME, body)
-        self.pub.close()
+        conn = self.pub.create_connection()
+        chan = conn.channel()
+        self.pub.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
+        self.pub.publish(chan, DONE_QUEUE_NAME, body)
+        self.pub.close(conn)
         log.info("Published Done Message")
 
     def __lock(self):

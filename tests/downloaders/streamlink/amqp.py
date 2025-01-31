@@ -19,32 +19,33 @@ conf = read_app_config_by_file("../../../dev/conf.yaml")
 
 uid = conf.chzzkLive.uid
 exit_queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"
+amqp = AmqpBlocking(amqp_conf)
 
 
 def test_exit_publish():
     print()
-    amqp = AmqpBlocking(amqp_conf)
-    amqp.connect()
-    amqp.assert_queue(exit_queue_name, auto_delete=True)
+    conn = amqp.create_connection()
+    chan = conn.channel()
+    amqp.assert_queue(chan, exit_queue_name, auto_delete=True)
     body = json.dumps(ExitMessage(
         # cmd=ExitCommand.CANCEL,
         cmd=ExitCommand.FINISH,
         uid=uid,
         platform=PlatformType.CHZZK,
     ).model_dump(mode="json")).encode("utf-8")
-    amqp.publish(exit_queue_name, body)
-    amqp.close()
+    amqp.publish(chan, exit_queue_name, body)
+    amqp.close(conn)
 
 
 def test_done_consume():
     print()
-    amqp = AmqpBlocking(amqp_conf)
-    amqp.connect()
-    amqp.assert_queue(DONE_QUEUE_NAME, auto_delete=False)
+    conn = amqp.create_connection()
+    chan = conn.channel()
+    amqp.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
 
     def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
         print(json.loads(body.decode("utf-8")))
         ch.basic_ack(method.delivery_tag)
         ch.stop_consuming()
-    amqp.consume(DONE_QUEUE_NAME, on_message)
-    amqp.close()
+    amqp.consume(chan, DONE_QUEUE_NAME, on_message)
+    amqp.close(conn)
