@@ -18,8 +18,7 @@ amqp_conf = get_env().amqp
 conf = read_app_config_by_file("../../../dev/conf.yaml")
 
 uid = conf.chzzkLive.uid
-# TODO: change `:` to `.`
-exit_queue_name = f"{EXIT_QUEUE_PREFIX}:chzzk:{uid}"
+exit_queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"
 
 
 def test_exit_publish():

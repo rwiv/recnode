@@ -15,8 +15,7 @@ conf = get_env().amqp
 amqp = AmqpBlocking(conf)
 
 uid = "asd"
-# TODO: change `:` to `.`
-queue_name = f"{EXIT_QUEUE_PREFIX}:chzzk:{uid}"
+queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"
 
 
 def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):

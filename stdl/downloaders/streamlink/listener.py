@@ -9,8 +9,7 @@ from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.logger import log
 
 
-# TODO: change `:` to `.`
-EXIT_QUEUE_PREFIX = "stdl:exit"
+EXIT_QUEUE_PREFIX = "stdl.exit"
 
 
 class RecorderListener:
@@ -44,8 +43,7 @@ class RecorderListener:
     def consume(self):
         try:
             platform = self.recorder.platform_type.value
-            # TODO: change `:` to `.`
-            vid_queue_name = f"{EXIT_QUEUE_PREFIX}:{platform}:{self.recorder.uid}"
+            vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
             self.amqp.connect()
             self.amqp.assert_queue(vid_queue_name, auto_delete=True)
             self.amqp.consume(vid_queue_name, self.on_message)
