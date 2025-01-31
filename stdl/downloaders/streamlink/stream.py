@@ -61,9 +61,12 @@ class StreamlinkManager:
                 session.http.cookies.set(cookie["name"], cookie["value"])
         return session
 
-    def wait_for_live(self) -> dict[str, HLSStream]:
+    def wait_for_live(self) -> Optional[dict[str, HLSStream]]:
         cnt = 0
         while True:
+            if self.abort_flag:
+                log.info("Abort Wait")
+                return None
             try:
                 streams = self.get_streams()
                 if streams != {}:

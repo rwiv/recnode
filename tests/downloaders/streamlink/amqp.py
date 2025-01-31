@@ -28,8 +28,8 @@ def test_exit_publish():
     chan = conn.channel()
     amqp.assert_queue(chan, exit_queue_name, auto_delete=True)
     body = json.dumps(ExitMessage(
-        # cmd=ExitCommand.CANCEL,
-        cmd=ExitCommand.FINISH,
+        cmd=ExitCommand.CANCEL,
+        # cmd=ExitCommand.FINISH,
         uid=uid,
         platform=PlatformType.CHZZK,
     ).model_dump(mode="json")).encode("utf-8")

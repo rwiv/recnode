@@ -98,13 +98,15 @@ class StreamRecorder(AbstractRecorder):
 
     def __close(self):
         self.amqp_thread.join()
-        self.pub.close()
         self.is_done = True
 
     def __record_once(self):
         while True:
             self.__lock()
             streams = self.streamlink.wait_for_live()
+            # abort_flag is set by cancel method
+            if streams is None:
+                break
             vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
             self.streamlink.record(streams, vid_name)
             self.__unlock()

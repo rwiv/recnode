@@ -4,7 +4,7 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import Amqp
-from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
+from stdl.downloaders.streamlink.types import AbstractRecorder
 from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
@@ -26,10 +26,6 @@ class RecorderListener:
                 return
             ch.basic_ack(method.delivery_tag)
             log.info("Received Exit Message")
-
-            # if self.recorder.get_state() == RecordState.WAIT:
-            #     log.info("Still waiting for the Stream")
-            #     return
 
             if message.cmd == ExitCommand.CANCEL:
                 self.recorder.cancel()
