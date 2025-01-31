@@ -97,6 +97,11 @@ class StreamRecorder(AbstractRecorder):
             raise
 
     def __close(self):
+        conn = self.listener.conn
+        if conn is not None:
+            def close_conn():
+                self.listener.amqp.close(conn)
+            conn.add_callback_threadsafe(close_conn)
         self.amqp_thread.join()
         self.is_done = True
 

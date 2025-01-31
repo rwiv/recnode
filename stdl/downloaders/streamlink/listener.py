@@ -1,6 +1,7 @@
 import json
+from typing import Optional
 
-from pika.adapters.blocking_connection import BlockingChannel
+from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import Amqp
@@ -18,6 +19,7 @@ class RecorderListener:
     def __init__(self, recorder: AbstractRecorder, amqp: Amqp):
         self.recorder = recorder
         self.amqp = amqp
+        self.conn: Optional[BlockingConnection] = None
 
     def on_message(self, ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
         try:
@@ -39,21 +41,16 @@ class RecorderListener:
 
     def consume(self):
         try:
-            self.__consume()
-        except:
-            log.error("Failed to consume")
-            print(stacktrace())
-
-    def __consume(self):
-        conn = self.amqp.create_connection()
-        try:
             platform = self.recorder.platform_type.value
             vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
-            chan = conn.channel()
+            self.conn = self.amqp.create_connection()
+            chan = self.conn.channel()
             self.amqp.assert_queue(chan, vid_queue_name, auto_delete=True)
             self.amqp.consume(chan, vid_queue_name, self.on_message)
-            self.amqp.close(conn)
         except:
             log.error("Failed to __consume")
             print(stacktrace())
-            self.amqp.close(conn)
+        finally:
+            if self.conn is not None:
+                self.amqp.close(self.conn)
+            self.conn = None
