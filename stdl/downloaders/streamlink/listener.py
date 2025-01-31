@@ -25,6 +25,7 @@ class RecorderListener:
             if message.uid != self.recorder.uid:
                 return
             ch.basic_ack(method.delivery_tag)
+            log.info("Received Exit Message")
 
             # if self.recorder.get_state() == RecordState.WAIT:
             #     log.info("Still waiting for the Stream")

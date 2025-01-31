@@ -48,7 +48,6 @@ class StreamRecorder(AbstractRecorder):
 
         self.is_done = False
         self.cancel_flag = False
-        self.should_convert = False
 
         self.record_thread: Optional[threading.Thread] = None
         self.amqp_thread: Optional[threading.Thread] = None
@@ -111,16 +110,6 @@ class StreamRecorder(AbstractRecorder):
             self.streamlink.record(streams, vid_name)
             self.__unlock()
 
-            # if self.cancel_flag:
-            #     shutil.rmtree(chunks_path)
-            #     self.clear_incomplete_dir()
-            #     break
-
-            # if self.should_convert:
-            #     self.__convert_video(chunks_path)
-            # else:
-            #     self.__move_chunks(chunks_path)
-
             if self.cancel_flag:
                 self.publish_done(DoneStatus.CANCELED, vid_name)
                 # TODO: remove break
@@ -148,48 +137,7 @@ class StreamRecorder(AbstractRecorder):
         self.pub.assert_queue(DONE_QUEUE_NAME, auto_delete=False)
         self.pub.publish(DONE_QUEUE_NAME, body)
         self.pub.close()
-
-    # def __move_chunks(self, chunks_path: str):
-    #     shutil.move(chunks_path, chunks_path.replace(incomplete, complete))
-    #     self.clear_incomplete_dir()
-    #
-    # def __convert_video(self, chunks_path: str):
-    #     if len(os.listdir(chunks_path)) < self.chunk_threshold:
-    #         # Remove chunks if not enough
-    #         log.info("Skip Postprocess")
-    #         shutil.rmtree(chunks_path)
-    #     else:
-    #         self.merge_hls_chunks(chunks_path)
-    #         if os.path.exists(chunks_path):
-    #             shutil.rmtree(chunks_path)
-    #
-    # def merge_hls_chunks(self, chunks_path: str):
-    #     # merge ts files
-    #     merged_ts_path = merge_ts(chunks_path)
-    #     shutil.rmtree(chunks_path)
-    #
-    #     # convert ts to mp4
-    #     incomplete_mp4_path = f"{chunks_path}.mp4"
-    #     convert_vid(merged_ts_path, incomplete_mp4_path)
-    #     os.remove(merged_ts_path)
-    #
-    #     # move mp4 file
-    #     mp4_path = incomplete_mp4_path.replace(incomplete, complete)
-    #     os.makedirs(join(self.complete_dir_path, self.uid), exist_ok=True)
-    #     shutil.move(incomplete_mp4_path, mp4_path)
-    #
-    #     # clear incomplete directory
-    #     self.clear_incomplete_dir()
-    #
-    #     log.info("Convert file", {"file_path": mp4_path})
-    #     return mp4_path
-    #
-    # def clear_incomplete_dir(self):
-    #     incomplete_name_dir_path = join(self.incomplete_dir_path, self.uid)
-    #     if len(os.listdir(incomplete_name_dir_path)) == 0:
-    #         os.rmdir(incomplete_name_dir_path)
-    #     if len(os.listdir(self.incomplete_dir_path)) == 0:
-    #         os.rmdir(self.incomplete_dir_path)
+        log.info("Published Done Message")
 
     def __lock(self):
         write_file(self.lock_path, "")
