@@ -33,16 +33,14 @@ def publish(chan: BlockingChannel):
 
 
 def test_publish():
-    conn = amqp.create_connection()
-    chan = conn.channel()
+    conn, chan = amqp.connect()
     publish(chan)
 
 
 def test_blocking():
     print()
     print(f"[{thname()}] Start")
-    conn = amqp.create_connection()
-    chan = conn.channel()
+    conn, chan = amqp.connect()
     amqp.assert_queue(chan, queue_name, auto_delete=True)
 
     def wait():

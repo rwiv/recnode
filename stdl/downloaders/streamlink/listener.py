@@ -43,8 +43,7 @@ class RecorderListener:
         try:
             platform = self.recorder.platform_type.value
             vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
-            self.conn = self.amqp.create_connection()
-            chan = self.conn.channel()
+            self.conn, chan = self.amqp.connect()
             self.amqp.assert_queue(chan, vid_queue_name, auto_delete=True)
             self.amqp.consume(chan, vid_queue_name, self.on_message)
         except:

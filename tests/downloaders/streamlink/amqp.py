@@ -24,8 +24,7 @@ amqp = AmqpBlocking(amqp_conf)
 
 def test_exit_publish():
     print()
-    conn = amqp.create_connection()
-    chan = conn.channel()
+    conn, chan = amqp.connect()
     amqp.assert_queue(chan, exit_queue_name, auto_delete=True)
     body = json.dumps(ExitMessage(
         cmd=ExitCommand.CANCEL,
@@ -39,8 +38,7 @@ def test_exit_publish():
 
 def test_done_consume():
     print()
-    conn = amqp.create_connection()
-    chan = conn.channel()
+    conn, chan = amqp.connect()
     amqp.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
 
     def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):

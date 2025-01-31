@@ -139,8 +139,7 @@ class StreamRecorder(AbstractRecorder):
             vidname=vid_name,
             fstype=FsType.LOCAL,
         ).model_dump(mode="json")).encode("utf-8")
-        conn = self.pub.create_connection()
-        chan = conn.channel()
+        conn, chan = self.pub.connect()
         self.pub.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
         self.pub.publish(chan, DONE_QUEUE_NAME, body)
         self.pub.close(conn)
