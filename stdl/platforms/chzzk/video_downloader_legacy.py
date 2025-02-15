@@ -1,6 +1,7 @@
 import asyncio
 import json
 import time
+from typing import Any
 from xml.etree.ElementTree import fromstring, Element
 
 import requests
@@ -41,7 +42,7 @@ class ChzzkVideoDownloaderLegacy:
         qs = f"_lsu_sa_={lsu_sa}"
         return m3u_url, qs, title, channelId
 
-    def _request_video_info(self, video_no: int) -> dict[str, any]:
+    def _request_video_info(self, video_no: int) -> dict[str, Any]:
         url = f"https://api.chzzk.naver.com/service/v3/videos/{video_no}"
         res = requests.get(url, headers=get_headers(self.cookies, "application/json"))
         return res.json()

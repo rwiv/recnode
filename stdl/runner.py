@@ -29,7 +29,11 @@ class Runner:
     def __read_config(self):
         conf = read_app_config_by_env()
         if conf is None:
-            conf = read_app_config_by_file(self.env.config_path)
+            conf_path = self.env.config_path
+            if conf_path is not None:
+                conf = read_app_config_by_file(conf_path)
+        if conf is None:
+            raise ValueError("Config not found")
         return conf
 
     def run(self):
@@ -54,10 +58,12 @@ class Runner:
         elif self.conf.reqType == RequestType.HLS_M3U8:
             self.run_hls_m3u8()
         else:
-            raise ValueError("Invalid Request Type", self.conf.reqType)
+            raise ValueError("Invalid Request Type")
 
     def run_hls_m3u8(self):
         req = self.conf.hlsM3u8
+        if req is None:
+            raise ValueError("Invalid Request Type")
         if req.cookies is not None:
             headers = get_headers(json.loads(req.cookies))
         else:
@@ -74,16 +80,21 @@ class Runner:
         print("end")
 
     def run_ytdl_video(self):
+        req = self.conf.youtubeVideo
+        if req is None:
+            raise ValueError("Invalid Request Type")
         yt = YtdlDownloader(self.env.out_dir_path)
-        yt.download(self.conf.youtubeVideo.urls)
+        yt.download(req.urls)
         print("end")
 
     def run_chzzk_video(self):
         env = self.env
-        vconf = self.conf.chzzkVideo
-        dl = ChzzkVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
-        dl_l = ChzzkVideoDownloaderLegacy(env.tmp_dir_path, env.out_dir_path, vconf)
-        for video_no in vconf.videoNoList:
+        req = self.conf.chzzkVideo
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        dl = ChzzkVideoDownloader(env.tmp_dir_path, env.out_dir_path, req)
+        dl_l = ChzzkVideoDownloaderLegacy(env.tmp_dir_path, env.out_dir_path, req)
+        for video_no in req.videoNoList:
             try:
                 dl.download_one(video_no)
             except TypeError:
@@ -92,19 +103,23 @@ class Runner:
 
     def run_soop_video(self):
         env = self.env
-        vconf = self.conf.soopVideo
-        dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, vconf)
-        for video_no in vconf.titleNoList:
+        req = self.conf.soopVideo
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, req)
+        for video_no in req.titleNoList:
             dl.download_one(video_no)
         print("end")
 
     def run_chzzk_live(self):
         disable_streamlink_log()
-        url = f"https://chzzk.naver.com/{self.conf.chzzkLive.uid}"
-        log.info(f"Start Record: {url}")
-        if self.conf.chzzkLive.cookies:
-            log.info("Using Credentials")
         req = self.conf.chzzkLive
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        url = f"https://chzzk.naver.com/{req.uid}"
+        log.info(f"Start Record: {url}")
+        if req.cookies:
+            log.info("Using Credentials")
         recorder = ChzzkLiveRecorder(
             req.uid, self.env.out_dir_path, req.cookies,
             self.create_amqp(), self.create_amqp(),
@@ -113,11 +128,13 @@ class Runner:
 
     def run_soop_live(self):
         disable_streamlink_log()
-        url = f"https://ch.sooplive.co.kr/{self.conf.soopLive.userId}"
-        log.info(f"Start Record: {url}")
-        if self.conf.soopLive.cred:
-            log.info("Using Credentials")
         req = self.conf.soopLive
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        url = f"https://ch.sooplive.co.kr/{req.userId}"
+        log.info(f"Start Record: {url}")
+        if req.cred:
+            log.info("Using Credentials")
         recorder = SoopLiveRecorder(
             req.userId, self.env.out_dir_path, req.cred,
             self.create_amqp(), self.create_amqp(),
@@ -126,11 +143,13 @@ class Runner:
 
     def run_twitch_live(self):
         disable_streamlink_log()
-        url = f"https://www.twitch.tv/{self.conf.twitchLive.channelName}"
-        log.info(f"Start Record: {url}")
-        if self.conf.twitchLive.cookies:
-            log.info("Using Credentials")
         req = self.conf.twitchLive
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        url = f"https://www.twitch.tv/{req.channelName}"
+        log.info(f"Start Record: {url}")
+        if req.cookies:
+            log.info("Using Credentials")
         recorder = TwitchLiveRecorder(
             req.channelName, self.env.out_dir_path, req.cookies,
             self.create_amqp(), self.create_amqp(),

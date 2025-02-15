@@ -1,6 +1,5 @@
 import json
 import os
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -13,13 +12,13 @@ import yaml
 
 class AppConfig(BaseModel):
     reqType: RequestType
-    chzzkLive: Optional[ChzzkLiveRequest] = None
-    chzzkVideo: Optional[ChzzkVideoRequest] = None
-    soopLive: Optional[SoopLiveRequest] = None
-    soopVideo: Optional[SoopVideoRequest] = None
-    twitchLive: Optional[TwitchLiveRequest] = None
-    youtubeVideo: Optional[YtdlVideoRequest] = None
-    hlsM3u8: Optional[HlsM3u8Request] = None
+    chzzkLive: ChzzkLiveRequest | None = None
+    chzzkVideo: ChzzkVideoRequest | None = None
+    soopLive: SoopLiveRequest | None = None
+    soopVideo: SoopVideoRequest | None = None
+    twitchLive: TwitchLiveRequest | None = None
+    youtubeVideo: YtdlVideoRequest | None = None
+    hlsM3u8: HlsM3u8Request | None = None
     startDelayMs: int = 0
 
 
@@ -29,7 +28,7 @@ def read_app_config_by_file(config_path: str) -> AppConfig:
     return AppConfig(**yaml.load(text, Loader=yaml.FullLoader))
 
 
-def read_app_config_by_env() -> Optional[AppConfig]:
+def read_app_config_by_env() -> AppConfig | None:
     text = os.getenv("APP_CONFIG") or None
     if text is None:
         return None

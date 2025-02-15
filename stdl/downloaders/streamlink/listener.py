@@ -1,5 +1,4 @@
 import json
-from typing import Optional
 
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 from pika.spec import Basic, BasicProperties
@@ -19,7 +18,7 @@ class RecorderListener:
     def __init__(self, recorder: AbstractRecorder, amqp: Amqp):
         self.recorder = recorder
         self.amqp = amqp
-        self.conn: Optional[BlockingConnection] = None
+        self.conn: BlockingConnection | None = None
 
     def on_message(self, ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
         try:

@@ -3,12 +3,10 @@ import os
 import sys
 import time
 from dataclasses import dataclass
-from typing import Optional
 
-import streamlink
 from streamlink.options import Options
-from streamlink.stream import HLSStream
-from streamlink.stream.hls import HLSStreamReader
+from streamlink.session.session import Streamlink
+from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from stdl.downloaders.streamlink.types import RecordState
 from stdl.utils.error import stacktrace
@@ -24,8 +22,8 @@ buf_size = sys.maxsize
 class StreamlinkArgs:
     url: str
     uid: str
-    cookies: Optional[str] = None
-    options: Optional[dict[str, str]] = None
+    cookies: str | None = None
+    options: dict[str, str] | None = None
 
 
 class StreamlinkManager:
@@ -53,15 +51,15 @@ class StreamlinkManager:
 
         return streams
 
-    def get_session(self) -> streamlink.session.Streamlink:
-        session = streamlink.session.Streamlink()
+    def get_session(self) -> Streamlink:
+        session = Streamlink()
         if self.cookies is not None:
             data: list[dict] = json.loads(self.cookies)
             for cookie in data:
                 session.http.cookies.set(cookie["name"], cookie["value"])
         return session
 
-    def wait_for_live(self) -> Optional[dict[str, HLSStream]]:
+    def wait_for_live(self) -> dict[str, HLSStream] | None:
         cnt = 0
         while True:
             if self.abort_flag:

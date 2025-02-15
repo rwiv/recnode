@@ -1,5 +1,3 @@
-from typing import Optional
-
 from streamlink.plugins.soop import Soop
 
 from stdl.common.amqp import Amqp
@@ -15,7 +13,7 @@ class SoopLiveRecorder(StreamRecorder):
             self,
             user_id: str,
             out_dir_path: str,
-            cred: Optional[SoopCredential],
+            cred: SoopCredential | None,
             pub: Amqp,
             sub: Amqp,
     ):

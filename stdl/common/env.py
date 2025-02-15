@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -16,7 +15,7 @@ class Env:
     env: str
     out_dir_path: str
     tmp_dir_path: str
-    config_path: Optional[str]
+    config_path: str | None
     amqp: AmqpConfig
 
 

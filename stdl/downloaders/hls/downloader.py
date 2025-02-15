@@ -2,7 +2,6 @@ import asyncio
 import os
 import shutil
 import time
-from typing import Optional
 
 import aiohttp
 
@@ -26,8 +25,8 @@ class HlsDownloader:
             self,
             tmp_dir_path: str,
             out_dir_path: str,
-            headers: Optional[dict] = None,
-            parallel_num: Optional[int] = 3,
+            headers: dict | None = None,
+            parallel_num: int = 3,
             non_parallel_delay_ms: int = 0,
             url_extractor=HlsUrlExtractor(),
     ):
@@ -40,7 +39,7 @@ class HlsDownloader:
 
     async def download_parallel(
             self, m3u8_url: str, name: str, title: str,
-            qs: Optional[str] = None,
+            qs: str | None = None,
     ):
         title_name = sanitize_filename(title)
         chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
@@ -59,7 +58,7 @@ class HlsDownloader:
 
     async def download_non_parallel(
             self, m3u8_url: str, name: str, title: str,
-            qs: Optional[str] = None,
+            qs: str | None = None,
     ):
         title_name = sanitize_filename(title)
         chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
@@ -77,7 +76,7 @@ class HlsDownloader:
         merge_hls_chunks(chunks_path)
 
 
-async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
+async def _download_file_wrapper(url: str, headers: dict[str, str] | None, num: int, out_dir_path: str):
     for i in range(retry_count):
         try:
             await _download_file(url, headers, num, out_dir_path)
@@ -90,7 +89,7 @@ async def _download_file_wrapper(url: str, headers: Optional[dict[str, str]], nu
         print(f"Failed to download, cnt={num + 1}")
 
 
-async def _download_file(url: str, headers: Optional[dict[str, str]], num: int, out_dir_path: str):
+async def _download_file(url: str, headers: dict[str, str] | None, num: int, out_dir_path: str):
     file_path = os.path.join(out_dir_path, f"{num + 1}.ts")
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url) as res:

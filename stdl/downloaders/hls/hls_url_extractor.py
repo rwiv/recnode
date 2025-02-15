@@ -1,5 +1,3 @@
-from typing import Optional
-
 import requests
 
 from stdl.downloaders.hls.parser import parse_master_playlist, parse_media_playlist, Resolution
@@ -7,7 +5,7 @@ from stdl.utils.url import get_base_url
 
 
 class HlsUrlExtractor:
-    def get_urls(self, m3u8_url: str, qs: Optional[str] = None) -> list[str]:
+    def get_urls(self, m3u8_url: str, qs: str | None = None) -> list[str]:
         m3u8 = requests.get(m3u8_url).text
         pl = parse_master_playlist(m3u8)
 

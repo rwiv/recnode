@@ -1,5 +1,3 @@
-from typing import Optional
-
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType
 from stdl.downloaders.streamlink.recorder import StreamRecorder, RecorderArgs
@@ -12,7 +10,7 @@ class TwitchLiveRecorder(StreamRecorder):
             self,
             channel_name: str,
             out_dir_path: str,
-            cookies: Optional[str],
+            cookies: str | None,
             pub: Amqp,
             sub: Amqp,
     ):

@@ -12,7 +12,7 @@ from stdl.utils.logger import log
 
 class Amqp:
     @abstractmethod
-    def connect(self) -> [BlockingConnection, BlockingChannel]:
+    def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
         pass
 
     @abstractmethod
@@ -36,7 +36,7 @@ class AmqpBlocking(Amqp):
     def __init__(self, conf: AmqpConfig):
         self.url = f"amqp://{conf.username}:{conf.password}@{conf.host}:{conf.port}"
 
-    def connect(self) -> [BlockingConnection, BlockingChannel]:
+    def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
         conn = BlockingConnection(pika.URLParameters(self.url))
         chan = conn.channel()
         return conn, chan
@@ -65,9 +65,9 @@ class AmqpBlocking(Amqp):
 
 
 class AmqpMock(Amqp):
-    def connect(self) -> [BlockingConnection, BlockingChannel]:
+    def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
         log.info("AmqpMock.connect()")
-        return None, None
+        return None, None  # type: ignore
 
     def assert_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
         log.info(f"AmqpMock.assert_queue({queue_name}, {auto_delete})")

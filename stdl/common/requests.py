@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from stdl.platforms.soop.types import SoopCredential
 
@@ -21,19 +20,19 @@ class ChzzkVideoRequest:
     isParallel: bool
     parallelNum: int = 3
     nonParallelDelayMs: int = 200
-    cookies: Optional[str] = None
+    cookies: str | None = None
 
 
 @dataclass
 class ChzzkLiveRequest:
     uid: str
-    cookies: Optional[str] = None
+    cookies: str | None = None
 
 
 @dataclass
 class SoopLiveRequest:
     userId: str
-    cred: Optional[SoopCredential] = None
+    cred: SoopCredential | None = None
 
 
 @dataclass
@@ -42,13 +41,13 @@ class SoopVideoRequest:
     isParallel: bool
     parallelNum: int = 3
     nonParallelDelayMs: int = 200
-    cookies: Optional[str] = None
+    cookies: str | None = None
 
 
 @dataclass
 class TwitchLiveRequest:
     channelName: str
-    cookies: Optional[str] = None
+    cookies: str | None = None
 
 
 @dataclass
@@ -59,4 +58,4 @@ class YtdlVideoRequest:
 @dataclass
 class HlsM3u8Request:
     urls: list[str]
-    cookies: Optional[str] = None
+    cookies: str | None = None

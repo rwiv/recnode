@@ -51,7 +51,6 @@ def test_blocking():
 
         conn.add_callback_threadsafe(chan.stop_consuming)
     thread = threading.Thread(target=wait)
-    thread.Daemon = True
     thread.start()
 
     try:

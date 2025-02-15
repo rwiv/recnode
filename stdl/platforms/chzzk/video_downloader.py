@@ -1,6 +1,7 @@
 import asyncio
 import json
 import random
+from typing import Any
 
 import requests
 
@@ -42,7 +43,7 @@ class ChzzkVideoDownloader:
         m3u8_url = pb.media[0].path
         return m3u8_url, title, channelId
 
-    def _request_video_info(self, video_no: int) -> dict[str, any]:
+    def _request_video_info(self, video_no: int) -> dict[str, Any]:
         url = f"https://api.chzzk.naver.com/service/v3/videos/{video_no}"
         res = requests.get(url, headers=get_headers(self.cookies, "application/json"))
         return res.json()

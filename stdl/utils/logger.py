@@ -4,7 +4,7 @@ import os
 import sys
 import traceback
 from datetime import datetime
-from typing import Optional
+from typing import Any
 
 RESET = "\x1b[0m"
 RED_BOLD = "\x1b[1;31m"
@@ -30,7 +30,7 @@ ENV_KEY = "PY_ENV"
 # Exception 로깅 시 Exception를 msg 인자로 넣으면
 # json 변환에 실패해 에러가 발생하므로 해당 함수를 활용한다.
 # e.g. `log.error(*get_error_info())`
-def get_error_info() -> tuple[str, dict[str, any]]:
+def get_error_info() -> tuple[str, dict[str, Any]]:
     exc_info = sys.exc_info()
     trace = traceback.format_exception(*exc_info)
     head = trace[len(trace)-1].replace("\n", "")
@@ -48,7 +48,7 @@ def get_std_logger(name: str = "app", level: int = logging.INFO):
     return std_logger
 
 
-def get_msg_prod(level: str, message: str, attrs: Optional[dict[str, any]]) -> str:
+def get_msg_prod(level: str, message: str, attrs: dict[str, Any] | None) -> str:
     record = {
         "level": level,
         "message": message,
@@ -61,7 +61,7 @@ def get_msg_prod(level: str, message: str, attrs: Optional[dict[str, any]]) -> s
     return json.dumps(record)
 
 
-def get_msg_dev(level: str, msg: str, attrs: Optional[dict[str, any]]) -> str:
+def get_msg_dev(level: str, msg: str, attrs: dict[str, Any] | None) -> str:
     now = datetime.now()
     formatted_time = now.strftime(f"%H:%M:%S.{now.microsecond // 1000:03d}")
 
@@ -82,31 +82,31 @@ class Logger:
     def set_level(self, level: int = logging.INFO):
         self.logger.setLevel(level)
 
-    def debug(self, msg: str, attrs: Optional[dict[str, any]] = None):
+    def debug(self, msg: str, attrs: dict[str, Any] | None = None):
         if self.is_prod:
             self.logger.debug(get_msg_prod("DEBUG", msg, attrs))
         else:
             self.logger.debug(get_msg_dev(DEBUG, msg, attrs))
 
-    def info(self, msg: str, attrs: Optional[dict[str, any]] = None):
+    def info(self, msg: str, attrs: dict[str, Any] | None = None):
         if self.is_prod:
             self.logger.info(get_msg_prod("INFO", msg, attrs))
         else:
             self.logger.info(get_msg_dev(INFO, msg, attrs))
 
-    def warn(self, msg: str, attrs: Optional[dict[str, any]] = None):
+    def warn(self, msg: str, attrs: dict[str, Any] | None = None):
         if self.is_prod:
             self.logger.warning(get_msg_prod("WARN", msg, attrs))
         else:
             self.logger.warning(get_msg_dev(WARN, msg, attrs))
 
-    def error(self, msg: str, attrs: Optional[dict[str, any]] = None):
+    def error(self, msg: str, attrs: dict[str, Any] | None = None):
         if self.is_prod:
             self.logger.error(get_msg_prod("ERROR", msg, attrs))
         else:
             self.logger.error(get_msg_dev(ERROR, msg, attrs))
 
-    def fatal(self, msg: str, attrs: Optional[dict[str, any]] = None):
+    def fatal(self, msg: str, attrs: dict[str, Any] | None = None):
         if self.is_prod:
             self.logger.critical(get_msg_prod("FATAL", msg, attrs))
         else:

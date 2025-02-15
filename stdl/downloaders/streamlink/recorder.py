@@ -6,7 +6,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from os.path import join
-from typing import Optional
+from threading import Thread
 
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType, FsType
@@ -49,8 +49,8 @@ class StreamRecorder(AbstractRecorder):
         self.is_done = False
         self.cancel_flag = False
 
-        self.record_thread: Optional[threading.Thread] = None
-        self.amqp_thread: Optional[threading.Thread] = None
+        self.record_thread: Thread | None = None
+        self.amqp_thread: Thread | None = None
 
     def get_state(self) -> RecordState:
         return self.streamlink.state
@@ -72,11 +72,9 @@ class StreamRecorder(AbstractRecorder):
             return
 
         self.record_thread = threading.Thread(target=self.__record)
-        self.record_thread.daemon = True
         self.record_thread.start()
 
         self.amqp_thread = threading.Thread(target=self.listener.consume)
-        self.amqp_thread.daemon = True
         self.amqp_thread.start()
 
         while True:
@@ -102,7 +100,8 @@ class StreamRecorder(AbstractRecorder):
             def close_conn():
                 self.listener.amqp.close(conn)
             conn.add_callback_threadsafe(close_conn)
-        self.amqp_thread.join()
+        if self.amqp_thread is not None:
+            self.amqp_thread.join()
         self.is_done = True
 
     def __record_once(self):

@@ -1,4 +1,5 @@
-from typing import Optional
+from typing import Any
+
 import yt_dlp
 
 
@@ -10,14 +11,14 @@ def my_hook(d):
 
 
 class MyCustomPP(yt_dlp.postprocessor.PostProcessor):
-    def run(self, info):
+    def run(self, information):
         # self.to_screen('Doing stuff')
-        print(info)
-        return [], info
+        print(information)
+        return [], information
 
 
-def opts(out_dir_path: str, cookie_path: Optional[str] = None):
-    opts = {
+def opts(out_dir_path: str, cookie_path: str | None = None):
+    opts: dict[str, Any] = {
         # "listsubtitles": True,  # 자막 리스트 확인
 
         # "writesubtitles": True,  # 자막 포함
