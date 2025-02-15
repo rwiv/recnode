@@ -64,8 +64,9 @@ class StreamRecorder(AbstractRecorder):
         log.info("Finish Request")
         self.streamlink.abort_flag = True
 
-    def record(self):
-        signal.signal(signal.SIGTERM, self.__handle_sigterm)
+    def record(self, block: bool = True):
+        if block is True:
+            signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
         if self.__is_locked():
             log.info("Skip Record because Locked")
@@ -76,6 +77,9 @@ class StreamRecorder(AbstractRecorder):
 
         self.amqp_thread = threading.Thread(target=self.listener.consume)
         self.amqp_thread.start()
+
+        if block is False:
+            return
 
         while True:
             if self.is_done:

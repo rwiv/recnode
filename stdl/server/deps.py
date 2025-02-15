@@ -7,7 +7,7 @@ from stdl.server.recording_scheduler import RecordingScheduler
 class ServerDependencyManager:
     def __init__(self):
         self.env = get_env()
-        self.scheduler = RecordingScheduler()
+        self.scheduler = RecordingScheduler(self.env)
         self.__main_controller = MainController(self.scheduler)
         self.main_router = self.__main_controller.router
 

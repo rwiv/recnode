@@ -17,10 +17,6 @@ class AbstractRecorder:
         self.platform_type = platform_type
 
     @abstractmethod
-    def get_state(self) -> RecordState:
-        pass
-
-    @abstractmethod
     def cancel(self):
         pass
 
