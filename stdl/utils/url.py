@@ -3,7 +3,7 @@ from urllib.parse import urlparse, parse_qs
 
 def get_base_url(url: str) -> str:
     parsed_rul = urlparse(url)
-    new_path = parsed_rul.path.rsplit('/', 1)[0]
+    new_path = parsed_rul.path.rsplit("/", 1)[0]
     return f"{parsed_rul.scheme}://{parsed_rul.netloc}{new_path}"
 
 

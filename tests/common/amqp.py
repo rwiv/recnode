@@ -24,11 +24,7 @@ def thname():
 
 
 def publish(chan: BlockingChannel):
-    body = json.dumps({
-        "cmd": "cancel",
-        "platform": "chzzk",
-        "uid": uid
-    })
+    body = json.dumps({"cmd": "cancel", "platform": "chzzk", "uid": uid})
     amqp.publish(chan, queue_name, body.encode("utf-8"))
 
 
@@ -50,14 +46,17 @@ def test_blocking():
         print(f"[{thname()}] Done")
 
         conn.add_callback_threadsafe(chan.stop_consuming)
+
     thread = threading.Thread(target=wait)
     thread.start()
 
     try:
+
         def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
             content = json.loads(body.decode("utf-8"))
             print(f"[{thname()}] Received: {content}")
             ch.basic_ack(method.delivery_tag)
+
         amqp.consume(chan, queue_name, on_message)
     except:
         print(f"[{thname()}] Error")

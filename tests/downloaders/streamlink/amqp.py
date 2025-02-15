@@ -26,12 +26,13 @@ def test_exit_publish():
     print()
     conn, chan = amqp.connect()
     amqp.assert_queue(chan, exit_queue_name, auto_delete=True)
-    body = json.dumps(ExitMessage(
+    msg = ExitMessage(
         cmd=ExitCommand.CANCEL,
         # cmd=ExitCommand.FINISH,
         uid=uid,
         platform=PlatformType.CHZZK,
-    ).model_dump(mode="json")).encode("utf-8")
+    ).model_dump(mode="json")
+    body = json.dumps(msg).encode("utf-8")
     amqp.publish(chan, exit_queue_name, body)
     amqp.close(conn)
 
@@ -45,5 +46,6 @@ def test_done_consume():
         print(json.loads(body.decode("utf-8")))
         ch.basic_ack(method.delivery_tag)
         ch.stop_consuming()
+
     amqp.consume(chan, DONE_QUEUE_NAME, on_message)
     amqp.close(conn)

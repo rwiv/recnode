@@ -24,8 +24,11 @@ class SoopVideoDownloader:
         self.out_dir = out_dir
         self.tmp_dir = tmp_dir
         self.hls = HlsDownloader(
-            tmp_dir, out_dir, get_headers(self.cookies),
-            req.parallelNum, req.nonParallelDelayMs,
+            tmp_dir,
+            out_dir,
+            get_headers(self.cookies),
+            req.parallelNum,
+            req.nonParallelDelayMs,
             SoopHlsUrlExtractor(),
         )
 
@@ -61,8 +64,14 @@ class SoopVideoDownloader:
 
     def _get_url(self, title_no: int):
         url = f"https://api.m.sooplive.co.kr/station/video/a/view"
-        res = requests.post(url, headers=get_headers(self.cookies, "application/json"), data={
-            "nTitleNo": title_no, "nApiLevel": 10, "nPlaylistIdx": 0,
-        }).json()
+        res = requests.post(
+            url,
+            headers=get_headers(self.cookies, "application/json"),
+            data={
+                "nTitleNo": title_no,
+                "nApiLevel": 10,
+                "nPlaylistIdx": 0,
+            },
+        ).json()
         data = res["data"]
         return [f["file"] for f in data["files"]], data["full_title"].strip(), data["bj_id"]

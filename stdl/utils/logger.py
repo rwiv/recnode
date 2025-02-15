@@ -33,7 +33,7 @@ ENV_KEY = "PY_ENV"
 def get_error_info() -> tuple[str, dict[str, Any]]:
     exc_info = sys.exc_info()
     trace = traceback.format_exception(*exc_info)
-    head = trace[len(trace)-1].replace("\n", "")
+    head = trace[len(trace) - 1].replace("\n", "")
     trace_str = "".join(trace)
     return head, {"stacktrace": trace_str}
 

@@ -19,8 +19,11 @@ class ChzzkVideoDownloader:
             self.cookies = json.loads(req.cookies)
         self.req = req
         self.hls = HlsDownloader(
-            tmp_dir, out_dir, get_headers(self.cookies),
-            req.parallelNum, req.nonParallelDelayMs,
+            tmp_dir,
+            out_dir,
+            get_headers(self.cookies),
+            req.parallelNum,
+            req.nonParallelDelayMs,
         )
 
     def download_one(self, video_no: int):

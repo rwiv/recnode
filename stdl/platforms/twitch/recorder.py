@@ -7,12 +7,12 @@ from stdl.downloaders.streamlink.stream import StreamlinkArgs
 class TwitchLiveRecorder(StreamRecorder):
 
     def __init__(
-            self,
-            channel_name: str,
-            out_dir_path: str,
-            cookies: str | None,
-            pub: Amqp,
-            sub: Amqp,
+        self,
+        channel_name: str,
+        out_dir_path: str,
+        cookies: str | None,
+        pub: Amqp,
+        sub: Amqp,
     ):
         url = f"https://www.twitch.tv/{channel_name}"
         sargs = StreamlinkArgs(url=url, uid=channel_name, cookies=cookies)

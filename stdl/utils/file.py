@@ -21,14 +21,15 @@ def delete_file(file_path: str):
 
 
 def sanitize_filename(filename: str) -> str:
-    return (filename
-            .replace("?", "？")
-            .replace("/", "／")
-            .replace("\\", "＼")
-            .replace(":", "：")
-            .replace("*", "＊")
-            .replace('"', "＂")
-            .replace('|', "｜")
-            .replace(">", "＞")
-            .replace("<", "＜")
-            .strip())
+    return (
+        filename.replace("?", "？")
+        .replace("/", "／")
+        .replace("\\", "＼")
+        .replace(":", "：")
+        .replace("*", "＊")
+        .replace('"', "＂")
+        .replace("|", "｜")
+        .replace(">", "＞")
+        .replace("<", "＜")
+        .strip()
+    )

@@ -20,7 +20,12 @@ class Amqp:
         pass
 
     @abstractmethod
-    def consume(self, chan: BlockingChannel, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
+    def consume(
+        self,
+        chan: BlockingChannel,
+        queue_name: str,
+        callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None],
+    ):
         pass
 
     @abstractmethod
@@ -43,11 +48,19 @@ class AmqpBlocking(Amqp):
 
     def assert_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
         chan.queue_declare(
-            queue=queue_name, auto_delete=auto_delete,
-            passive=False, durable=False, exclusive=False,
+            queue=queue_name,
+            auto_delete=auto_delete,
+            passive=False,
+            durable=False,
+            exclusive=False,
         )
 
-    def consume(self, chan: BlockingChannel, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
+    def consume(
+        self,
+        chan: BlockingChannel,
+        queue_name: str,
+        callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None],
+    ):
         chan.basic_consume(queue=queue_name, on_message_callback=callback)
         chan.start_consuming()
 
@@ -73,7 +86,12 @@ class AmqpMock(Amqp):
         log.info(f"AmqpMock.assert_queue({queue_name}, {auto_delete})")
         pass
 
-    def consume(self, chan: BlockingChannel, queue_name: str, callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None]):
+    def consume(
+        self,
+        chan: BlockingChannel,
+        queue_name: str,
+        callback: Callable[[BlockingChannel, Basic.Deliver, BasicProperties, bytes], None],
+    ):
         log.info(f"AmqpMock.consume({queue_name})")
         pass
 

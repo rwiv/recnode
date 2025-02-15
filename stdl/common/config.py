@@ -3,10 +3,16 @@ import os
 
 from pydantic import BaseModel
 
-from stdl.common.requests import RequestType, \
-    ChzzkLiveRequest, ChzzkVideoRequest, \
-    SoopLiveRequest, TwitchLiveRequest, \
-    YtdlVideoRequest, HlsM3u8Request, SoopVideoRequest
+from stdl.common.requests import (
+    RequestType,
+    ChzzkLiveRequest,
+    ChzzkVideoRequest,
+    SoopLiveRequest,
+    TwitchLiveRequest,
+    YtdlVideoRequest,
+    HlsM3u8Request,
+    SoopVideoRequest,
+)
 import yaml
 
 

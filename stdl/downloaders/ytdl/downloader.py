@@ -7,7 +7,7 @@ def my_hook(d):
     # if d["status"] == "downloading":
     #     print("downloading")
     if d["status"] == "finished":
-        print('\nDone downloading, now converting ...')
+        print("\nDone downloading, now converting ...")
 
 
 class MyCustomPP(yt_dlp.postprocessor.PostProcessor):
@@ -20,18 +20,12 @@ class MyCustomPP(yt_dlp.postprocessor.PostProcessor):
 def opts(out_dir_path: str, cookie_path: str | None = None):
     opts: dict[str, Any] = {
         # "listsubtitles": True,  # 자막 리스트 확인
-
         # "writesubtitles": True,  # 자막 포함
         # "subtitleslangs": ["en-US"],  # 자막 언어 선택
         # "subtitlesformat": "vtt",  # 자막 format 선택
-
         # "skip_download": True,
-        "paths": {
-            "home": out_dir_path
-        },
-
+        "paths": {"home": out_dir_path},
         # "progress_hooks": [my_hook],
-
         # "daterange": DateRange("20240101", "20240109")
     }
     if cookie_path is not None:

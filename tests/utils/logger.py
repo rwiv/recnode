@@ -9,10 +9,7 @@ def test_logger():
     # log.is_prod = True
     log.set_level(logging.INFO)
     log.info("Hello World")
-    log.info("Test Log", {
-        "foo": "bar",
-        "hello": "world",
-    })
+    log.info("Test Log", {"foo": "bar", "hello": "world"})
 
 
 def test_ex():

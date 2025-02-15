@@ -40,7 +40,10 @@ def get_env() -> Env:
         raise ValueError("AMQP config is not set")
     amqp_port = int(amqp_port_str)
     amqp_config = AmqpConfig(
-        host=amqp_host, port=amqp_port, username=amqp_username, password=amqp_password,
+        host=amqp_host,
+        port=amqp_port,
+        username=amqp_username,
+        password=amqp_password,
     )
 
     return Env(

@@ -71,7 +71,10 @@ class Runner:
 
         parallel_num = 30
         hls = HlsDownloader(
-            self.env.tmp_dir_path, self.env.out_dir_path, headers, parallel_num,
+            self.env.tmp_dir_path,
+            self.env.out_dir_path,
+            headers,
+            parallel_num,
         )
         for i, m3u8_url in enumerate(req.urls):
             qs = get_query_string(m3u8_url)
@@ -121,8 +124,11 @@ class Runner:
         if req.cookies:
             log.info("Using Credentials")
         recorder = ChzzkLiveRecorder(
-            req.uid, self.env.out_dir_path, req.cookies,
-            self.create_amqp(), self.create_amqp(),
+            req.uid,
+            self.env.out_dir_path,
+            req.cookies,
+            self.create_amqp(),
+            self.create_amqp(),
         )
         recorder.record()
 
@@ -136,8 +142,11 @@ class Runner:
         if req.cred:
             log.info("Using Credentials")
         recorder = SoopLiveRecorder(
-            req.userId, self.env.out_dir_path, req.cred,
-            self.create_amqp(), self.create_amqp(),
+            req.userId,
+            self.env.out_dir_path,
+            req.cred,
+            self.create_amqp(),
+            self.create_amqp(),
         )
         recorder.record()
 
@@ -151,8 +160,11 @@ class Runner:
         if req.cookies:
             log.info("Using Credentials")
         recorder = TwitchLiveRecorder(
-            req.channelName, self.env.out_dir_path, req.cookies,
-            self.create_amqp(), self.create_amqp(),
+            req.channelName,
+            self.env.out_dir_path,
+            req.cookies,
+            self.create_amqp(),
+            self.create_amqp(),
         )
         recorder.record()
 

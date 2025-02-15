@@ -22,13 +22,13 @@ class HttpError(Exception):
 
 class HlsDownloader:
     def __init__(
-            self,
-            tmp_dir_path: str,
-            out_dir_path: str,
-            headers: dict | None = None,
-            parallel_num: int = 3,
-            non_parallel_delay_ms: int = 0,
-            url_extractor=HlsUrlExtractor(),
+        self,
+        tmp_dir_path: str,
+        out_dir_path: str,
+        headers: dict | None = None,
+        parallel_num: int = 3,
+        non_parallel_delay_ms: int = 0,
+        url_extractor=HlsUrlExtractor(),
     ):
         self.headers = headers
         self.tmp_dir_path = tmp_dir_path
@@ -38,8 +38,11 @@ class HlsDownloader:
         self.url_extractor = url_extractor
 
     async def download_parallel(
-            self, m3u8_url: str, name: str, title: str,
-            qs: str | None = None,
+        self,
+        m3u8_url: str,
+        name: str,
+        title: str,
+        qs: str | None = None,
     ):
         title_name = sanitize_filename(title)
         chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
@@ -49,16 +52,16 @@ class HlsDownloader:
             log.info(f"{sub[0].idx}-{sub[0].idx + self.parallel_num}")
             os.makedirs(chunks_path, exist_ok=True)
 
-            tasks = [
-                _download_file_wrapper(elem.value, self.headers, elem.idx, chunks_path)
-                for elem in sub
-            ]
+            tasks = [_download_file_wrapper(elem.value, self.headers, elem.idx, chunks_path) for elem in sub]
             await asyncio.gather(*tasks)
         merge_hls_chunks(chunks_path)
 
     async def download_non_parallel(
-            self, m3u8_url: str, name: str, title: str,
-            qs: str | None = None,
+        self,
+        m3u8_url: str,
+        name: str,
+        title: str,
+        qs: str | None = None,
     ):
         title_name = sanitize_filename(title)
         chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
@@ -95,7 +98,7 @@ async def _download_file(url: str, headers: dict[str, str] | None, num: int, out
         async with session.get(url) as res:
             if res.status >= 400:
                 raise HttpError(res.status)
-            with open(file_path, 'wb') as file:
+            with open(file_path, "wb") as file:
                 while True:
                     chunk = await res.content.read(buf_size)
                     if not chunk:

@@ -7,12 +7,12 @@ from stdl.downloaders.streamlink.stream import StreamlinkArgs
 class ChzzkLiveRecorder(StreamRecorder):
 
     def __init__(
-            self,
-            uid: str,
-            out_dir_path: str,
-            cookies: str | None,
-            pub: Amqp,
-            sub: Amqp,
+        self,
+        uid: str,
+        out_dir_path: str,
+        cookies: str | None,
+        pub: Amqp,
+        sub: Amqp,
     ):
         url = f"https://chzzk.naver.com/live/{uid}"
         sargs = StreamlinkArgs(url=url, uid=uid, cookies=cookies)

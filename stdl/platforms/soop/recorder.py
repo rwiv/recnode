@@ -10,12 +10,12 @@ from stdl.platforms.soop.types import SoopCredential
 class SoopLiveRecorder(StreamRecorder):
 
     def __init__(
-            self,
-            user_id: str,
-            out_dir_path: str,
-            cred: SoopCredential | None,
-            pub: Amqp,
-            sub: Amqp,
+        self,
+        user_id: str,
+        out_dir_path: str,
+        cred: SoopCredential | None,
+        pub: Amqp,
+        sub: Amqp,
     ):
         url = f"https://play.sooplive.co.kr/{user_id}"
         if cred is not None:

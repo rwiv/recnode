@@ -49,7 +49,7 @@ def parse_master_playlist(m3u8: str) -> MasterPlaylist:
 
     resolutions = []
     for elem in elems:
-        match = re.search(r'RESOLUTION=\d*x(\d*)', elem.header)
+        match = re.search(r"RESOLUTION=\d*x(\d*)", elem.header)
         if match is None or len(match.groups()) < 1:
             raise M3u8ElemError(f"{elem}")
 
@@ -64,14 +64,14 @@ def parse_master_playlist(m3u8: str) -> MasterPlaylist:
 
 
 def parse_media_playlist(m3u8: str, base_url_param: str = "", qs: Optional[str] = None) -> MediaPaths:
-    base_url = base_url_param.rstrip('/')
+    base_url = base_url_param.rstrip("/")
     media_playlist = __parse_media_playlist_raw(m3u8)
     origin_paths = [media_playlist.init_section_path] if media_playlist.init_section_path else []
     origin_paths.extend(media_playlist.segment_paths)
 
     segment_paths = []
     for path in origin_paths:
-        if re.match(r'https?:', path):
+        if re.match(r"https?:", path):
             segment_paths.append(path)
         else:
             new_path = path

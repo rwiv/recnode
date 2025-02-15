@@ -97,8 +97,10 @@ class StreamRecorder(AbstractRecorder):
     def __close(self):
         conn = self.listener.conn
         if conn is not None:
+
             def close_conn():
                 self.listener.amqp.close(conn)
+
             conn.add_callback_threadsafe(close_conn)
         if self.amqp_thread is not None:
             self.amqp_thread.join()
@@ -131,13 +133,15 @@ class StreamRecorder(AbstractRecorder):
             self.streamlink.abort_flag = False
 
     def publish_done(self, status: DoneStatus, vid_name: str):
-        body = json.dumps(DoneMessage(
-            status=status,
-            ptype=self.platform_type,
-            uid=self.uid,
-            vidname=vid_name,
-            fstype=FsType.LOCAL,
-        ).model_dump(mode="json")).encode("utf-8")
+        body = json.dumps(
+            DoneMessage(
+                status=status,
+                ptype=self.platform_type,
+                uid=self.uid,
+                vidname=vid_name,
+                fstype=FsType.LOCAL,
+            ).model_dump(mode="json")
+        ).encode("utf-8")
         conn, chan = self.pub.connect()
         self.pub.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
         self.pub.publish(chan, DONE_QUEUE_NAME, body)

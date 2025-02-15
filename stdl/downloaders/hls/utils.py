@@ -3,7 +3,7 @@ from typing import List
 
 
 def get_ext(path: str) -> str:
-    return path.split('.')[-1]
+    return path.split(".")[-1]
 
 
 def merge_intersected_strings(str1: str, str2: str) -> str:
