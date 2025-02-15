@@ -1,6 +1,8 @@
 import os
 from dataclasses import dataclass
 
+from stdl.utils.env import load_env
+
 
 @dataclass
 class AmqpConfig:
@@ -23,6 +25,8 @@ def get_env() -> Env:
     env = os.getenv("PY_ENV") or None
     if env is None:
         env = "dev"
+    if env == "dev":
+        load_env("./dev/.env")
 
     out_dir_path = os.getenv("OUT_DIR_PATH") or None
     if out_dir_path is None:

@@ -3,7 +3,8 @@ FROM python:3.9.19-alpine
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
-COPY main.py main.py
+COPY main_batch.py main_batch.py
+COPY main_server.py main_server.py
 COPY stdl stdl
 
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
@@ -14,4 +15,4 @@ RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.t
 
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["python", "-u", "main.py"]
+ENTRYPOINT ["python", "-u", "main_batch.py"]

@@ -21,7 +21,7 @@ from stdl.utils.streamlink import disable_streamlink_log
 from stdl.utils.url import get_query_string
 
 
-class Runner:
+class BatchRunner:
     def __init__(self):
         self.env = get_env()
         self.conf = self.__read_config()

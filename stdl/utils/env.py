@@ -2,18 +2,26 @@ import os
 
 
 def load_env(file_path: str):
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            for line in file:
-                # Split into key and value
-                if "=" in line:
-                    key, value = line.split("=", 1)
-                    key = key.strip()
-                    value = value.strip().strip('"').strip("'")  # Remove surrounding quotes if any
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"The file '{file_path}' does not exist.")
 
-                    # Set the environment variable
-                    os.environ[key] = value
-    except FileNotFoundError:
-        raise FileNotFoundError(f"The file {file_path} does not exist.")
-    except Exception as e:
-        raise Exception(f"An error occurred while loading the .env file: {e}")
+    with open(file_path, "r") as file:
+        for line in file:
+            # Remove whitespace and ignore comments
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            # Split key and value
+            if "=" in line:
+                key, value = line.split("=", 1)
+                key, value = key.strip(), value.strip()
+
+                # Remove quotes around the value if present
+                if (value.startswith('"') and value.endswith('"')) or (
+                    value.startswith("'") and value.endswith("'")
+                ):
+                    value = value[1:-1]
+
+                # Set the environment variable
+                os.environ[key] = value
