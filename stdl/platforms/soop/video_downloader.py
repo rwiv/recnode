@@ -8,7 +8,7 @@ from os.path import join
 
 import requests
 
-from stdl.common.requests import SoopVideoRequest
+from stdl.common.request_types import SoopVideoRequest
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.platforms.soop.hls_url_extractor import SoopHlsUrlExtractor
 from stdl.utils.file import write_file, sanitize_filename

@@ -4,7 +4,7 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import AmqpBlocking
-from stdl.common.config import read_app_config_by_file
+from stdl.common.request_config import read_app_config_by_file
 from stdl.common.env import get_env
 from stdl.common.types import PlatformType
 from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX

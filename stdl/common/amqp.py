@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from typing import Callable
 
 import pika
@@ -10,7 +10,7 @@ from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
 
 
-class Amqp:
+class Amqp(ABC):
     @abstractmethod
     def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
         pass

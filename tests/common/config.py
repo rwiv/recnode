@@ -1,6 +1,6 @@
 import json
 
-from stdl.common.config import read_app_config_by_file, AppConfig
+from stdl.common.request_config import read_app_config_by_file, AppConfig
 
 
 def test_yaml():

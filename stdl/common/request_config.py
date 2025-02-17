@@ -3,7 +3,7 @@ import os
 
 from pydantic import BaseModel
 
-from stdl.common.requests import (
+from stdl.common.request_types import (
     RequestType,
     ChzzkLiveRequest,
     ChzzkVideoRequest,

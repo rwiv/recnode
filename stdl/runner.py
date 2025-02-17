@@ -4,9 +4,9 @@ import os
 import time
 
 from stdl.common.amqp import AmqpBlocking, AmqpMock
-from stdl.common.config import read_app_config_by_file, read_app_config_by_env
+from stdl.common.request_config import read_app_config_by_file, read_app_config_by_env
 from stdl.common.env import get_env
-from stdl.common.requests import RequestType
+from stdl.common.request_types import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.downloaders.ytdl.downloader import YtdlDownloader
 from stdl.platforms.soop.recorder import SoopLiveRecorder
