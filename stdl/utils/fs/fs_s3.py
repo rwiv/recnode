@@ -1,4 +1,4 @@
-from io import BytesIO, IOBase
+from io import IOBase
 from typing import Any
 
 import boto3
@@ -12,7 +12,7 @@ from stdl.utils.fs.fs_s3_types import S3ObjectInfoResponse, S3ListResponse
 from stdl.utils.fs.fs_s3_utils import to_dir_path
 
 
-class S3Accessor(AbstractFsAccessor):
+class S3FsAccessor(AbstractFsAccessor):
     def __init__(self, config: S3Config):
         self.config = config
         self.bucket = config.bucket
@@ -28,11 +28,6 @@ class S3Accessor(AbstractFsAccessor):
                 return None
             else:
                 raise e
-
-    def exists(self, path: str) -> bool:
-        if self.head(path) is not None:
-            return True
-        return False
 
     def get_list(self, dir_path: str) -> list[FileInfo]:
         keys = self.__get_keys(dir_path)
@@ -61,7 +56,12 @@ class S3Accessor(AbstractFsAccessor):
 
     def all(self):
         s3_res = self.__s3.list_objects_v2(Bucket=self.bucket, Prefix="")
-        return S3ListResponse.new(s3_res)
+        res = S3ListResponse.new(s3_res)
+        result = []
+        if res.contents:
+            for o in res.contents:
+                result.append(o.to_file_info())
+        return result
 
     def mkdir(self, dir_path: str):
         self.__s3.put_object(Bucket=self.bucket, Key=to_dir_path(dir_path))
@@ -70,8 +70,11 @@ class S3Accessor(AbstractFsAccessor):
         res = self.__s3.get_object(Bucket=self.bucket, Key=path)
         return res["Body"]
 
-    def write(self, path: str, data: bytes):
-        self.__s3.upload_fileobj(BytesIO(data), self.bucket, path)
+    def write(self, path: str, data: bytes | IOBase):
+        if isinstance(data, bytes):
+            self.__s3.put_object(Bucket=self.bucket, Key=path, Body=data)
+        elif isinstance(data, IOBase):
+            self.__s3.upload_fileobj(data, self.bucket, path)  # type: ignore
 
     def delete(self, path: str):
         self.__s3.delete_object(Bucket=self.bucket, Key=path)

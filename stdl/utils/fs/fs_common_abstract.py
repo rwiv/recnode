@@ -11,9 +11,10 @@ class AbstractFsAccessor(ABC):
     def head(self, path: str) -> FileInfo | None:
         pass
 
-    @abstractmethod
     def exists(self, path: str) -> bool:
-        pass
+        if self.head(path) is not None:
+            return True
+        return False
 
     @abstractmethod
     def mkdir(self, dir_path: str):
@@ -41,7 +42,7 @@ class AbstractFsAccessor(ABC):
         pass
 
     @abstractmethod
-    def write(self, path: str, data: bytes):
+    def write(self, path: str, data: bytes | IOBase):
         pass
 
     @abstractmethod
