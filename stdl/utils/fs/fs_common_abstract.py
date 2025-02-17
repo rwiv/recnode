@@ -6,7 +6,7 @@ from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_s3_utils import to_dir_path
 
 
-class AbstractFsAccessor(ABC):
+class FsAccessor(ABC):
     @abstractmethod
     def head(self, path: str) -> FileInfo | None:
         pass

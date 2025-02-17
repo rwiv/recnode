@@ -6,13 +6,13 @@ from botocore.exceptions import ClientError
 from mypy_boto3_s3.client import S3Client
 
 from stdl.common.fs_config import S3Config
-from stdl.utils.fs.fs_common_abstract import AbstractFsAccessor
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_s3_types import S3ObjectInfoResponse, S3ListResponse
 from stdl.utils.fs.fs_s3_utils import to_dir_path
 
 
-class S3FsAccessor(AbstractFsAccessor):
+class S3FsAccessor(FsAccessor):
     def __init__(self, config: S3Config):
         self.config = config
         self.bucket = config.bucket

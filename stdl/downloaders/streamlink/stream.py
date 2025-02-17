@@ -1,6 +1,6 @@
 import json
-import os
 import sys
+import threading
 import time
 from dataclasses import dataclass
 
@@ -10,7 +10,7 @@ from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from stdl.downloaders.streamlink.types import RecordState
 from stdl.utils.error import stacktrace
-from stdl.utils.file import write_bfile
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log
 
 retry_count = 5
@@ -28,12 +28,13 @@ class StreamlinkArgs:
 
 class StreamlinkManager:
 
-    def __init__(self, args: StreamlinkArgs, out_dir_path: str):
+    def __init__(self, args: StreamlinkArgs, out_dir_path: str, ac: FsAccessor):
         self.url = args.url
         self.uid = args.uid
         self.out_dir_path = out_dir_path
         self.cookies = args.cookies
         self.options = args.options
+        self.ac = ac
 
         self.wait_delay_sec = 1
         self.state: RecordState = RecordState.WAIT
@@ -87,8 +88,8 @@ class StreamlinkManager:
 
         idx = 0
 
-        if not os.path.exists(out_dir_path):
-            os.makedirs(out_dir_path)
+        if not self.ac.exists(out_dir_path):
+            self.ac.mkdir(out_dir_path)
 
         log.info("Start Recording")
         while True:
@@ -115,6 +116,7 @@ class StreamlinkManager:
                 continue
 
             idx += 1
-            write_bfile(f"{out_dir_path}/{idx}.ts", data, False)
+            file_path = f"{out_dir_path}/{idx}.ts"
+            threading.Thread(target=self.ac.write, args=(file_path, data)).start()
 
         return out_dir_path

@@ -5,6 +5,7 @@ from stdl.common.types import PlatformType
 from stdl.downloaders.streamlink.recorder import StreamRecorder, RecorderArgs
 from stdl.downloaders.streamlink.stream import StreamlinkArgs
 from stdl.platforms.soop.types import SoopCredential
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 
 
 class SoopLiveRecorder(StreamRecorder):
@@ -14,6 +15,7 @@ class SoopLiveRecorder(StreamRecorder):
         user_id: str,
         out_dir_path: str,
         cred: SoopCredential | None,
+        ac: FsAccessor,
         pub: Amqp,
         sub: Amqp,
     ):
@@ -23,7 +25,7 @@ class SoopLiveRecorder(StreamRecorder):
         else:
             sargs = StreamlinkArgs(url=url, uid=user_id)
         rargs = RecorderArgs(out_dir_path, PlatformType.SOOP)
-        super().__init__(sargs, rargs, pub, sub)
+        super().__init__(sargs, rargs, ac, pub, sub)
 
     def clear_cookie(self):
         session = self.streamlink.get_session()

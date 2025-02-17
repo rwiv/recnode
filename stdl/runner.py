@@ -15,6 +15,7 @@ from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
 from stdl.platforms.twitch.recorder import TwitchLiveRecorder
+from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.http import get_headers
 from stdl.utils.logger import log
 from stdl.utils.streamlink import disable_streamlink_log
@@ -25,6 +26,7 @@ class BatchRunner:
     def __init__(self):
         self.env = get_env()
         self.conf = self.__read_config()
+        self.ac = LocalFsAccessor()
 
     def __read_config(self):
         conf = read_app_config_by_env()
@@ -127,6 +129,7 @@ class BatchRunner:
             req.uid,
             self.env.out_dir_path,
             req.cookies,
+            self.ac,
             self.create_amqp(),
             self.create_amqp(),
         )
@@ -145,6 +148,7 @@ class BatchRunner:
             req.userId,
             self.env.out_dir_path,
             req.cred,
+            self.ac,
             self.create_amqp(),
             self.create_amqp(),
         )
@@ -163,6 +167,7 @@ class BatchRunner:
             req.channelName,
             self.env.out_dir_path,
             req.cookies,
+            self.ac,
             self.create_amqp(),
             self.create_amqp(),
         )

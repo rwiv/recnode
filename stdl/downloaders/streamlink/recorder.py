@@ -1,5 +1,4 @@
 import json
-import os
 import signal
 import threading
 import time
@@ -14,7 +13,8 @@ from stdl.downloaders.streamlink.listener import RecorderListener
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
 from stdl.event.done_message import DoneMessage, DoneStatus
-from stdl.utils.file import write_file, delete_file
+from stdl.utils.file import basename
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log
 
 default_restart_delay_sec = 3
@@ -31,18 +31,19 @@ class RecorderArgs:
 
 class StreamRecorder(AbstractRecorder):
 
-    def __init__(self, sargs: StreamlinkArgs, rargs: RecorderArgs, pub: Amqp, sub: Amqp):
+    def __init__(self, sargs: StreamlinkArgs, rargs: RecorderArgs, ac: FsAccessor, pub: Amqp, sub: Amqp):
         super().__init__(uid=sargs.uid, platform_type=rargs.platform_type)
+        self.ac = ac
         self.uid = sargs.uid
         self.platform_type = rargs.platform_type
 
         self.incomplete_dir_path = join(rargs.out_dir_path, "incomplete")
-        os.makedirs(self.incomplete_dir_path, exist_ok=True)
+        self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{sargs.uid}/lock.json"
 
         self.restart_delay_sec = default_restart_delay_sec
         self.chunk_threshold = default_chunk_threshold
-        self.streamlink = StreamlinkManager(sargs, self.incomplete_dir_path)
+        self.streamlink = StreamlinkManager(sargs, self.incomplete_dir_path, self.ac)
         self.listener = RecorderListener(self, sub)
         self.pub = pub
 
@@ -65,8 +66,7 @@ class StreamRecorder(AbstractRecorder):
         self.streamlink.abort_flag = True
 
     def record(self, block: bool = True):
-        if block is True:
-            signal.signal(signal.SIGTERM, self.__handle_sigterm)
+        signal.signal(signal.SIGTERM, self.__handle_sigterm)
 
         if self.__is_locked():
             log.info("Skip Record because Locked")
@@ -153,14 +153,16 @@ class StreamRecorder(AbstractRecorder):
         log.info("Published Done Message")
 
     def __lock(self):
-        write_file(self.lock_path, "")
+        self.ac.mkdir(basename(self.lock_path))
+        self.ac.write(self.lock_path, b"")
 
     def __unlock(self):
-        delete_file(self.lock_path)
+        if self.ac.exists(self.lock_path):
+            self.ac.delete(self.lock_path)
         log.info("Unlock")
 
     def __is_locked(self):
-        return os.path.exists(self.lock_path)
+        return self.ac.exists(self.lock_path)
 
     def __handle_sigterm(self, *acrgs):
         self.__unlock()

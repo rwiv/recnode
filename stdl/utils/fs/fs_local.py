@@ -3,11 +3,11 @@ from datetime import datetime
 from io import IOBase
 from pathlib import Path
 
-from stdl.utils.fs.fs_common_abstract import AbstractFsAccessor
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_common_types import FileInfo
 
 
-class LocalFsAccessor(AbstractFsAccessor):
+class LocalFsAccessor(FsAccessor):
     def __init__(self, chunk_size=4096):
         self.chunk_size = chunk_size
 
