@@ -16,6 +16,7 @@ class AmqpConfig(BaseModel):
 
 class Env(BaseModel):
     env: str
+    fs_config_path: str | None
     out_dir_path: str
     tmp_dir_path: str
     config_path: str | None
@@ -29,6 +30,7 @@ def get_env() -> Env:
     if env == "dev":
         load_env(join(find_project_root(), "dev", ".env"))
 
+    fs_config_path = os.getenv("FS_CONFIG_PATH")
     out_dir_path = os.getenv("OUT_DIR_PATH")
     if out_dir_path is None:
         raise ValueError("OUT_DIR_PATH is not set")
@@ -52,6 +54,7 @@ def get_env() -> Env:
 
     return Env(
         env=env,
+        fs_config_path=fs_config_path,
         out_dir_path=out_dir_path,
         tmp_dir_path=tmp_dir_path,
         config_path=config_path,

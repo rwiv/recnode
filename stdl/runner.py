@@ -3,17 +3,18 @@ import json
 import os
 import time
 
-from stdl.common.amqp import AmqpHelperBlocking, AmqpHelperMock
-from stdl.common.request_config import read_app_config_by_file, read_app_config_by_env
+from stdl.common.amqp_utils import create_amqp
 from stdl.common.env import get_env
+from stdl.common.fs_config_utils import create_fs_accessor
+from stdl.common.request_config import read_app_config_by_file, read_app_config_by_env
 from stdl.common.request_types import RequestType
 from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.downloaders.ytdl.downloader import YtdlDownloader
-from stdl.platforms.soop.recorder import SoopLiveRecorder
-from stdl.platforms.soop.video_downloader import SoopVideoDownloader
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
+from stdl.platforms.soop.recorder import SoopLiveRecorder
+from stdl.platforms.soop.video_downloader import SoopVideoDownloader
 from stdl.platforms.twitch.recorder import TwitchLiveRecorder
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.http import get_headers
@@ -26,7 +27,7 @@ class BatchRunner:
     def __init__(self):
         self.env = get_env()
         self.conf = self.__read_config()
-        self.ac = LocalFsAccessor()
+        self.ac = self.__create_fs_accessor()
 
     def __read_config(self):
         conf = read_app_config_by_env()
@@ -130,7 +131,7 @@ class BatchRunner:
             self.env.out_dir_path,
             req.cookies,
             self.ac,
-            self.__create_amqp(),
+            create_amqp(self.env),
         )
         recorder.record()
 
@@ -148,7 +149,7 @@ class BatchRunner:
             self.env.out_dir_path,
             req.cred,
             self.ac,
-            self.__create_amqp(),
+            create_amqp(self.env),
         )
         recorder.record()
 
@@ -166,13 +167,12 @@ class BatchRunner:
             self.env.out_dir_path,
             req.cookies,
             self.ac,
-            self.__create_amqp(),
+            create_amqp(self.env),
         )
         recorder.record()
-
-    def __create_amqp(self):
-        return AmqpHelperBlocking(self.env.amqp)
-        # if self.env.env == "prod":
-        #     return AmqpHelperBlocking(self.env.amqp)
-        # else:
-        #     return AmqpHelperMock()
+        
+    def __create_fs_accessor(self):
+        if self.env.fs_config_path is not None and self.conf.fs_type is not None:
+            return create_fs_accessor(self.env.fs_config_path, self.conf.fs_type)
+        else:
+            return LocalFsAccessor()

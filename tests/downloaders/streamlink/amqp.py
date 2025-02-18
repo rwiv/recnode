@@ -14,8 +14,6 @@ from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.env import load_env
 from stdl.utils.path import find_project_root
 
-print(find_project_root())
-
 load_env(join(find_project_root(), "dev", ".env"))
 amqp_conf = get_env().amqp
 

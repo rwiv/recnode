@@ -17,7 +17,7 @@ load_env(join(find_project_root(), "dev", ".env"))
 conf = read_fs_config_by_file(join(find_project_root(), "dev", "test_fs_conf.yaml"))
 base_path = os.getenv("OUT_DIR_PATH")
 
-s3_conf = conf.s3[0]
+s3_conf = conf.s3
 # ac = S3FsAccessor(s3_conf)
 ac = LocalFsAccessor()
 s3 = S3FsAccessor(s3_conf)

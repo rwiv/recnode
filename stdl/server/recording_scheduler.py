@@ -1,7 +1,7 @@
 import time
 from threading import Thread
 
-from stdl.common.amqp import AmqpHelperMock, AmqpHelperBlocking
+from stdl.common.amqp_utils import create_amqp
 from stdl.common.env import Env
 from stdl.downloaders.streamlink.recorder import StreamRecorder
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
@@ -27,8 +27,7 @@ class RecordingScheduler:
             self.env.out_dir_path,
             None,
             self.__create_accessor(),
-            self.__create_amqp(),
-            self.__create_amqp(),
+            create_amqp(self.env),
         )
         if self.__recorder_map.get(uid):
             log.info("Already Recording")
@@ -63,10 +62,3 @@ class RecordingScheduler:
 
     def __create_accessor(self) -> FsAccessor:
         return LocalFsAccessor()
-
-    def __create_amqp(self):
-        # return AmqpBlocking(self.env.amqp)
-        if self.env.env == "prod":
-            return AmqpHelperBlocking(self.env.amqp)
-        else:
-            return AmqpHelperMock()
