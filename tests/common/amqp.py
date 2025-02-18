@@ -1,6 +1,7 @@
 import json
 import threading
 import time
+from os.path import join
 
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
@@ -10,8 +11,9 @@ from stdl.common.env import get_env
 from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
 from stdl.utils.env import load_env
 from stdl.utils.error import stacktrace
+from stdl.utils.path import find_project_root
 
-load_env("../../dev/.env")
+load_env(join(find_project_root(), "dev", ".env"))
 conf = get_env().amqp
 amqp = AmqpHelperBlocking(conf)
 

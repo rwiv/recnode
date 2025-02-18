@@ -131,7 +131,6 @@ class BatchRunner:
             req.cookies,
             self.ac,
             self.__create_amqp(),
-            self.__create_amqp(),
         )
         recorder.record()
 
@@ -149,7 +148,6 @@ class BatchRunner:
             self.env.out_dir_path,
             req.cred,
             self.ac,
-            self.__create_amqp(),
             self.__create_amqp(),
         )
         recorder.record()
@@ -169,13 +167,12 @@ class BatchRunner:
             req.cookies,
             self.ac,
             self.__create_amqp(),
-            self.__create_amqp(),
         )
         recorder.record()
 
     def __create_amqp(self):
-        # return AmqpBlocking(self.env.amqp)
-        if self.env.env == "prod":
-            return AmqpHelperBlocking(self.env.amqp)
-        else:
-            return AmqpHelperMock()
+        return AmqpHelperBlocking(self.env.amqp)
+        # if self.env.env == "prod":
+        #     return AmqpHelperBlocking(self.env.amqp)
+        # else:
+        #     return AmqpHelperMock()

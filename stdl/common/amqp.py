@@ -43,10 +43,11 @@ class AmqpHelper(ABC):
 
 class AmqpHelperBlocking(AmqpHelper):
     def __init__(self, conf: AmqpConfig):
-        self.url = f"amqp://{conf.username}:{conf.password}@{conf.host}:{conf.port}"
+        self.conf = conf
+        self.__amqp_url = f"amqp://{conf.username}:{conf.password}@{conf.host}:{conf.port}"
 
     def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
-        conn = BlockingConnection(pika.URLParameters(self.url))
+        conn = BlockingConnection(pika.URLParameters(self.__amqp_url))
         chan = conn.channel()
         return conn, chan
 

@@ -34,8 +34,7 @@ class StreamRecorder(AbstractRecorder):
         stream_args: StreamlinkArgs,
         recorder_args: RecorderArgs,
         fs_accessor: FsAccessor,
-        ephemeral_amqp: AmqpHelper,
-        consumer_amqp: AmqpHelper,
+        amqp_helper: AmqpHelper,
     ):
         super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
         self.ac = fs_accessor
@@ -49,8 +48,8 @@ class StreamRecorder(AbstractRecorder):
         self.restart_delay_sec = default_restart_delay_sec
         self.chunk_threshold = default_chunk_threshold
         self.streamlink = StreamlinkManager(stream_args, self.incomplete_dir_path, self.ac)
-        self.listener = RecorderListener(self, consumer_amqp)
-        self.pub = ephemeral_amqp
+        self.listener = RecorderListener(self, amqp_helper)
+        self.amqp = amqp_helper
 
         self.is_done = False
         self.cancel_flag = False
@@ -140,10 +139,10 @@ class StreamRecorder(AbstractRecorder):
             self.streamlink.abort_flag = False
 
     def __is_recording_active(self):
-        vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform_type}.{self.uid}"
-        conn, chan = self.pub.connect()
-        exists = self.pub.queue_exists(chan, vid_queue_name)
-        self.pub.close(conn)
+        vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform_type.value}.{self.uid}"
+        conn, chan = self.amqp.connect()
+        exists = self.amqp.queue_exists(chan, vid_queue_name)
+        self.amqp.close(conn)
         return exists
 
     def __publish_done(self, status: DoneStatus, vid_name: str):
@@ -156,8 +155,8 @@ class StreamRecorder(AbstractRecorder):
                 fstype=FsType.LOCAL,
             ).model_dump(mode="json")
         ).encode("utf-8")
-        conn, chan = self.pub.connect()
-        self.pub.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
-        self.pub.publish(chan, DONE_QUEUE_NAME, body)
-        self.pub.close(conn)
+        conn, chan = self.amqp.connect()
+        self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
+        self.amqp.publish(chan, DONE_QUEUE_NAME, body)
+        self.amqp.close(conn)
         log.info("Published Done Message")

@@ -16,8 +16,7 @@ class SoopLiveRecorder(StreamRecorder):
         out_dir_path: str,
         cred: SoopCredential | None,
         fs_accessor: FsAccessor,
-        ephemeral_amqp: AmqpHelper,
-        consumer_amqp: AmqpHelper,
+        amqp_helper: AmqpHelper,
     ):
         url = f"https://play.sooplive.co.kr/{user_id}"
         if cred is not None:
@@ -28,8 +27,7 @@ class SoopLiveRecorder(StreamRecorder):
             stream_args=sargs,
             recorder_args=RecorderArgs(out_dir_path=out_dir_path, platform_type=PlatformType.SOOP),
             fs_accessor=fs_accessor,
-            ephemeral_amqp=ephemeral_amqp,
-            consumer_amqp=consumer_amqp,
+            amqp_helper=amqp_helper,
         )
 
     def clear_cookie(self):

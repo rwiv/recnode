@@ -1,11 +1,13 @@
 import json
+from os.path import join
 
 from stdl.common.request_config import read_app_config_by_file, AppConfig
+from stdl.utils.path import find_project_root
 
 
 def test_yaml():
     print()
-    conf = read_app_config_by_file("../../dev/conf.yaml")
+    conf = read_app_config_by_file(join(find_project_root(), "dev", "conf.yaml"))
     print(conf)
     a = json.dumps(conf.model_dump(mode="json"))
     print(a)
@@ -13,7 +15,7 @@ def test_yaml():
 
 def test_json():
     print()
-    with open("../../dev/test_req.json", "r") as file:
+    with open(join(find_project_root(), "dev", "test_req.json"), "r") as file:
         text = file.read()
     print(json.loads(text))
     conf = AppConfig(**json.loads(text))

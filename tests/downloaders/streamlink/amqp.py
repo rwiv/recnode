@@ -1,4 +1,5 @@
 import json
+from os.path import join
 
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
@@ -11,11 +12,17 @@ from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
 from stdl.downloaders.streamlink.recorder import DONE_QUEUE_NAME
 from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.env import load_env
+from stdl.utils.path import find_project_root
 
-load_env("../../../dev/.env")
+print(find_project_root())
+
+load_env(join(find_project_root(), "dev", ".env"))
 amqp_conf = get_env().amqp
 
-conf = read_app_config_by_file("../../../dev/conf.yaml")
+conf = read_app_config_by_file(join(find_project_root(), "dev", "conf.yaml"))
+
+if conf.chzzk_live is None:
+    raise ValueError("Config not found")
 
 uid = conf.chzzk_live.uid
 exit_queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"

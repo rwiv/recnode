@@ -3,6 +3,7 @@ import threading
 import time
 from datetime import datetime
 from io import IOBase
+from os.path import join
 from typing import TypeVar
 
 from stdl.common.fs_config import read_fs_config_by_file
@@ -10,9 +11,10 @@ from stdl.utils.env import load_env
 from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.fs.fs_s3 import S3FsAccessor
+from stdl.utils.path import find_project_root
 
-load_env("../../../dev/.env")
-conf = read_fs_config_by_file("../../../dev/test_fs_conf.yaml")
+load_env(join(find_project_root(), "dev", ".env"))
+conf = read_fs_config_by_file(join(find_project_root(), "dev", "test_fs_conf.yaml"))
 base_path = os.getenv("OUT_DIR_PATH")
 
 s3_conf = conf.s3[0]
@@ -20,7 +22,7 @@ s3_conf = conf.s3[0]
 ac = LocalFsAccessor()
 s3 = S3FsAccessor(s3_conf)
 
-target = "../../../dev/test_fs_conf.yaml"
+target = join(find_project_root(), "dev", "test_fs_conf.yaml")
 
 
 def print_file(file: FileInfo):
