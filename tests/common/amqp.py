@@ -5,7 +5,7 @@ import time
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 
-from stdl.common.amqp import AmqpBlocking
+from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
 from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
 from stdl.utils.env import load_env
@@ -13,7 +13,7 @@ from stdl.utils.error import stacktrace
 
 load_env("../../dev/.env")
 conf = get_env().amqp
-amqp = AmqpBlocking(conf)
+amqp = AmqpHelperBlocking(conf)
 
 uid = "asd"
 queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"
@@ -37,7 +37,7 @@ def test_blocking():
     print()
     print(f"[{thname()}] Start")
     conn, chan = amqp.connect()
-    amqp.assert_queue(chan, queue_name, auto_delete=True)
+    amqp.ensure_queue(chan, queue_name, auto_delete=True)
 
     def wait():
         for i in range(3):

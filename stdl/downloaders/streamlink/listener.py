@@ -3,7 +3,7 @@ import json
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 from pika.spec import Basic, BasicProperties
 
-from stdl.common.amqp import Amqp
+from stdl.common.amqp import AmqpHelper
 from stdl.downloaders.streamlink.types import AbstractRecorder
 from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.utils.error import stacktrace
@@ -15,7 +15,7 @@ EXIT_QUEUE_PREFIX = "stdl.exit"
 
 class RecorderListener:
 
-    def __init__(self, recorder: AbstractRecorder, amqp: Amqp):
+    def __init__(self, recorder: AbstractRecorder, amqp: AmqpHelper):
         self.recorder = recorder
         self.amqp = amqp
         self.conn: BlockingConnection | None = None
@@ -43,7 +43,7 @@ class RecorderListener:
             platform = self.recorder.platform_type.value
             vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
             self.conn, chan = self.amqp.connect()
-            self.amqp.assert_queue(chan, vid_queue_name, auto_delete=True)
+            self.amqp.ensure_queue(chan, vid_queue_name, auto_delete=True)
             self.amqp.consume(chan, vid_queue_name, self.on_message)
         except:
             log.error("Failed to __consume")

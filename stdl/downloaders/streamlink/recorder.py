@@ -1,5 +1,4 @@
 import json
-import signal
 import threading
 import time
 from datetime import datetime
@@ -8,13 +7,12 @@ from threading import Thread
 
 from pydantic import BaseModel, Field
 
-from stdl.common.amqp import Amqp
+from stdl.common.amqp import AmqpHelper
 from stdl.common.types import PlatformType, FsType
-from stdl.downloaders.streamlink.listener import RecorderListener
+from stdl.downloaders.streamlink.listener import RecorderListener, EXIT_QUEUE_PREFIX
 from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
 from stdl.event.done_message import DoneMessage, DoneStatus
-from stdl.utils.file import basename
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log
 
@@ -31,21 +29,28 @@ class RecorderArgs(BaseModel):
 
 class StreamRecorder(AbstractRecorder):
 
-    def __init__(self, sargs: StreamlinkArgs, rargs: RecorderArgs, ac: FsAccessor, pub: Amqp, sub: Amqp):
-        super().__init__(uid=sargs.uid, platform_type=rargs.platform_type)
-        self.ac = ac
-        self.uid = sargs.uid
-        self.platform_type = rargs.platform_type
+    def __init__(
+        self,
+        stream_args: StreamlinkArgs,
+        recorder_args: RecorderArgs,
+        fs_accessor: FsAccessor,
+        ephemeral_amqp: AmqpHelper,
+        consumer_amqp: AmqpHelper,
+    ):
+        super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
+        self.ac = fs_accessor
+        self.uid = stream_args.uid
+        self.platform_type = recorder_args.platform_type
 
-        self.incomplete_dir_path = join(rargs.out_dir_path, "incomplete")
+        self.incomplete_dir_path = join(recorder_args.out_dir_path, "incomplete")
         self.ac.mkdir(self.incomplete_dir_path)
-        self.lock_path = f"{self.incomplete_dir_path}/{sargs.uid}/lock.json"
+        self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
         self.restart_delay_sec = default_restart_delay_sec
         self.chunk_threshold = default_chunk_threshold
-        self.streamlink = StreamlinkManager(sargs, self.incomplete_dir_path, self.ac)
-        self.listener = RecorderListener(self, sub)
-        self.pub = pub
+        self.streamlink = StreamlinkManager(stream_args, self.incomplete_dir_path, self.ac)
+        self.listener = RecorderListener(self, consumer_amqp)
+        self.pub = ephemeral_amqp
 
         self.is_done = False
         self.cancel_flag = False
@@ -66,17 +71,8 @@ class StreamRecorder(AbstractRecorder):
         self.streamlink.abort_flag = True
 
     def record(self, block: bool = True):
-        signal.signal(signal.SIGTERM, self.__handle_sigterm)
-
-        if self.__is_locked():
-            log.info("Skip Record because Locked")
-            return
-
         self.record_thread = threading.Thread(target=self.__record)
         self.record_thread.start()
-
-        self.amqp_thread = threading.Thread(target=self.listener.consume)
-        self.amqp_thread.start()
 
         if block is False:
             return
@@ -94,7 +90,6 @@ class StreamRecorder(AbstractRecorder):
             self.__close()
             log.info("Complete Recording", {"latest_state": self.streamlink.state.name})
         except:
-            self.__unlock()
             self.__close()
             raise
 
@@ -111,32 +106,47 @@ class StreamRecorder(AbstractRecorder):
         self.is_done = True
 
     def __record_once(self):
+        # Todo: remove while loop
         while True:
-            self.__lock()
             streams = self.streamlink.wait_for_live()
             # abort_flag is set by cancel method
             if streams is None:
                 break
+
+            if self.__is_recording_active():
+                log.info("Recording is already in progress, skipping recording")
+                break
+
+            # Start AMQP consumer thread
+            self.amqp_thread = threading.Thread(target=self.listener.consume)
+            self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
+            self.amqp_thread.start()
+
+            # Start recording
             vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
             self.streamlink.record(streams, vid_name)
-            self.__unlock()
 
             if self.cancel_flag:
-                self.publish_done(DoneStatus.CANCELED, vid_name)
+                self.__publish_done(DoneStatus.CANCELED, vid_name)
                 # TODO: remove break
                 break
             else:
-                self.publish_done(DoneStatus.COMPLETE, vid_name)
+                self.__publish_done(DoneStatus.COMPLETE, vid_name)
 
             # TODO: remove codes below
-            if self.__is_locked():
-                break
             time.sleep(self.restart_delay_sec)
             if self.streamlink.get_streams() == {}:
                 break
             self.streamlink.abort_flag = False
 
-    def publish_done(self, status: DoneStatus, vid_name: str):
+    def __is_recording_active(self):
+        vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform_type}.{self.uid}"
+        conn, chan = self.pub.connect()
+        exists = self.pub.queue_exists(chan, vid_queue_name)
+        self.pub.close(conn)
+        return exists
+
+    def __publish_done(self, status: DoneStatus, vid_name: str):
         body = json.dumps(
             DoneMessage(
                 status=status,
@@ -147,23 +157,7 @@ class StreamRecorder(AbstractRecorder):
             ).model_dump(mode="json")
         ).encode("utf-8")
         conn, chan = self.pub.connect()
-        self.pub.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
+        self.pub.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
         self.pub.publish(chan, DONE_QUEUE_NAME, body)
         self.pub.close(conn)
         log.info("Published Done Message")
-
-    def __lock(self):
-        self.ac.mkdir(basename(self.lock_path))
-        self.ac.write(self.lock_path, b"")
-
-    def __unlock(self):
-        if self.ac.exists(self.lock_path):
-            self.ac.delete(self.lock_path)
-        log.info("Unlock")
-
-    def __is_locked(self):
-        return self.ac.exists(self.lock_path)
-
-    def __handle_sigterm(self, *acrgs):
-        self.__unlock()
-        self.__close()

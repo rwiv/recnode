@@ -1,7 +1,7 @@
 import time
 from threading import Thread
 
-from stdl.common.amqp import AmqpMock, AmqpBlocking
+from stdl.common.amqp import AmqpHelperMock, AmqpHelperBlocking
 from stdl.common.env import Env
 from stdl.downloaders.streamlink.recorder import StreamRecorder
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
@@ -67,6 +67,6 @@ class RecordingScheduler:
     def __create_amqp(self):
         # return AmqpBlocking(self.env.amqp)
         if self.env.env == "prod":
-            return AmqpBlocking(self.env.amqp)
+            return AmqpHelperBlocking(self.env.amqp)
         else:
-            return AmqpMock()
+            return AmqpHelperMock()

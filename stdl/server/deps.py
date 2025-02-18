@@ -1,4 +1,4 @@
-from stdl.common.amqp import AmqpBlocking, AmqpMock
+from stdl.common.amqp import AmqpHelperBlocking, AmqpHelperMock
 from stdl.common.env import get_env
 from stdl.server.main_router import MainController
 from stdl.server.recording_scheduler import RecordingScheduler
@@ -13,9 +13,9 @@ class ServerDependencyManager:
 
     def create_amqp(self):
         if self.env.env == "prod":
-            return AmqpBlocking(self.env.amqp)
+            return AmqpHelperBlocking(self.env.amqp)
         else:
-            return AmqpMock()
+            return AmqpHelperMock()
 
 
 deps = ServerDependencyManager()

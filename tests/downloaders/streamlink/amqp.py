@@ -3,7 +3,7 @@ import json
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
 
-from stdl.common.amqp import AmqpBlocking
+from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.request_config import read_app_config_by_file
 from stdl.common.env import get_env
 from stdl.common.types import PlatformType
@@ -19,13 +19,13 @@ conf = read_app_config_by_file("../../../dev/conf.yaml")
 
 uid = conf.chzzk_live.uid
 exit_queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"
-amqp = AmqpBlocking(amqp_conf)
+amqp = AmqpHelperBlocking(amqp_conf)
 
 
 def test_exit_publish():
     print()
     conn, chan = amqp.connect()
-    amqp.assert_queue(chan, exit_queue_name, auto_delete=True)
+    amqp.ensure_queue(chan, exit_queue_name, auto_delete=True)
     msg = ExitMessage(
         cmd=ExitCommand.CANCEL,
         # cmd=ExitCommand.FINISH,
@@ -40,7 +40,7 @@ def test_exit_publish():
 def test_done_consume():
     print()
     conn, chan = amqp.connect()
-    amqp.assert_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
+    amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
 
     def on_message(ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
         print(json.loads(body.decode("utf-8")))

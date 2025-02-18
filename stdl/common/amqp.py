@@ -10,13 +10,17 @@ from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
 
 
-class Amqp(ABC):
+class AmqpHelper(ABC):
     @abstractmethod
     def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
         pass
 
     @abstractmethod
-    def assert_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
+    def queue_exists(self, chan: BlockingChannel, queue_name: str) -> bool:
+        pass
+
+    @abstractmethod
+    def ensure_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
         pass
 
     @abstractmethod
@@ -37,7 +41,7 @@ class Amqp(ABC):
         pass
 
 
-class AmqpBlocking(Amqp):
+class AmqpHelperBlocking(AmqpHelper):
     def __init__(self, conf: AmqpConfig):
         self.url = f"amqp://{conf.username}:{conf.password}@{conf.host}:{conf.port}"
 
@@ -46,7 +50,14 @@ class AmqpBlocking(Amqp):
         chan = conn.channel()
         return conn, chan
 
-    def assert_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
+    def queue_exists(self, chan: BlockingChannel, queue_name: str) -> bool:
+        try:
+            chan.queue_declare(queue=queue_name, passive=True)
+            return True
+        except:
+            return False
+
+    def ensure_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
         chan.queue_declare(
             queue=queue_name,
             auto_delete=auto_delete,
@@ -77,12 +88,15 @@ class AmqpBlocking(Amqp):
             print(stacktrace())
 
 
-class AmqpMock(Amqp):
+class AmqpHelperMock(AmqpHelper):
     def connect(self) -> tuple[BlockingConnection, BlockingChannel]:
         log.info("AmqpMock.connect()")
         return None, None  # type: ignore
 
-    def assert_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
+    def queue_exists(self, chan: BlockingChannel, queue_name: str) -> bool:
+        return False
+
+    def ensure_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
         log.info(f"AmqpMock.assert_queue({queue_name}, {auto_delete})")
         pass
 

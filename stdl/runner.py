@@ -3,7 +3,7 @@ import json
 import os
 import time
 
-from stdl.common.amqp import AmqpBlocking, AmqpMock
+from stdl.common.amqp import AmqpHelperBlocking, AmqpHelperMock
 from stdl.common.request_config import read_app_config_by_file, read_app_config_by_env
 from stdl.common.env import get_env
 from stdl.common.request_types import RequestType
@@ -176,6 +176,6 @@ class BatchRunner:
     def __create_amqp(self):
         # return AmqpBlocking(self.env.amqp)
         if self.env.env == "prod":
-            return AmqpBlocking(self.env.amqp)
+            return AmqpHelperBlocking(self.env.amqp)
         else:
-            return AmqpMock()
+            return AmqpHelperMock()
