@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from enum import Enum
 
 from stdl.common.types import PlatformType
@@ -11,7 +11,7 @@ class RecordState(Enum):
     FAILED = 3
 
 
-class AbstractRecorder:
+class AbstractRecorder(ABC):
     def __init__(self, uid: str, platform_type: PlatformType):
         self.uid = uid
         self.platform_type = platform_type

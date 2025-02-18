@@ -1,6 +1,14 @@
 from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
-from stdl.server.recording_scheduler import RecordingScheduler
+from stdl.app.recording_scheduler import RecordingScheduler
+from stdl.common.request_config import AppConfig
+from stdl.common.types import PlatformType
+
+
+class CancelRequest(BaseModel):
+    platform_type: PlatformType = Field(alias="platformType")
+    uid: str
 
 
 class MainController:
@@ -16,13 +24,13 @@ class MainController:
     def health(self):
         return "ok"
 
-    def record(self, uid: str):
-        self.scheduler.record(uid)
-        return uid
+    def record(self, req: AppConfig):
+        self.scheduler.record(req)
+        return "ok"
 
-    def cancel(self, uid: str):
-        self.scheduler.cancel(uid)
-        return uid
+    def cancel(self, req: CancelRequest):
+        self.scheduler.cancel(req.platform_type, req.uid)
+        return "ok"
 
     def get_recording_count(self):
         return self.scheduler.get_recording_count()

@@ -3,6 +3,7 @@ import os
 
 from pydantic import BaseModel, Field
 
+from stdl.common.env import Env
 from stdl.common.request_types import (
     RequestType,
     ChzzkLiveRequest,
@@ -28,7 +29,6 @@ class AppConfig(BaseModel):
     twitch_live: TwitchLiveRequest | None = Field(alias="twitchLive", default=None)
     youtube_video: YtdlVideoRequest | None = Field(alias="youtubeVideo", default=None)
     hls_m3u8: HlsM3u8Request | None = Field(alias="hlsM3u8", default=None)
-    start_delay_ms: int = Field(alias="startDelayMs", default=0)
 
 
 def read_app_config_by_file(config_path: str) -> AppConfig:
@@ -37,7 +37,18 @@ def read_app_config_by_file(config_path: str) -> AppConfig:
     return AppConfig(**yaml.load(text, Loader=yaml.FullLoader))
 
 
-def read_app_config_by_env() -> AppConfig | None:
+def read_config(env: Env):
+    conf = __read_app_config_by_env()
+    if conf is None:
+        conf_path = env.config_path
+        if conf_path is not None:
+            conf = read_app_config_by_file(conf_path)
+    if conf is None:
+        raise ValueError("Config not found")
+    return conf
+
+
+def __read_app_config_by_env() -> AppConfig | None:
     text = os.getenv("APP_CONFIG") or None
     if text is None:
         return None

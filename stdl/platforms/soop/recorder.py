@@ -25,7 +25,11 @@ class SoopLiveRecorder(StreamRecorder):
             sargs = StreamlinkArgs(url=url, uid=user_id)
         super().__init__(
             stream_args=sargs,
-            recorder_args=RecorderArgs(out_dir_path=out_dir_path, platform_type=PlatformType.SOOP),
+            recorder_args=RecorderArgs(
+                out_dir_path=out_dir_path,
+                platform_type=PlatformType.SOOP,
+                use_credentials=cred is not None,
+            ),
             fs_accessor=fs_accessor,
             amqp_helper=amqp_helper,
         )

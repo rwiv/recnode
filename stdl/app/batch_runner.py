@@ -1,0 +1,99 @@
+import asyncio
+import json
+
+from stdl.app.recorder_resolver import RecorderResolver
+from stdl.common.env import get_env
+from stdl.common.fs_config_utils import create_fs_accessor
+from stdl.common.request_config import read_config
+from stdl.common.request_types import RequestType
+from stdl.downloaders.hls.downloader import HlsDownloader
+from stdl.downloaders.ytdl.downloader import YtdlDownloader
+from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
+from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
+from stdl.platforms.soop.video_downloader import SoopVideoDownloader
+from stdl.utils.http import get_headers
+from stdl.utils.url import get_query_string
+
+
+class BatchRunner:
+    def __init__(self):
+        self.env = get_env()
+        self.conf = read_config(self.env)
+        self.ac = create_fs_accessor(self.env, self.conf)
+        self.recorder_resolver = RecorderResolver(self.env, self.conf, self.ac)
+
+    def run(self):
+        self.ac.mkdir(self.env.out_dir_path)
+        if self.conf.req_type == RequestType.CHZZK_LIVE:
+            self.__record_live()
+        elif self.conf.req_type == RequestType.CHZZK_VIDEO:
+            self.__run_chzzk_video()
+        elif self.conf.req_type == RequestType.SOOP_LIVE:
+            self.__record_live()
+        elif self.conf.req_type == RequestType.SOOP_VIDEO:
+            self.__run_soop_video()
+        elif self.conf.req_type == RequestType.TWITCH_LIVE:
+            self.__record_live()
+        elif self.conf.req_type == RequestType.YTDL_VIDEO:
+            self.__run_ytdl_video()
+        elif self.conf.req_type == RequestType.HLS_M3U8:
+            self.__run_hls_m3u8()
+        else:
+            raise ValueError("Invalid Request Type")
+
+    def __run_hls_m3u8(self):
+        req = self.conf.hls_m3u8
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        if req.cookies is not None:
+            headers = get_headers(json.loads(req.cookies))
+        else:
+            headers = get_headers()
+
+        parallel_num = 30
+        hls = HlsDownloader(
+            self.env.tmp_dir_path,
+            self.env.out_dir_path,
+            headers,
+            parallel_num,
+        )
+        for i, m3u8_url in enumerate(req.urls):
+            qs = get_query_string(m3u8_url)
+            title = f"hls_{i}"
+            asyncio.run(hls.download_parallel(m3u8_url, "hls", title, qs))
+        print("end")
+
+    def __run_ytdl_video(self):
+        req = self.conf.youtube_video
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        yt = YtdlDownloader(self.env.out_dir_path)
+        yt.download(req.urls)
+        print("end")
+
+    def __run_chzzk_video(self):
+        env = self.env
+        req = self.conf.chzzk_video
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        dl = ChzzkVideoDownloader(env.tmp_dir_path, env.out_dir_path, req)
+        dl_l = ChzzkVideoDownloaderLegacy(env.tmp_dir_path, env.out_dir_path, req)
+        for video_no in req.video_no_list:
+            try:
+                dl.download_one(video_no)
+            except TypeError:
+                dl_l.download_one(video_no)
+        print("end")
+
+    def __run_soop_video(self):
+        env = self.env
+        req = self.conf.soop_video
+        if req is None:
+            raise ValueError("Invalid Request Type")
+        dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, req)
+        for video_no in req.title_no_list:
+            dl.download_one(video_no)
+        print("end")
+
+    def __record_live(self):
+        self.recorder_resolver.create_recorder().record()

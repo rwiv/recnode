@@ -36,8 +36,8 @@ def test_exit_publish():
         # cmd=ExitCommand.FINISH,
         uid=uid,
         platform=PlatformType.CHZZK,
-    ).model_dump(mode="json")
-    body = json.dumps(msg).encode("utf-8")
+    ).model_dump_json(by_alias=True)
+    body = msg.encode("utf-8")
     amqp.publish(chan, exit_queue_name, body)
     amqp.close(conn)
 

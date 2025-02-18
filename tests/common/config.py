@@ -9,8 +9,6 @@ def test_yaml():
     print()
     conf = read_app_config_by_file(join(find_project_root(), "dev", "conf.yaml"))
     print(conf)
-    a = json.dumps(conf.model_dump(mode="json"))
-    print(a)
 
 
 def test_json():

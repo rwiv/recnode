@@ -15,6 +15,7 @@ from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
 from stdl.event.done_message import DoneMessage, DoneStatus
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log
+from stdl.utils.streamlink import disable_streamlink_log
 
 default_restart_delay_sec = 3
 default_chunk_threshold = 10
@@ -25,6 +26,7 @@ DONE_QUEUE_NAME = "stdl.done"
 class RecorderArgs(BaseModel):
     out_dir_path: str = Field(min_length=1)
     platform_type: PlatformType
+    use_credentials: bool
 
 
 class StreamRecorder(AbstractRecorder):
@@ -39,7 +41,9 @@ class StreamRecorder(AbstractRecorder):
         super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
         self.ac = fs_accessor
         self.uid = stream_args.uid
+        self.url = stream_args.url
         self.platform_type = recorder_args.platform_type
+        self.use_credentials = recorder_args.use_credentials
 
         self.incomplete_dir_path = join(recorder_args.out_dir_path, "incomplete")
         self.ac.mkdir(self.incomplete_dir_path)
@@ -70,6 +74,11 @@ class StreamRecorder(AbstractRecorder):
         self.streamlink.abort_flag = True
 
     def record(self, block: bool = True):
+        disable_streamlink_log()
+        log.info(f"Start Record: {self.url}")
+        if self.use_credentials:
+            log.info("Using Credentials")
+
         self.record_thread = threading.Thread(target=self.__record)
         self.record_thread.start()
 
@@ -146,17 +155,15 @@ class StreamRecorder(AbstractRecorder):
         return exists
 
     def __publish_done(self, status: DoneStatus, vid_name: str):
-        body = json.dumps(
-            DoneMessage(
-                status=status,
-                ptype=self.platform_type,
-                uid=self.uid,
-                vidname=vid_name,
-                fstype=FsType.LOCAL,
-            ).model_dump(mode="json")
-        ).encode("utf-8")
+        msg = DoneMessage(
+            status=status,
+            ptype=self.platform_type,
+            uid=self.uid,
+            vidname=vid_name,
+            fstype=FsType.LOCAL,
+        ).model_dump_json(by_alias=True)
         conn, chan = self.amqp.connect()
         self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
-        self.amqp.publish(chan, DONE_QUEUE_NAME, body)
+        self.amqp.publish(chan, DONE_QUEUE_NAME, msg.encode("utf-8"))
         self.amqp.close(conn)
         log.info("Published Done Message")

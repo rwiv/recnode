@@ -1,7 +1,7 @@
 from stdl.common.amqp import AmqpHelperBlocking, AmqpHelperMock
 from stdl.common.env import get_env
 from stdl.server.main_router import MainController
-from stdl.server.recording_scheduler import RecordingScheduler
+from stdl.app.recording_scheduler import RecordingScheduler
 
 
 class ServerDependencyManager:
