@@ -18,18 +18,3 @@ def write_file(file_path: str, data: str, dir_check: bool = True):
 def delete_file(file_path: str):
     if os.path.exists(file_path):
         os.remove(file_path)
-
-
-def sanitize_filename(filename: str) -> str:
-    return (
-        filename.replace("?", "？")
-        .replace("/", "／")
-        .replace("\\", "＼")
-        .replace(":", "：")
-        .replace("*", "＊")
-        .replace('"', "＂")
-        .replace("|", "｜")
-        .replace(">", "＞")
-        .replace("<", "＜")
-        .strip()
-    )

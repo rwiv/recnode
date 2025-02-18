@@ -1,7 +1,7 @@
 import os
 
 
-def load_env(file_path: str):
+def load_dot_env(file_path: str):
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"The file '{file_path}' does not exist.")
 

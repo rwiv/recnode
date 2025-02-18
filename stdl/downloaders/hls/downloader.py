@@ -8,9 +8,8 @@ import aiohttp
 from stdl.downloaders.hls.hls_url_extractor import HlsUrlExtractor
 from stdl.downloaders.hls.merge import merge_ts, convert_vid
 from stdl.downloaders.hls.utils import sub_lists_with_idx
-from stdl.utils.file import sanitize_filename
 from stdl.utils.logger import log
-from stdl.utils.path import path_join
+from stdl.utils.path import path_join, sanitize_filename
 
 buf_size = 8192
 retry_count = 5

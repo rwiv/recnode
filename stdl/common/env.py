@@ -2,7 +2,7 @@ import os
 
 from pydantic import BaseModel, Field
 
-from stdl.utils.env import load_env
+from stdl.utils.env import load_dot_env
 from stdl.utils.path import find_project_root, path_join
 
 
@@ -27,7 +27,7 @@ def get_env() -> Env:
     if env is None:
         env = "dev"
     if env == "dev":
-        load_env(path_join(find_project_root(), "dev", ".env"))
+        load_dot_env(path_join(find_project_root(), "dev", ".env"))
 
     fs_config_path = os.getenv("FS_CONFIG_PATH")
     out_dir_path = os.getenv("OUT_DIR_PATH")

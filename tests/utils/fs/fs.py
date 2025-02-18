@@ -6,13 +6,13 @@ from io import IOBase
 from typing import TypeVar
 
 from stdl.common.fs_config import read_fs_config_by_file
-from stdl.utils.env import load_env
+from stdl.utils.env import load_dot_env
 from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.fs.fs_s3 import S3FsAccessor
 from stdl.utils.path import find_project_root, path_join
 
-load_env(path_join(find_project_root(), "dev", ".env"))
+load_dot_env(path_join(find_project_root(), "dev", ".env"))
 conf = read_fs_config_by_file(path_join(find_project_root(), "dev", "test_fs_conf.yaml"))
 base_path = os.getenv("OUT_DIR_PATH")
 

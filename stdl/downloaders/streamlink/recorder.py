@@ -12,9 +12,9 @@ from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
 from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
 from stdl.event.done_message import DoneMessage, DoneStatus
 from stdl.utils.fs.fs_common_abstract import FsAccessor
+from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.logger import log
 from stdl.utils.path import path_join
-from stdl.utils.streamlink import disable_streamlink_log
 
 default_restart_delay_sec = 3
 default_chunk_threshold = 10
@@ -52,7 +52,9 @@ class StreamRecorder(AbstractRecorder):
         self.use_credentials = recorder_args.use_credentials
 
         self.vid_name: str | None = None
-        self.incomplete_dir_path = path_join(recorder_args.out_dir_path, "incomplete")
+        self.incomplete_dir_path = "incomplete"
+        if isinstance(self.ac, LocalFsAccessor):
+            self.incomplete_dir_path = path_join(recorder_args.out_dir_path, "incomplete")
         self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
@@ -86,7 +88,6 @@ class StreamRecorder(AbstractRecorder):
         self.streamlink.abort_flag = True
 
     def record(self, block: bool = True):
-        disable_streamlink_log()
         log.info(f"Start Record: {self.url}")
         if self.use_credentials:
             log.info("Using Credentials")

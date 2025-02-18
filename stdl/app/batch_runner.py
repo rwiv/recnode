@@ -12,6 +12,7 @@ from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
 from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
 from stdl.platforms.soop.video_downloader import SoopVideoDownloader
 from stdl.utils.http import get_headers
+from stdl.utils.streamlink import disable_streamlink_log
 from stdl.utils.url import get_query_string
 
 
@@ -23,6 +24,7 @@ class BatchRunner:
         self.recorder_resolver = RecorderResolver(self.env, self.conf, self.ac)
 
     def run(self):
+        disable_streamlink_log()
         self.ac.mkdir(self.env.out_dir_path)
         if self.conf.req_type == RequestType.CHZZK_LIVE:
             self.__record_live()

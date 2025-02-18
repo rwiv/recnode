@@ -8,11 +8,11 @@ from pika.spec import Basic, BasicProperties
 from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
 from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
-from stdl.utils.env import load_env
+from stdl.utils.env import load_dot_env
 from stdl.utils.error import stacktrace
 from stdl.utils.path import find_project_root, path_join
 
-load_env(path_join(find_project_root(), "dev", ".env"))
+load_dot_env(path_join(find_project_root(), "dev", ".env"))
 conf = get_env().amqp
 amqp = AmqpHelperBlocking(conf)
 

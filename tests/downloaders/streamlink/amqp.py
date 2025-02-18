@@ -13,10 +13,10 @@ from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
 from stdl.downloaders.streamlink.recorder import DONE_QUEUE_NAME
 from stdl.event.exit_message import ExitMessage, ExitCommand
 from stdl.server.main_router import CancelRequest
-from stdl.utils.env import load_env
+from stdl.utils.env import load_dot_env
 from stdl.utils.path import find_project_root, path_join
 
-load_env(path_join(find_project_root(), "dev", ".env"))
+load_dot_env(path_join(find_project_root(), "dev", ".env"))
 amqp_conf = get_env().amqp
 
 conf = read_app_config_by_file(path_join(find_project_root(), "dev", "conf.yaml"))

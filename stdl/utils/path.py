@@ -16,3 +16,18 @@ def dirname(file_path: str, delimiter: str = "/") -> str:
 
 def path_join(*paths: Any, delimiter: str = "/") -> str:
     return delimiter.join(str(p).strip(delimiter) for p in paths if p)
+
+
+def sanitize_filename(filename: str) -> str:
+    return (
+        filename.replace("?", "？")
+        .replace("/", "／")
+        .replace("\\", "＼")
+        .replace(":", "：")
+        .replace("*", "＊")
+        .replace('"', "＂")
+        .replace("|", "｜")
+        .replace(">", "＞")
+        .replace("<", "＜")
+        .strip()
+    )
