@@ -2,8 +2,8 @@ import json
 import sys
 import threading
 import time
-from dataclasses import dataclass
 
+from pydantic import BaseModel, Field
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
@@ -18,12 +18,11 @@ buf_size = sys.maxsize
 # buf_size = 4 * 1024 * 1024
 
 
-@dataclass
-class StreamlinkArgs:
-    url: str
-    uid: str
-    cookies: str | None = None
-    options: dict[str, str] | None = None
+class StreamlinkArgs(BaseModel):
+    url: str = Field(min_length=1)
+    uid: str = Field(min_length=1)
+    cookies: str | None = Field(min_length=1, default=None)
+    options: dict[str, str] | None = Field(min_length=1, default=None)
 
 
 class StreamlinkManager:

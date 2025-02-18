@@ -1,11 +1,13 @@
 import time
 from threading import Thread
 
-from stdl.common.amqp import AmqpMock
+from stdl.common.amqp import AmqpMock, AmqpBlocking
 from stdl.common.env import Env
 from stdl.downloaders.streamlink.recorder import StreamRecorder
 from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
 from stdl.utils.error import stacktrace
+from stdl.utils.fs.fs_common_abstract import FsAccessor
+from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.logger import log
 
 
@@ -24,8 +26,9 @@ class RecordingScheduler:
             uid,
             self.env.out_dir_path,
             None,
-            AmqpMock(),
-            AmqpMock(),
+            self.__create_accessor(),
+            self.__create_amqp(),
+            self.__create_amqp(),
         )
         if self.__recorder_map.get(uid):
             log.info("Already Recording")
@@ -57,3 +60,13 @@ class RecordingScheduler:
             except:
                 print(stacktrace())
                 time.sleep(1)
+
+    def __create_accessor(self) -> FsAccessor:
+        return LocalFsAccessor()
+
+    def __create_amqp(self):
+        # return AmqpBlocking(self.env.amqp)
+        if self.env.env == "prod":
+            return AmqpBlocking(self.env.amqp)
+        else:
+            return AmqpMock()

@@ -1,12 +1,5 @@
-from enum import Enum
-
 import yaml
 from pydantic import BaseModel, Field
-
-
-class FsType(Enum):
-    LOCAL = "LOCAL"
-    S3 = "S3"
 
 
 class S3Config(BaseModel):

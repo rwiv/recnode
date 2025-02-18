@@ -39,31 +39,31 @@ class BatchRunner:
         return conf
 
     def run(self):
-        if self.conf.startDelayMs > 0:
-            log.info(f"Start delay: {self.conf.startDelayMs}ms")
-            time.sleep(self.conf.startDelayMs / 1000)
+        if self.conf.start_delay_ms > 0:
+            log.info(f"Start delay: {self.conf.start_delay_ms}ms")
+            time.sleep(self.conf.start_delay_ms / 1000)
 
         os.makedirs(self.env.out_dir_path, exist_ok=True)
 
-        if self.conf.reqType == RequestType.CHZZK_LIVE:
+        if self.conf.req_type == RequestType.CHZZK_LIVE:
             self.run_chzzk_live()
-        elif self.conf.reqType == RequestType.CHZZK_VIDEO:
+        elif self.conf.req_type == RequestType.CHZZK_VIDEO:
             self.run_chzzk_video()
-        elif self.conf.reqType == RequestType.SOOP_LIVE:
+        elif self.conf.req_type == RequestType.SOOP_LIVE:
             self.run_soop_live()
-        elif self.conf.reqType == RequestType.SOOP_VIDEO:
+        elif self.conf.req_type == RequestType.SOOP_VIDEO:
             self.run_soop_video()
-        elif self.conf.reqType == RequestType.TWITCH_LIVE:
+        elif self.conf.req_type == RequestType.TWITCH_LIVE:
             self.run_twitch_live()
-        elif self.conf.reqType == RequestType.YTDL_VIDEO:
+        elif self.conf.req_type == RequestType.YTDL_VIDEO:
             self.run_ytdl_video()
-        elif self.conf.reqType == RequestType.HLS_M3U8:
+        elif self.conf.req_type == RequestType.HLS_M3U8:
             self.run_hls_m3u8()
         else:
             raise ValueError("Invalid Request Type")
 
     def run_hls_m3u8(self):
-        req = self.conf.hlsM3u8
+        req = self.conf.hls_m3u8
         if req is None:
             raise ValueError("Invalid Request Type")
         if req.cookies is not None:
@@ -85,7 +85,7 @@ class BatchRunner:
         print("end")
 
     def run_ytdl_video(self):
-        req = self.conf.youtubeVideo
+        req = self.conf.youtube_video
         if req is None:
             raise ValueError("Invalid Request Type")
         yt = YtdlDownloader(self.env.out_dir_path)
@@ -94,12 +94,12 @@ class BatchRunner:
 
     def run_chzzk_video(self):
         env = self.env
-        req = self.conf.chzzkVideo
+        req = self.conf.chzzk_video
         if req is None:
             raise ValueError("Invalid Request Type")
         dl = ChzzkVideoDownloader(env.tmp_dir_path, env.out_dir_path, req)
         dl_l = ChzzkVideoDownloaderLegacy(env.tmp_dir_path, env.out_dir_path, req)
-        for video_no in req.videoNoList:
+        for video_no in req.video_no_list:
             try:
                 dl.download_one(video_no)
             except TypeError:
@@ -108,17 +108,17 @@ class BatchRunner:
 
     def run_soop_video(self):
         env = self.env
-        req = self.conf.soopVideo
+        req = self.conf.soop_video
         if req is None:
             raise ValueError("Invalid Request Type")
         dl = SoopVideoDownloader(env.tmp_dir_path, env.out_dir_path, req)
-        for video_no in req.titleNoList:
+        for video_no in req.title_no_list:
             dl.download_one(video_no)
         print("end")
 
     def run_chzzk_live(self):
         disable_streamlink_log()
-        req = self.conf.chzzkLive
+        req = self.conf.chzzk_live
         if req is None:
             raise ValueError("Invalid Request Type")
         url = f"https://chzzk.naver.com/{req.uid}"
@@ -130,50 +130,50 @@ class BatchRunner:
             self.env.out_dir_path,
             req.cookies,
             self.ac,
-            self.create_amqp(),
-            self.create_amqp(),
+            self.__create_amqp(),
+            self.__create_amqp(),
         )
         recorder.record()
 
     def run_soop_live(self):
         disable_streamlink_log()
-        req = self.conf.soopLive
+        req = self.conf.soop_live
         if req is None:
             raise ValueError("Invalid Request Type")
-        url = f"https://ch.sooplive.co.kr/{req.userId}"
+        url = f"https://ch.sooplive.co.kr/{req.user_id}"
         log.info(f"Start Record: {url}")
         if req.cred:
             log.info("Using Credentials")
         recorder = SoopLiveRecorder(
-            req.userId,
+            req.user_id,
             self.env.out_dir_path,
             req.cred,
             self.ac,
-            self.create_amqp(),
-            self.create_amqp(),
+            self.__create_amqp(),
+            self.__create_amqp(),
         )
         recorder.record()
 
     def run_twitch_live(self):
         disable_streamlink_log()
-        req = self.conf.twitchLive
+        req = self.conf.twitch_live
         if req is None:
             raise ValueError("Invalid Request Type")
-        url = f"https://www.twitch.tv/{req.channelName}"
+        url = f"https://www.twitch.tv/{req.channel_name}"
         log.info(f"Start Record: {url}")
         if req.cookies:
             log.info("Using Credentials")
         recorder = TwitchLiveRecorder(
-            req.channelName,
+            req.channel_name,
             self.env.out_dir_path,
             req.cookies,
             self.ac,
-            self.create_amqp(),
-            self.create_amqp(),
+            self.__create_amqp(),
+            self.__create_amqp(),
         )
         recorder.record()
 
-    def create_amqp(self):
+    def __create_amqp(self):
         # return AmqpBlocking(self.env.amqp)
         if self.env.env == "prod":
             return AmqpBlocking(self.env.amqp)

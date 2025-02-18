@@ -27,15 +27,15 @@ class SoopVideoDownloader:
             tmp_dir,
             out_dir,
             get_headers(self.cookies),
-            req.parallelNum,
-            req.nonParallelDelayMs,
+            req.parallel_num,
+            req.non_parallel_delay_ms,
             SoopHlsUrlExtractor(),
         )
 
     def download_one(self, title_no: int):
         m3u8_urls, title, bjId = self._get_url(title_no)
         for i, m3u8_url in enumerate(m3u8_urls):
-            if self.req.isParallel:
+            if self.req.is_parallel:
                 asyncio.run(self.hls.download_parallel(m3u8_url, bjId, f"{title}_{i}"))
             else:
                 asyncio.run(self.hls.download_non_parallel(m3u8_url, bjId, f"{title}_{i}"))

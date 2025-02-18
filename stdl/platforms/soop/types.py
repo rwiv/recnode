@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class SoopCredential:
+class SoopCredential(BaseModel):
     username: str
     password: str
 

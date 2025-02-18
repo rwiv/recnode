@@ -1,6 +1,5 @@
 import re
 from dataclasses import dataclass
-from typing import List, Optional
 from stdl.downloaders.hls.utils import merge_intersected_strings, get_ext
 
 
@@ -17,26 +16,26 @@ class Resolution:
 
 @dataclass
 class MasterPlaylist:
-    resolutions: List[Resolution]
+    resolutions: list[Resolution]
 
 
 @dataclass
 class MediaPlaylist:
-    segment_paths: List[str]
-    init_section_path: Optional[str]
+    segment_paths: list[str]
+    init_section_path: str | None
     ext: str
 
 
 @dataclass
 class MediaPaths:
-    segment_paths: List[str]
+    segment_paths: list[str]
     ext: str
 
 
 @dataclass
 class M3u8Element:
     header: str
-    value: Optional[str]
+    value: str | None
 
 
 def is_media(m3u8: str) -> bool:
@@ -63,7 +62,7 @@ def parse_master_playlist(m3u8: str) -> MasterPlaylist:
     return MasterPlaylist(resolutions=resolutions)
 
 
-def parse_media_playlist(m3u8: str, base_url_param: str = "", qs: Optional[str] = None) -> MediaPaths:
+def parse_media_playlist(m3u8: str, base_url_param: str = "", qs: str | None = None) -> MediaPaths:
     base_url = base_url_param.rstrip("/")
     media_playlist = __parse_media_playlist_raw(m3u8)
     origin_paths = [media_playlist.init_section_path] if media_playlist.init_section_path else []
@@ -112,7 +111,7 @@ def __parse_media_playlist_raw(m3u8: str) -> MediaPlaylist:
     return MediaPlaylist(segment_paths=segment_paths, init_section_path=init_section_path, ext=ext)
 
 
-def __parse_elems(m3u8: str) -> List[M3u8Element]:
+def __parse_elems(m3u8: str) -> list[M3u8Element]:
     if len(m3u8) == 0:
         raise ValueError("empty m3u8")
 

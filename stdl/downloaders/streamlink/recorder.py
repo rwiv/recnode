@@ -2,10 +2,11 @@ import json
 import signal
 import threading
 import time
-from dataclasses import dataclass
 from datetime import datetime
 from os.path import join
 from threading import Thread
+
+from pydantic import BaseModel, Field
 
 from stdl.common.amqp import Amqp
 from stdl.common.types import PlatformType, FsType
@@ -23,9 +24,8 @@ default_chunk_threshold = 10
 DONE_QUEUE_NAME = "stdl.done"
 
 
-@dataclass
-class RecorderArgs:
-    out_dir_path: str
+class RecorderArgs(BaseModel):
+    out_dir_path: str = Field(min_length=1)
     platform_type: PlatformType
 
 

@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 from enum import Enum
+
+from pydantic import BaseModel, Field
 
 from stdl.platforms.soop.types import SoopCredential
 
@@ -14,48 +15,41 @@ class RequestType(Enum):
     HLS_M3U8 = "hls_m3u8"
 
 
-@dataclass
-class ChzzkVideoRequest:
-    videoNoList: list[int]
-    isParallel: bool
-    parallelNum: int = 3
-    nonParallelDelayMs: int = 200
-    cookies: str | None = None
+class ChzzkVideoRequest(BaseModel):
+    video_no_list: list[int] = Field(alias="videoNoList")
+    is_parallel: bool = Field(alias="isParallel")
+    parallel_num: int = Field(alias="parallelNum", default=3)
+    non_parallel_delay_ms: int = Field(alias="nonParallelDelayMs", default=200)
+    cookies: str | None = Field(min_length=1, default=None)
 
 
-@dataclass
-class ChzzkLiveRequest:
-    uid: str
-    cookies: str | None = None
+class ChzzkLiveRequest(BaseModel):
+    uid: str = Field(min_length=1)
+    cookies: str | None = Field(min_length=1, default=None)
 
 
-@dataclass
-class SoopLiveRequest:
-    userId: str
-    cred: SoopCredential | None = None
+class SoopLiveRequest(BaseModel):
+    user_id: str = Field(min_length=1, alias="userId")
+    cred: SoopCredential | None = Field(min_length=1, default=None)
 
 
-@dataclass
-class SoopVideoRequest:
-    titleNoList: list[int]
-    isParallel: bool
-    parallelNum: int = 3
-    nonParallelDelayMs: int = 200
-    cookies: str | None = None
+class SoopVideoRequest(BaseModel):
+    title_no_list: list[int] = Field(alias="titleNoList")
+    is_parallel: bool = Field(alias="isParallel")
+    parallel_num: int = Field(alias="parallelNum", default=3)
+    non_parallel_delay_ms: int = Field(alias="nonParallelDelayMs", default=200)
+    cookies: str | None = Field(min_length=1, default=None)
 
 
-@dataclass
-class TwitchLiveRequest:
-    channelName: str
-    cookies: str | None = None
+class TwitchLiveRequest(BaseModel):
+    channel_name: str = Field(min_length=1, alias="channelName")
+    cookies: str | None = Field(min_length=1, default=None)
 
 
-@dataclass
-class YtdlVideoRequest:
+class YtdlVideoRequest(BaseModel):
     urls: list[str]
 
 
-@dataclass
-class HlsM3u8Request:
+class HlsM3u8Request(BaseModel):
     urls: list[str]
-    cookies: str | None = None
+    cookies: str | None = Field(min_length=1, default=None)

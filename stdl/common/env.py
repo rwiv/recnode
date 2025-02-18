@@ -1,19 +1,18 @@
 import os
-from dataclasses import dataclass
+
+from pydantic import BaseModel
 
 from stdl.utils.env import load_env
 
 
-@dataclass
-class AmqpConfig:
+class AmqpConfig(BaseModel):
     host: str
     port: int
     username: str
     password: str
 
 
-@dataclass
-class Env:
+class Env(BaseModel):
     env: str
     out_dir_path: str
     tmp_dir_path: str

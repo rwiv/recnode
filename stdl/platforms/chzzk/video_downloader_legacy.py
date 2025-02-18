@@ -23,14 +23,14 @@ class ChzzkVideoDownloaderLegacy:
             tmp_dir,
             out_dir,
             get_headers(self.cookies),
-            req.parallelNum,
-            req.nonParallelDelayMs,
+            req.parallel_num,
+            req.non_parallel_delay_ms,
         )
 
     def download_one(self, video_no: int):
         m3u_url, qs, title, channelId = self._get_info(video_no)
         file_title = f"{str(time.time_ns() // 1000)[-6:]}_{title}"
-        if self.req.isParallel:
+        if self.req.is_parallel:
             asyncio.run(self.hls.download_parallel(m3u_url, channelId, file_title, qs))
         else:
             asyncio.run(self.hls.download_non_parallel(m3u_url, channelId, file_title, qs))
