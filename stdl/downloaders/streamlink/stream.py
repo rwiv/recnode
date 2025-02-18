@@ -35,6 +35,7 @@ class StreamlinkManager:
         self.options = args.options
         self.ac = ac
 
+        self.idx = 0
         self.wait_delay_sec = 1
         self.state: RecordState = RecordState.WAIT
         self.abort_flag = False
@@ -85,7 +86,7 @@ class StreamlinkManager:
         input_stream: HLSStreamReader = streams["best"].open()
         self.state = RecordState.RECORDING
 
-        idx = 0
+        self.idx = 0
 
         if not self.ac.exists(out_dir_path):
             self.ac.mkdir(out_dir_path)
@@ -114,8 +115,8 @@ class StreamlinkManager:
             if len(data) == 0:
                 continue
 
-            idx += 1
-            file_path = f"{out_dir_path}/{idx}.ts"
+            self.idx += 1
+            file_path = f"{out_dir_path}/{self.idx}.ts"
             threading.Thread(target=self.ac.write, args=(file_path, data)).start()
 
         return out_dir_path

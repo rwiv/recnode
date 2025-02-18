@@ -1,4 +1,3 @@
-import json
 import threading
 import time
 from datetime import datetime
@@ -23,6 +22,13 @@ default_chunk_threshold = 10
 DONE_QUEUE_NAME = "stdl.done"
 
 
+class RecordingStatus(BaseModel):
+    platform: PlatformType
+    uid: str
+    idx: int
+    stream_status: RecordState = Field(alias="streamStatus")
+
+
 class RecorderArgs(BaseModel):
     out_dir_path: str = Field(min_length=1)
     platform_type: PlatformType
@@ -45,6 +51,7 @@ class StreamRecorder(AbstractRecorder):
         self.platform_type = recorder_args.platform_type
         self.use_credentials = recorder_args.use_credentials
 
+        self.vid_name: str | None = None
         self.incomplete_dir_path = join(recorder_args.out_dir_path, "incomplete")
         self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
@@ -61,8 +68,13 @@ class StreamRecorder(AbstractRecorder):
         self.record_thread: Thread | None = None
         self.amqp_thread: Thread | None = None
 
-    def get_state(self) -> RecordState:
-        return self.streamlink.state
+    def get_state(self):
+        return RecordingStatus(
+            platform=self.platform_type,
+            uid=self.uid,
+            idx=self.streamlink.idx,
+            streamStatus=self.streamlink.state,
+        )
 
     def cancel(self):
         log.info("Cancel Request")
@@ -132,6 +144,7 @@ class StreamRecorder(AbstractRecorder):
 
             # Start recording
             vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.vid_name = vid_name
             self.streamlink.record(streams, vid_name)
 
             if self.cancel_flag:

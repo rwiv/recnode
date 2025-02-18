@@ -5,10 +5,10 @@ from stdl.common.types import PlatformType
 
 
 class RecordState(Enum):
-    WAIT = 0
-    RECORDING = 1
-    DONE = 2
-    FAILED = 3
+    WAIT = "wait"
+    RECORDING = "recording"
+    DONE = "done"
+    FAILED = "failed"
 
 
 class AbstractRecorder(ABC):

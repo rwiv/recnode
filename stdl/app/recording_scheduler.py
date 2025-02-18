@@ -23,6 +23,9 @@ class RecordingScheduler:
     def get_recording_count(self) -> int:
         return len(self.__recorder_map)
 
+    def ger_status(self):
+        return [recorder.get_state() for recorder in self.__recorder_map.values()]
+
     def record(self, req: AppConfig):
         ac = create_fs_accessor(self.env, req)
         ac.mkdir(self.env.out_dir_path)
