@@ -1,10 +1,6 @@
 import os
 
 
-def basename(file_path: str, delimiter: str = "/") -> str:
-    return delimiter.join(file_path.split(delimiter)[:-1])
-
-
 def write_bfile(file_path: str, data: bytes, dir_check: bool = True):
     if dir_check:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)

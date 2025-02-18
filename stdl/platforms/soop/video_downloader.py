@@ -4,7 +4,6 @@ import os
 import random
 import shutil
 import subprocess
-from os.path import join
 
 import requests
 
@@ -13,6 +12,7 @@ from stdl.downloaders.hls.downloader import HlsDownloader
 from stdl.platforms.soop.hls_url_extractor import SoopHlsUrlExtractor
 from stdl.utils.file import write_file, sanitize_filename
 from stdl.utils.http import get_headers
+from stdl.utils.path import path_join
 
 
 class SoopVideoDownloader:
@@ -41,18 +41,18 @@ class SoopVideoDownloader:
                 asyncio.run(self.hls.download_non_parallel(m3u8_url, bjId, f"{title}_{i}"))
 
         # merge
-        os.makedirs(join(self.out_dir, bjId), exist_ok=True)
-        os.makedirs(join(self.tmp_dir, bjId), exist_ok=True)
+        os.makedirs(path_join(self.out_dir, bjId), exist_ok=True)
+        os.makedirs(path_join(self.tmp_dir, bjId), exist_ok=True)
         file_title = sanitize_filename(title)
-        out_paths = [join(self.out_dir, bjId, f"{file_title}_{i}.mp4") for i in range(len(m3u8_urls))]
-        tmp_paths = [join(self.tmp_dir, bjId, f"{i}.mp4") for i in range(len(m3u8_urls))]
+        out_paths = [path_join(self.out_dir, bjId, f"{file_title}_{i}.mp4") for i in range(len(m3u8_urls))]
+        tmp_paths = [path_join(self.tmp_dir, bjId, f"{i}.mp4") for i in range(len(m3u8_urls))]
         for i, out_path in enumerate(out_paths):
             shutil.move(out_path, tmp_paths[i])
 
-        list_path = join(self.tmp_dir, bjId, "list.txt")
+        list_path = path_join(self.tmp_dir, bjId, "list.txt")
         write_file(list_path, "\n".join([f"file '{f}'" for f in tmp_paths]))
         rand_num = random.randint(100000, 999999)
-        out_path = join(self.tmp_dir, bjId, f"{rand_num}_{file_title}.mp4")
+        out_path = path_join(self.tmp_dir, bjId, f"{rand_num}_{file_title}.mp4")
         command = ["ffmpeg", "-f", "concat", "-safe", "0", "-i", list_path, "-c", "copy", out_path]
         subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

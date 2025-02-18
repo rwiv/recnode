@@ -5,6 +5,7 @@ from pathlib import Path
 
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_common_types import FileInfo
+from stdl.utils.path import path_join
 
 
 class LocalFsAccessor(FsAccessor):
@@ -30,7 +31,7 @@ class LocalFsAccessor(FsAccessor):
         names = os.listdir(dir_path)
         result = []
         for name in names:
-            file = self.head(os.path.join(dir_path, name))
+            file = self.head(path_join(dir_path, name))
             if file is not None:
                 result.append(file)
         return result

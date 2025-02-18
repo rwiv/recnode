@@ -3,7 +3,6 @@ import threading
 import time
 from datetime import datetime
 from io import IOBase
-from os.path import join
 from typing import TypeVar
 
 from stdl.common.fs_config import read_fs_config_by_file
@@ -11,10 +10,10 @@ from stdl.utils.env import load_env
 from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.fs.fs_s3 import S3FsAccessor
-from stdl.utils.path import find_project_root
+from stdl.utils.path import find_project_root, path_join
 
-load_env(join(find_project_root(), "dev", ".env"))
-conf = read_fs_config_by_file(join(find_project_root(), "dev", "test_fs_conf.yaml"))
+load_env(path_join(find_project_root(), "dev", ".env"))
+conf = read_fs_config_by_file(path_join(find_project_root(), "dev", "test_fs_conf.yaml"))
 base_path = os.getenv("OUT_DIR_PATH")
 
 s3_conf = conf.s3
@@ -22,7 +21,7 @@ s3_conf = conf.s3
 ac = LocalFsAccessor()
 s3 = S3FsAccessor(s3_conf)
 
-target = join(find_project_root(), "dev", "test_fs_conf.yaml")
+target = path_join(find_project_root(), "dev", "test_fs_conf.yaml")
 
 
 def print_file(file: FileInfo):
@@ -35,18 +34,18 @@ def test_s3_fs():
     if base_path is None:
         raise ValueError("OUT_DIR_PATH is not set")
 
-    # start_time = time.time()
-    # s3.mkdir("ts")
-    # for f in ac.get_list(os.path.join(base_path, "ts")):
-    #     with open(f.path, "rb") as file:
-    #         s3.write(f"ts/{f.name}", file)
-    # elapsed_time = time.time() - start_time
-    # print(f"실행 시간: {elapsed_time:.6f}초")
+    start_time = time.time()
+    s3.mkdir("ts")
+    for f in ac.get_list(path_join(base_path, "ts")):
+        with open(f.path, "rb") as file:
+            s3.write(f"ts/{f.name}", file)
+    elapsed_time = time.time() - start_time
+    print(f"실행 시간: {elapsed_time:.6f}초")
 
     parallel = 10
     start_time = time.time()
     s3.mkdir("ts")
-    for sub in sublist(ac.get_list(os.path.join(base_path, "ts")), parallel):
+    for sub in sublist(ac.get_list(path_join(base_path, "ts")), parallel):
         reqs: list[tuple[str, bytes]] = []
         for f in sub:
             with open(f.path, "rb") as file:
@@ -61,9 +60,9 @@ def test_s3_fs():
     # elapsed_time = time.time() - start_time
     # print(f"실행 시간: {elapsed_time:.6f}초")
 
-    # ac.mkdir(os.path.join(base_path, "zxc"))
-    # ac.delete(os.path.join(base_path, "zxc"))
-    # ac.rmdir(os.path.join(base_path, "zxc"))
+    # ac.mkdir(join(base_path, "zxc"))
+    # ac.delete(join(base_path, "zxc"))
+    # ac.rmdir(join(base_path, "zxc"))
 
     # create_hierarchy()
     # s3.walk(root(), print_file)

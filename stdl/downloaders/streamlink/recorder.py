@@ -1,7 +1,6 @@
 import threading
 import time
 from datetime import datetime
-from os.path import join
 from threading import Thread
 
 from pydantic import BaseModel, Field
@@ -14,6 +13,7 @@ from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
 from stdl.event.done_message import DoneMessage, DoneStatus
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log
+from stdl.utils.path import path_join
 from stdl.utils.streamlink import disable_streamlink_log
 
 default_restart_delay_sec = 3
@@ -52,7 +52,7 @@ class StreamRecorder(AbstractRecorder):
         self.use_credentials = recorder_args.use_credentials
 
         self.vid_name: str | None = None
-        self.incomplete_dir_path = join(recorder_args.out_dir_path, "incomplete")
+        self.incomplete_dir_path = path_join(recorder_args.out_dir_path, "incomplete")
         self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 

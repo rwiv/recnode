@@ -10,6 +10,7 @@ from stdl.downloaders.hls.merge import merge_ts, convert_vid
 from stdl.downloaders.hls.utils import sub_lists_with_idx
 from stdl.utils.file import sanitize_filename
 from stdl.utils.logger import log
+from stdl.utils.path import path_join
 
 buf_size = 8192
 retry_count = 5
@@ -45,7 +46,7 @@ class HlsDownloader:
         qs: str | None = None,
     ):
         title_name = sanitize_filename(title)
-        chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
+        chunks_path = path_join(self.tmp_dir_path, name, title_name)
         urls = self.url_extractor.get_urls(m3u8_url, qs)
         subs = sub_lists_with_idx(urls, self.parallel_num)
         for sub in subs:
@@ -64,7 +65,7 @@ class HlsDownloader:
         qs: str | None = None,
     ):
         title_name = sanitize_filename(title)
-        chunks_path = os.path.join(self.tmp_dir_path, name, title_name)
+        chunks_path = path_join(self.tmp_dir_path, name, title_name)
         os.makedirs(chunks_path, exist_ok=True)
         urls = self.url_extractor.get_urls(m3u8_url, qs)
         cnt = 0
@@ -93,7 +94,7 @@ async def _download_file_wrapper(url: str, headers: dict[str, str] | None, num: 
 
 
 async def _download_file(url: str, headers: dict[str, str] | None, num: int, out_dir_path: str):
-    file_path = os.path.join(out_dir_path, f"{num + 1}.ts")
+    file_path = path_join(out_dir_path, f"{num + 1}.ts")
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url) as res:
             if res.status >= 400:

@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+from stdl.utils.path import path_join
+
 
 def merge_ts(chunks_path: str) -> str:
     merged_ts_path = f"{chunks_path}.ts"
@@ -9,7 +11,7 @@ def merge_ts(chunks_path: str) -> str:
             [f for f in os.listdir(chunks_path) if f.endswith(".ts")], key=lambda x: int(x.split(".")[0])
         )
         for ts_filename in ts_filenames:
-            with open(os.path.join(chunks_path, ts_filename), "rb") as infile:
+            with open(path_join(chunks_path, ts_filename), "rb") as infile:
                 outfile.write(infile.read())
     return merged_ts_path
 
