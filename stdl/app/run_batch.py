@@ -1,18 +1,18 @@
 import asyncio
 import json
 
-from stdl.app.recorder_resolver import RecorderResolver
+from stdl.record.recorder_resolver import RecorderResolver
 from stdl.common.env import get_env
 from stdl.common.fs_config_utils import create_fs_accessor
 from stdl.common.request_config import read_config
 from stdl.common.request_types import RequestType
-from stdl.downloaders.hls.downloader import HlsDownloader
-from stdl.downloaders.ytdl.downloader import YtdlDownloader
-from stdl.platforms.chzzk.video_downloader import ChzzkVideoDownloader
-from stdl.platforms.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
-from stdl.platforms.soop.video_downloader import SoopVideoDownloader
+from stdl.utils.hls.downloader import HlsDownloader
+from stdl.utils.ytdl.ytdl_downloader import YtdlDownloader
+from stdl.video.chzzk.video_downloader import ChzzkVideoDownloader
+from stdl.video.chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
+from stdl.video.soop.video_downloader import SoopVideoDownloader
 from stdl.utils.http import get_headers
-from stdl.utils.streamlink import disable_streamlink_log
+from stdl.record.utils.streamlink_utils import disable_streamlink_log
 from stdl.utils.url import get_query_string
 
 

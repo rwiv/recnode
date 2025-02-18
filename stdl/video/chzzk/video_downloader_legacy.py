@@ -7,7 +7,7 @@ from xml.etree.ElementTree import fromstring, Element
 import requests
 
 from stdl.common.request_types import ChzzkVideoRequest
-from stdl.downloaders.hls.downloader import HlsDownloader
+from stdl.utils.hls.downloader import HlsDownloader
 from stdl.utils.url import find_query_value_one, get_base_url
 from stdl.utils.http import get_headers
 

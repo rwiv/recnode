@@ -6,8 +6,8 @@ from typing import Any
 import requests
 
 from stdl.common.request_types import ChzzkVideoRequest
-from stdl.platforms.chzzk.type_playback import ChzzkPlayback
-from stdl.downloaders.hls.downloader import HlsDownloader
+from stdl.video.chzzk.type_playback import ChzzkPlayback
+from stdl.utils.hls.downloader import HlsDownloader
 from stdl.utils.http import get_headers
 
 

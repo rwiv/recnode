@@ -2,9 +2,9 @@ from streamlink.plugins.soop import Soop
 
 from stdl.common.amqp import AmqpHelper
 from stdl.common.types import PlatformType
-from stdl.downloaders.streamlink.recorder import StreamRecorder, RecorderArgs
-from stdl.downloaders.streamlink.stream import StreamlinkArgs
-from stdl.platforms.soop.types import SoopCredential
+from stdl.record.recorder.recorder import StreamRecorder
+from stdl.video.soop.types import SoopCredential
+from stdl.record.spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 
 

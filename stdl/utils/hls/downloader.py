@@ -5,9 +5,9 @@ import time
 
 import aiohttp
 
-from stdl.downloaders.hls.hls_url_extractor import HlsUrlExtractor
-from stdl.downloaders.hls.merge import merge_ts, convert_vid
-from stdl.downloaders.hls.utils import sub_lists_with_idx
+from stdl.utils.hls.hls_url_extractor import HlsUrlExtractor
+from stdl.utils.hls.merge import merge_ts, convert_vid
+from stdl.utils.hls.utils import sub_lists_with_idx
 from stdl.utils.logger import log
 from stdl.utils.path import path_join, sanitize_filename
 

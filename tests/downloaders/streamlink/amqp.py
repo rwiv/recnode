@@ -9,10 +9,10 @@ from stdl.common.request_config import read_app_config_by_file, AppConfig
 from stdl.common.env import get_env
 from stdl.common.request_types import RequestType
 from stdl.common.types import PlatformType, FsType
-from stdl.downloaders.streamlink.listener import EXIT_QUEUE_PREFIX
-from stdl.downloaders.streamlink.recorder import DONE_QUEUE_NAME
-from stdl.event.exit_message import ExitMessage, ExitCommand
-from stdl.server.main_router import CancelRequest
+from stdl.record.recorder.listener import EXIT_QUEUE_PREFIX
+from stdl.record.recorder.recorder import DONE_QUEUE_NAME
+from stdl.record.spec.exit_message import ExitMessage, ExitCommand
+from stdl.app.main_router import CancelRequest
 from stdl.utils.env import load_dot_env
 from stdl.utils.path import find_project_root, path_join
 

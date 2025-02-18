@@ -3,14 +3,14 @@ import time
 from datetime import datetime
 from threading import Thread
 
-from pydantic import BaseModel, Field
-
 from stdl.common.amqp import AmqpHelper
-from stdl.common.types import PlatformType, FsType
-from stdl.downloaders.streamlink.listener import RecorderListener, EXIT_QUEUE_PREFIX
-from stdl.downloaders.streamlink.stream import StreamlinkManager, StreamlinkArgs
-from stdl.downloaders.streamlink.types import AbstractRecorder, RecordState
-from stdl.event.done_message import DoneMessage, DoneStatus
+from stdl.common.types import FsType
+from stdl.record.recorder.listener import RecorderListener, EXIT_QUEUE_PREFIX
+from stdl.record.recorder.recorder_abc import AbstractRecorder
+from stdl.record.recorder.streamlink import StreamlinkManager
+from stdl.record.spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from stdl.record.spec.done_message import DoneMessage, DoneStatus
+from stdl.record.spec.recording_status import RecorderStatus
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.logger import log
@@ -20,19 +20,6 @@ default_restart_delay_sec = 3
 default_chunk_threshold = 10
 
 DONE_QUEUE_NAME = "stdl.done"
-
-
-class RecordingStatus(BaseModel):
-    platform: PlatformType
-    uid: str
-    idx: int
-    stream_status: RecordState = Field(alias="streamStatus")
-
-
-class RecorderArgs(BaseModel):
-    out_dir_path: str = Field(min_length=1)
-    platform_type: PlatformType
-    use_credentials: bool
 
 
 class StreamRecorder(AbstractRecorder):
@@ -71,7 +58,7 @@ class StreamRecorder(AbstractRecorder):
         self.amqp_thread: Thread | None = None
 
     def get_state(self):
-        return RecordingStatus(
+        return RecorderStatus(
             platform=self.platform_type,
             uid=self.uid,
             idx=self.streamlink.idx,

@@ -1,5 +1,5 @@
-from stdl.downloaders.hls.hls_url_extractor import HlsUrlExtractor
-from stdl.downloaders.hls.parser import Resolution
+from stdl.utils.hls.hls_url_extractor import HlsUrlExtractor
+from stdl.utils.hls.parser import Resolution
 from stdl.utils.url import get_origin
 
 

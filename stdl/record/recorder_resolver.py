@@ -2,10 +2,10 @@ from stdl.common.amqp_utils import create_amqp
 from stdl.common.env import Env
 from stdl.common.request_config import AppConfig
 from stdl.common.request_types import RequestType
-from stdl.downloaders.streamlink.recorder import StreamRecorder
-from stdl.platforms.chzzk.recorder import ChzzkLiveRecorder
-from stdl.platforms.soop.recorder import SoopLiveRecorder
-from stdl.platforms.twitch.recorder import TwitchLiveRecorder
+from stdl.record.recorder.recorder import StreamRecorder
+from stdl.record.platform.chzzk_recorder import ChzzkLiveRecorder
+from stdl.record.platform.soop_recorder import SoopLiveRecorder
+from stdl.record.platform.twitch_recorder import TwitchLiveRecorder
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 
 

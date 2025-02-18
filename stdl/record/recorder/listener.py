@@ -4,8 +4,8 @@ from pika.adapters.blocking_connection import BlockingChannel, BlockingConnectio
 from pika.spec import Basic, BasicProperties
 
 from stdl.common.amqp import AmqpHelper
-from stdl.downloaders.streamlink.types import AbstractRecorder
-from stdl.event.exit_message import ExitMessage, ExitCommand
+from stdl.record.recorder.recorder_abc import AbstractRecorder
+from stdl.record.spec.exit_message import ExitMessage, ExitCommand
 from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
 

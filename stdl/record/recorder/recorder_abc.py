@@ -1,14 +1,6 @@
-from abc import abstractmethod, ABC
-from enum import Enum
+from abc import ABC, abstractmethod
 
 from stdl.common.types import PlatformType
-
-
-class RecordState(Enum):
-    WAIT = "wait"
-    RECORDING = "recording"
-    DONE = "done"
-    FAILED = "failed"
 
 
 class AbstractRecorder(ABC):

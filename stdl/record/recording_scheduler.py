@@ -1,12 +1,12 @@
 import time
 from threading import Thread
 
-from stdl.app.recorder_resolver import RecorderResolver
+from stdl.record.recorder_resolver import RecorderResolver
 from stdl.common.env import Env
 from stdl.common.fs_config_utils import create_fs_accessor
 from stdl.common.request_config import AppConfig
 from stdl.common.types import PlatformType
-from stdl.downloaders.streamlink.recorder import StreamRecorder
+from stdl.record.recorder.recorder import StreamRecorder
 from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
 
@@ -19,9 +19,6 @@ class RecordingScheduler:
         self.__recorder_map: dict[str, StreamRecorder] = {}
         self.check_thread: Thread | None = None
         self.start_monitoring_states()
-
-    def get_recording_count(self) -> int:
-        return len(self.__recorder_map)
 
     def ger_status(self):
         return [recorder.get_state() for recorder in self.__recorder_map.values()]

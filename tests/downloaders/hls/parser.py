@@ -1,4 +1,4 @@
-from stdl.downloaders.hls.parser import parse_master_playlist, merge_intersected_strings, parse_media_playlist
+from stdl.utils.hls.parser import parse_master_playlist, merge_intersected_strings, parse_media_playlist
 from stdl.utils.path import find_project_root, path_join
 
 
