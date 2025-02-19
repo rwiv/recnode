@@ -1,7 +1,6 @@
-from stdl.common.amqp import AmqpHelper
-from stdl.common.types import PlatformType
-from stdl.record.recorder.recorder import StreamRecorder
-from stdl.record.spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from ..recorder.recorder import StreamRecorder
+from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from ...common import AmqpHelper, PlatformType
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 
 

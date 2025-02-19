@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from stdl.video.soop.types import SoopCredential
+from stdl.record import SoopCredential
 
 
 class RequestType(Enum):

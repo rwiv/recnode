@@ -7,8 +7,8 @@ from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
-from stdl.record.spec.recording_arguments import StreamlinkArgs
-from stdl.record.spec.recording_status import RecordingState
+from ..spec.recording_arguments import StreamlinkArgs
+from ..spec.recording_status import RecordingState
 from stdl.utils.error import stacktrace
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log

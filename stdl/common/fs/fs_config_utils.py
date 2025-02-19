@@ -2,10 +2,10 @@ from pathlib import Path
 
 import urllib3
 
-from stdl.common.env import Env
-from stdl.common.fs_config import read_fs_config_by_file
-from stdl.common.request_config import AppConfig
-from stdl.common.types import FsType
+from .fs_config import read_fs_config_by_file
+from .. import Env
+from ..request.request_config import AppConfig
+from ..spec.common_types import FsType
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.fs.fs_s3 import S3FsAccessor

@@ -3,8 +3,9 @@ import os
 
 from pydantic import BaseModel, Field
 
-from stdl.common.env import Env
-from stdl.common.request_types import (
+from .. import FsType
+from ..env.env import Env
+from .request_types import (
     RequestType,
     ChzzkLiveRequest,
     ChzzkVideoRequest,
@@ -15,8 +16,6 @@ from stdl.common.request_types import (
     SoopVideoRequest,
 )
 import yaml
-
-from stdl.common.types import FsType
 
 
 class AppConfig(BaseModel):

@@ -5,7 +5,7 @@ from datetime import datetime
 from io import IOBase
 from typing import TypeVar
 
-from stdl.common.fs_config import read_fs_config_by_file
+from stdl.common import read_fs_config_by_file
 from stdl.utils.env import load_dot_env
 from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_local import LocalFsAccessor

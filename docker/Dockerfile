@@ -15,4 +15,4 @@ RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.t
 
 RUN pip install -r requirements.txt
 
-ENTRYPOINT ["python", "-u", "main_batch.py"]
+ENTRYPOINT ["python", "-u", "-m", "stdl", "batch"]

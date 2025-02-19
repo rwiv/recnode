@@ -1,12 +1,9 @@
 import time
 from threading import Thread
 
-from stdl.record.recorder_resolver import RecorderResolver
-from stdl.common.env import Env
-from stdl.common.fs_config_utils import create_fs_accessor
-from stdl.common.request_config import AppConfig
-from stdl.common.types import PlatformType
-from stdl.record.recorder.recorder import StreamRecorder
+from .recorder import StreamRecorder
+from ..platform.recorder_resolver import RecorderResolver
+from ...common import PlatformType, Env, create_fs_accessor, AppConfig
 from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
 

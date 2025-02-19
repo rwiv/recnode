@@ -1,5 +1,5 @@
-from stdl.common.amqp import AmqpHelperBlocking, AmqpHelperMock
-from stdl.common.env import Env
+from .amqp import AmqpHelperBlocking, AmqpHelperMock
+from ..env.env import Env
 
 
 def create_amqp(env: Env):

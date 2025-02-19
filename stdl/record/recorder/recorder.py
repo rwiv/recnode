@@ -3,18 +3,17 @@ import time
 from datetime import datetime
 from threading import Thread
 
-from stdl.common.amqp import AmqpHelper
-from stdl.common.types import FsType
-from stdl.record.recorder.listener import RecorderListener, EXIT_QUEUE_PREFIX
-from stdl.record.recorder.recorder_abc import AbstractRecorder
-from stdl.record.recorder.streamlink import StreamlinkManager
-from stdl.record.spec.recording_arguments import StreamlinkArgs, RecorderArgs
-from stdl.record.spec.done_message import DoneMessage, DoneStatus
-from stdl.record.spec.recording_status import RecorderStatus
+from ...common import AmqpHelper, FsType
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.logger import log
 from stdl.utils.path import path_join
+from .listener import RecorderListener, EXIT_QUEUE_PREFIX
+from .recorder_abc import AbstractRecorder
+from .streamlink import StreamlinkManager
+from ..spec.done_message import DoneStatus, DoneMessage
+from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from ..spec.recording_status import RecorderStatus
 
 default_restart_delay_sec = 3
 default_chunk_threshold = 10

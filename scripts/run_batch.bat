@@ -21,5 +21,5 @@ for /f "usebackq tokens=1,2* delims== " %%a in (%ENV_FILE%) do (
     )
 )
 
-.\.venv\Scripts\python.exe .\main_batch.py
+.\.venv\Scripts\python.exe -m stdl batch
 pause

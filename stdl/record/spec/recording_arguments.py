@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from stdl.common.types import PlatformType
+from ...common import PlatformType
 
 
 class RecorderArgs(BaseModel):

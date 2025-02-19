@@ -5,7 +5,7 @@ import boto3
 from botocore.exceptions import ClientError
 from mypy_boto3_s3.client import S3Client
 
-from stdl.common.fs_config import S3Config
+from ...common import S3Config
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_common_types import FileInfo
 from stdl.utils.fs.fs_s3_types import S3ObjectInfoResponse, S3ListResponse

@@ -1,13 +1,12 @@
 import uvicorn
 from fastapi import FastAPI
 
-from stdl.common.env import get_env
-from stdl.record.recording_scheduler import RecordingScheduler
-from stdl.record.utils.streamlink_utils import disable_streamlink_log
-from stdl.app.main_router import MainController
+from .main_router import MainController
+from ..common import get_env
+from ..record import RecordingScheduler, disable_streamlink_log
 
 
-def run():
+def run_server():
     disable_streamlink_log()
 
     env = get_env()

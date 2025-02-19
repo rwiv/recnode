@@ -1,16 +1,10 @@
 import os
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
+from .env_configs import AmqpConfig
 from stdl.utils.env import load_dot_env
 from stdl.utils.path import find_project_root, path_join
-
-
-class AmqpConfig(BaseModel):
-    host: str = Field(min_length=1)
-    port: int
-    username: str = Field(min_length=1)
-    password: str = Field(min_length=1)
 
 
 class Env(BaseModel):
