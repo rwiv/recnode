@@ -2,14 +2,15 @@ import asyncio
 import json
 import time
 from typing import Any
+from urllib.parse import urlparse, parse_qs
 from xml.etree.ElementTree import fromstring, Element
 
 import requests
+from pyutils import get_base_url
 
-from stdl.utils.hls.downloader import HlsDownloader
-from stdl.utils.url import find_query_value_one, get_base_url
-from stdl.utils.http import get_headers
 from ...common.request import ChzzkVideoRequest
+from ...utils.hls.downloader import HlsDownloader
+from ...utils.http import get_headers
 
 
 class ChzzkVideoDownloaderLegacy:
@@ -80,3 +81,12 @@ class ChzzkVideoDownloaderLegacy:
 
 def _parse_xml(xml_str) -> Element:
     return fromstring(xml_str)
+
+
+def find_query_value_one(url: str, key: str) -> str:
+    parsed_rul = urlparse(url)
+    params = parse_qs(parsed_rul.query)
+    values = params[key]
+    if len(values) != 1:
+        raise ValueError("query values should be 1")
+    return values[0]

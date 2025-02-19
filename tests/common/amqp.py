@@ -4,13 +4,11 @@ import time
 
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
+from pyutils import load_dot_env, path_join, find_project_root, stacktrace
 
 from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
 from stdl.record import EXIT_QUEUE_PREFIX
-from stdl.utils.env import load_dot_env
-from stdl.utils.error import stacktrace
-from stdl.utils.path import find_project_root, path_join
 
 load_dot_env(path_join(find_project_root(), "dev", ".env"))
 conf = get_env().amqp
@@ -27,10 +25,6 @@ def thname():
 def publish(chan: BlockingChannel):
     body = json.dumps({"cmd": "cancel", "platform": "chzzk", "uid": uid})
     amqp.publish(chan, queue_name, body.encode("utf-8"))
-
-
-def test_a():
-    print()
 
 
 def test_publish():

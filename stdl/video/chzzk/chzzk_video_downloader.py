@@ -5,10 +5,10 @@ from typing import Any
 
 import requests
 
+from .chzzk_playback_types import ChzzkPlayback
 from ...common.request import ChzzkVideoRequest
-from .type_playback import ChzzkPlayback
-from stdl.utils.hls.downloader import HlsDownloader
-from stdl.utils.http import get_headers
+from ...utils.hls.downloader import HlsDownloader
+from ...utils.http import get_headers
 
 
 class ChzzkVideoDownloader:

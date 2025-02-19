@@ -1,8 +1,10 @@
+from pyutils import cookie_header, CookieDict
+
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
 
 def get_headers(
-    cookies: list[dict] | None = None,
+    cookies: list[CookieDict] | None = None,
     accept: str | None = None,
 ) -> dict:
     headers = {
@@ -11,14 +13,5 @@ def get_headers(
     if accept is not None:
         headers["Accept"] = accept
     if cookies is not None:
-        headers["Cookie"] = create_cookie_str(cookies)
+        headers["Cookie"] = cookie_header(cookies)
     return headers
-
-
-def create_cookie_str(cookies: list[dict]) -> str:
-    result = ""
-    for i, cookie in enumerate(cookies):
-        result += f"{cookie['name']}={cookie['value']}"
-        if i != len(cookies) - 1:
-            result += "; "
-    return result

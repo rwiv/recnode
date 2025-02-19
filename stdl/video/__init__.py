@@ -1,9 +1,9 @@
 import os
 import sys
 
-from .chzzk.video_downloader import ChzzkVideoDownloader
-from .chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
-from .soop.video_downloader import SoopVideoDownloader
+from .chzzk.chzzk_video_downloader import ChzzkVideoDownloader
+from .chzzk.chzzk_video_downloader_legacy import ChzzkVideoDownloaderLegacy
+from .soop.soop_video_downloader import SoopVideoDownloader
 
 targets = ["chzzk", "soop"]
 if os.getenv("PY_ENV") != "prod":

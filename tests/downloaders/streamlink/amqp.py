@@ -3,6 +3,7 @@ import json
 import requests
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
+from pyutils import load_dot_env, path_join, find_project_root
 
 from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
@@ -10,8 +11,6 @@ from stdl.common.request import read_app_config_by_file, AppConfig, RequestType
 from stdl.common.spec import FsType, PlatformType
 from stdl.record import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME, ExitMessage, ExitCommand
 from stdl.app import CancelRequest
-from stdl.utils.env import load_dot_env
-from stdl.utils.path import find_project_root, path_join
 
 load_dot_env(path_join(find_project_root(), "dev", ".env"))
 amqp_conf = get_env().amqp

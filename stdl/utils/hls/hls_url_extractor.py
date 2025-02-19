@@ -1,7 +1,7 @@
 import requests
+from pyutils import get_base_url
 
-from stdl.utils.hls.parser import parse_master_playlist, parse_media_playlist, Resolution
-from stdl.utils.url import get_base_url
+from .parser import parse_master_playlist, parse_media_playlist, Resolution
 
 
 class HlsUrlExtractor:

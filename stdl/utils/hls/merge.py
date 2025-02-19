@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from stdl.utils.path import path_join
+from pyutils import path_join
 
 
 def merge_ts(chunks_path: str) -> str:

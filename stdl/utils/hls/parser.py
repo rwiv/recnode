@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
-from stdl.utils.hls.utils import merge_intersected_strings, get_ext
+
+from .utils import merge_intersected_strings, get_ext
 
 
 class M3u8ElemError(Exception):

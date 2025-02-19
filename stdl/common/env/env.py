@@ -1,9 +1,8 @@
 import os
 
 from pydantic import BaseModel
+from pyutils import load_dot_env, path_join, find_project_root
 
-from stdl.utils.env import load_dot_env
-from stdl.utils.path import find_project_root, path_join
 from .env_configs import AmqpConfig
 
 

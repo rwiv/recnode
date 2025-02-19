@@ -1,8 +1,8 @@
 import time
 from threading import Thread
 
-from stdl.utils.error import stacktrace
-from stdl.utils.logger import log
+from pyutils import stacktrace_entry, log
+
 from .recorder import StreamRecorder
 from ..platform.recorder_resolver import RecorderResolver
 from ...common.env import Env
@@ -63,7 +63,7 @@ class RecordingScheduler:
                         del self.__recorder_map[key]
                 time.sleep(CHECK_DELAY)
             except:
-                print(stacktrace())
+                log.error(*stacktrace_entry())
                 time.sleep(CHECK_DELAY)
 
 

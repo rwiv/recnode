@@ -2,9 +2,8 @@ import json
 
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 from pika.spec import Basic, BasicProperties
+from pyutils import stacktrace_dict, log
 
-from stdl.utils.error import stacktrace
-from stdl.utils.logger import log
 from .recorder_abc import AbstractRecorder
 from ..spec.exit_message import ExitMessage, ExitCommand
 from ..spec.recording_constants import EXIT_QUEUE_PREFIX
@@ -33,8 +32,7 @@ class RecorderListener:
 
             ch.stop_consuming()
         except:
-            log.error("Failed to handle message")
-            print(stacktrace())
+            log.error("Failed to handle message", stacktrace_dict())
 
     def consume(self):
         try:
@@ -44,8 +42,7 @@ class RecorderListener:
             self.amqp.ensure_queue(chan, vid_queue_name, auto_delete=True)
             self.amqp.consume(chan, vid_queue_name, self.on_message)
         except:
-            log.error("Failed to __consume")
-            print(stacktrace())
+            log.error("Failed to __consume", stacktrace_dict())
         finally:
             if self.conn is not None:
                 self.amqp.close(self.conn)

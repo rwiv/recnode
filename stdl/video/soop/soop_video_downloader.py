@@ -6,13 +6,12 @@ import shutil
 import subprocess
 
 import requests
+from pyutils import path_join, write_file, sanitize_filename
 
-from stdl.common.request import SoopVideoRequest
-from stdl.utils.hls.downloader import HlsDownloader
-from stdl.utils.file import write_file
-from stdl.utils.http import get_headers
-from stdl.utils.path import path_join, sanitize_filename
-from .hls_url_extractor import SoopHlsUrlExtractor
+from .soop_hls_url_extractor import SoopHlsUrlExtractor
+from ...common.request import SoopVideoRequest
+from ...utils.hls.downloader import HlsDownloader
+from ...utils.http import get_headers
 
 
 class SoopVideoDownloader:

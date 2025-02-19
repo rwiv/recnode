@@ -4,9 +4,8 @@ from typing import Callable
 import pika
 from pika.adapters.blocking_connection import BlockingConnection, BlockingChannel
 from pika.spec import Basic, BasicProperties
+from pyutils import stacktrace_dict, log
 
-from stdl.utils.error import stacktrace
-from stdl.utils.logger import log
 from ..env import AmqpConfig
 
 
@@ -85,8 +84,7 @@ class AmqpHelperBlocking(AmqpHelper):
                 conn.close()
                 log.debug("AMQP connection closed")
         except:
-            log.error("Error closing AMQP connection")
-            print(stacktrace())
+            log.error("Error closing AMQP connection", stacktrace_dict())
 
 
 class AmqpHelperMock(AmqpHelper):

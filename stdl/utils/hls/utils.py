@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List
 
 
 def get_ext(path: str) -> str:
@@ -19,7 +18,7 @@ class ValueWithIdx:
     value: str
 
 
-def sub_lists_with_idx(origin: List[str], n: int) -> List[List[ValueWithIdx]]:
+def sub_lists_with_idx(origin: list[str], n: int) -> list[list[ValueWithIdx]]:
     copy = origin[:]
     result = []
     cnt = 0

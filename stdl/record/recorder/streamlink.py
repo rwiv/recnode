@@ -2,13 +2,12 @@ import json
 import threading
 import time
 
+from pyutils import stacktrace_dict, log
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
-from stdl.utils.error import stacktrace
 from stdl.utils.fs.fs_common_abstract import FsAccessor
-from stdl.utils.logger import log
 from ..spec.recording_arguments import StreamlinkArgs
 from ..spec.recording_constants import STREAMLINK_RETRY_COUNT, STREAMLINK_BUFFER_SIZE
 from ..spec.recording_status import RecordingState
@@ -59,8 +58,7 @@ class StreamlinkManager:
                 if streams != {}:
                     return streams
             except:
-                log.error("Failed to get streams")
-                print(stacktrace())
+                log.error("Failed to get streams", stacktrace_dict())
 
             if cnt == 0:
                 log.info("Wait For Live")

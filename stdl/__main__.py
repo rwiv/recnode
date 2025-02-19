@@ -14,7 +14,7 @@ if __name__ == "__main__":
         r = BatchRunner()
         r.run()
     elif mode == "server":
-        from stdl.app import run_server
+        from .app import run_server
 
         run_server()
     else:

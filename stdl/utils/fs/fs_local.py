@@ -3,9 +3,10 @@ from datetime import datetime
 from io import IOBase
 from pathlib import Path
 
+from pyutils import path_join
+
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_common_types import FileInfo
-from stdl.utils.path import path_join
 
 
 class LocalFsAccessor(FsAccessor):

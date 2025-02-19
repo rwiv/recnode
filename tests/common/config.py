@@ -1,7 +1,8 @@
 import json
 
+from pyutils import path_join, find_project_root
+
 from stdl.common.request import read_app_config_by_file, AppConfig
-from stdl.utils.path import find_project_root, path_join
 
 
 def test_yaml():
