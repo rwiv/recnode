@@ -3,6 +3,7 @@ import os
 
 import yaml
 from pydantic import BaseModel, Field
+from pynifs import FsType
 
 from .request_types import (
     RequestType,
@@ -15,7 +16,6 @@ from .request_types import (
     SoopVideoRequest,
 )
 from ..env import Env
-from ..spec import FsType
 
 
 class AppConfig(BaseModel):

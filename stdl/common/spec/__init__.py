@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .common_types import PlatformType, FsType
+from .common_types import PlatformType
 
 targets = ["common_types"]
 if os.getenv("PY_ENV") != "prod":

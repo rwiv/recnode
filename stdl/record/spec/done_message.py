@@ -1,8 +1,9 @@
 from enum import Enum
 
 from pydantic import BaseModel
+from pynifs import FsType
 
-from ...common.spec import PlatformType, FsType
+from ...common.spec import PlatformType
 
 
 class DoneStatus(Enum):

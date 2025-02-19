@@ -18,7 +18,6 @@ from ..spec.recording_constants import (
 )
 from ..spec.recording_status import RecorderStatus
 from ...common.amqp import AmqpHelper
-from ...common.spec import FsType
 
 
 class StreamRecorder(AbstractRecorder):
@@ -160,7 +159,7 @@ class StreamRecorder(AbstractRecorder):
             ptype=self.platform_type,
             uid=self.uid,
             vidname=vid_name,
-            fstype=FsType.LOCAL,
+            fstype=self.ac.fs_type,
         ).model_dump_json(by_alias=True)
         conn, chan = self.amqp.connect()
         self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
