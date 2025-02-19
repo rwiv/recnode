@@ -2,9 +2,8 @@ from pathlib import Path
 
 import urllib3
 
-from stdl.utils.fs.fs_common_abstract import FsAccessor
-from stdl.utils.fs.fs_local import LocalFsAccessor
-from stdl.utils.fs.fs_s3 import S3FsAccessor
+from pynifs import FsAccessor, LocalFsAccessor, S3FsAccessor
+
 from .fs_config import read_fs_config_by_file
 from ..env import Env
 from ..request import AppConfig

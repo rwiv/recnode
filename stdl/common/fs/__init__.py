@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .fs_config import FsConfig, S3Config
+from .fs_config import FsConfig
 from .fs_config_utils import read_fs_config_by_file, create_fs_accessor
 
 targets = ["fs_configs", "fs_configs_utils"]

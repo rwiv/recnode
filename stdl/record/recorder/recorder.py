@@ -3,10 +3,9 @@ import time
 from datetime import datetime
 from threading import Thread
 
+from pynifs import FsAccessor
 from pyutils import log, path_join
 
-from stdl.utils.fs.fs_common_abstract import FsAccessor
-from stdl.utils.fs.fs_local import LocalFsAccessor
 from .listener import RecorderListener, EXIT_QUEUE_PREFIX
 from .recorder_abc import AbstractRecorder
 from .streamlink import StreamlinkManager

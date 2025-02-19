@@ -1,6 +1,6 @@
+from pynifs import FsAccessor
 from streamlink.plugins.soop import Soop
 
-from stdl.utils.fs.fs_common_abstract import FsAccessor
 from ..recorder.recorder import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ...common.amqp import AmqpHelper
