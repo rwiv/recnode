@@ -1,11 +1,10 @@
 import os
 import sys
 
-from .chzzk.video_downloader import ChzzkVideoDownloader
-from .chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
-from .soop.video_downloader import SoopVideoDownloader
+from .amqp import AmqpHelper, AmqpHelperBlocking, AmqpHelperMock
+from .amqp_utils import create_amqp
 
-targets = ["chzzk", "soop"]
+targets = ["amqp", "amqp_utils"]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):
         for target in targets:

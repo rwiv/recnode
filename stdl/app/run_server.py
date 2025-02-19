@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 
 from .main_router import MainController
-from ..common import get_env
+from ..common.env import get_env
 from ..record import RecordingScheduler, disable_streamlink_log
 
 

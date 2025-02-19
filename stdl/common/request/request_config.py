@@ -1,10 +1,9 @@
 import json
 import os
 
+import yaml
 from pydantic import BaseModel, Field
 
-from .. import FsType
-from ..env.env import Env
 from .request_types import (
     RequestType,
     ChzzkLiveRequest,
@@ -15,7 +14,8 @@ from .request_types import (
     HlsM3u8Request,
     SoopVideoRequest,
 )
-import yaml
+from ..env import Env
+from ..spec import FsType
 
 
 class AppConfig(BaseModel):

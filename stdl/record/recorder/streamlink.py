@@ -1,5 +1,4 @@
 import json
-import sys
 import threading
 import time
 
@@ -7,15 +6,12 @@ from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
-from ..spec.recording_arguments import StreamlinkArgs
-from ..spec.recording_status import RecordingState
 from stdl.utils.error import stacktrace
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.logger import log
-
-retry_count = 5
-buf_size = sys.maxsize
-# buf_size = 4 * 1024 * 1024
+from ..spec.recording_arguments import StreamlinkArgs
+from ..spec.recording_constants import STREAMLINK_RETRY_COUNT, STREAMLINK_BUFFER_SIZE
+from ..spec.recording_status import RecordingState
 
 
 class StreamlinkManager:
@@ -97,9 +93,9 @@ class StreamlinkManager:
                 break
 
             data = b""
-            for i in range(retry_count):
+            for i in range(STREAMLINK_RETRY_COUNT):
                 try:
-                    data: bytes = input_stream.read(buf_size)
+                    data: bytes = input_stream.read(STREAMLINK_BUFFER_SIZE)
                     break
                 except Exception as e:
                     print(f"HTTP Error: cnt={i} error={e}")

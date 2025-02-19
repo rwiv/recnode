@@ -1,11 +1,9 @@
 import os
 import sys
 
-from .chzzk.video_downloader import ChzzkVideoDownloader
-from .chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
-from .soop.video_downloader import SoopVideoDownloader
+from .common_types import PlatformType, FsType
 
-targets = ["chzzk", "soop"]
+targets = ["common_types"]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):
         for target in targets:

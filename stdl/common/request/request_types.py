@@ -2,8 +2,6 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from stdl.record import SoopCredential
-
 
 class RequestType(Enum):
     CHZZK_VIDEO = "chzzk_video"
@@ -26,6 +24,17 @@ class ChzzkVideoRequest(BaseModel):
 class ChzzkLiveRequest(BaseModel):
     uid: str = Field(min_length=1)
     cookies: str | None = Field(min_length=1, default=None)
+
+
+class SoopCredential(BaseModel):
+    username: str
+    password: str
+
+    def to_dict(self) -> dict:
+        return {
+            "username": self.username,
+            "password": self.password,
+        }
 
 
 class SoopLiveRequest(BaseModel):

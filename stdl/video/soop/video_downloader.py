@@ -7,12 +7,12 @@ import subprocess
 
 import requests
 
-from stdl.common import SoopVideoRequest
+from stdl.common.request import SoopVideoRequest
 from stdl.utils.hls.downloader import HlsDownloader
-from .hls_url_extractor import SoopHlsUrlExtractor
 from stdl.utils.file import write_file
 from stdl.utils.http import get_headers
 from stdl.utils.path import path_join, sanitize_filename
+from .hls_url_extractor import SoopHlsUrlExtractor
 
 
 class SoopVideoDownloader:

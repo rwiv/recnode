@@ -1,11 +1,14 @@
 import time
 from threading import Thread
 
-from .recorder import StreamRecorder
-from ..platform.recorder_resolver import RecorderResolver
-from ...common import PlatformType, Env, create_fs_accessor, AppConfig
 from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
+from .recorder import StreamRecorder
+from ..platform.recorder_resolver import RecorderResolver
+from ...common.env import Env
+from ...common.fs import create_fs_accessor
+from ...common.request import AppConfig
+from ...common.spec import PlatformType
 
 CHECK_DELAY = 1
 

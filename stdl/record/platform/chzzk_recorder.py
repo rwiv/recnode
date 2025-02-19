@@ -1,7 +1,8 @@
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 from ..recorder.recorder import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
-from ...common import PlatformType, AmqpHelper
-from stdl.utils.fs.fs_common_abstract import FsAccessor
+from ...common.amqp import AmqpHelper
+from ...common.spec import PlatformType
 
 
 class ChzzkLiveRecorder(StreamRecorder):

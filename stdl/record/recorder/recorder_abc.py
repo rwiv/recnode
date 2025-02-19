@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from ...common import PlatformType
+from ...common.spec import PlatformType
 
 
 class AbstractRecorder(ABC):

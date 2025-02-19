@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from ..common import PlatformType, AppConfig
+from ..common.request import AppConfig
+from ..common.spec import PlatformType
 from ..record import RecordingScheduler
 
 

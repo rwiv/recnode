@@ -1,11 +1,10 @@
 import os
 import sys
 
-from .chzzk.video_downloader import ChzzkVideoDownloader
-from .chzzk.video_downloader_legacy import ChzzkVideoDownloaderLegacy
-from .soop.video_downloader import SoopVideoDownloader
+from .fs_config import FsConfig, S3Config
+from .fs_config_utils import read_fs_config_by_file, create_fs_accessor
 
-targets = ["chzzk", "soop"]
+targets = ["fs_configs", "fs_configs_utils"]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):
         for target in targets:

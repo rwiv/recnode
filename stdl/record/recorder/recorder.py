@@ -3,7 +3,6 @@ import time
 from datetime import datetime
 from threading import Thread
 
-from ...common import AmqpHelper, FsType
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_local import LocalFsAccessor
 from stdl.utils.logger import log
@@ -13,12 +12,14 @@ from .recorder_abc import AbstractRecorder
 from .streamlink import StreamlinkManager
 from ..spec.done_message import DoneStatus, DoneMessage
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from ..spec.recording_constants import (
+    DONE_QUEUE_NAME,
+    RECORDER_DEFAULT_RESTART_DELAY_SEC,
+    RECORDER_DEFAULT_CHUNK_THRESHOLD,
+)
 from ..spec.recording_status import RecorderStatus
-
-default_restart_delay_sec = 3
-default_chunk_threshold = 10
-
-DONE_QUEUE_NAME = "stdl.done"
+from ...common.amqp import AmqpHelper
+from ...common.spec import FsType
 
 
 class StreamRecorder(AbstractRecorder):
@@ -44,8 +45,8 @@ class StreamRecorder(AbstractRecorder):
         self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
-        self.restart_delay_sec = default_restart_delay_sec
-        self.chunk_threshold = default_chunk_threshold
+        self.restart_delay_sec = RECORDER_DEFAULT_RESTART_DELAY_SEC
+        self.chunk_threshold = RECORDER_DEFAULT_CHUNK_THRESHOLD
         self.streamlink = StreamlinkManager(stream_args, self.incomplete_dir_path, self.ac)
         self.listener = RecorderListener(self, amqp_helper)
         self.amqp = amqp_helper

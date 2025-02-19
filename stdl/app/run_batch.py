@@ -5,7 +5,9 @@ from stdl.utils.hls.downloader import HlsDownloader
 from stdl.utils.ytdl.ytdl_downloader import YtdlDownloader
 from stdl.utils.http import get_headers
 from stdl.utils.url import get_query_string
-from ..common import get_env, create_fs_accessor, read_config, RequestType
+from ..common.env import get_env
+from ..common.fs import create_fs_accessor
+from ..common.request import read_config, RequestType
 from ..record import RecorderResolver, disable_streamlink_log
 from ..video import ChzzkVideoDownloader, ChzzkVideoDownloaderLegacy, SoopVideoDownloader
 

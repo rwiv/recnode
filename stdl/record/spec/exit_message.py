@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from ...common import PlatformType
+from ...common.spec import PlatformType
 
 
 class ExitCommand(Enum):

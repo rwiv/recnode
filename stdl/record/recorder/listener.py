@@ -3,13 +3,12 @@ import json
 from pika.adapters.blocking_connection import BlockingChannel, BlockingConnection
 from pika.spec import Basic, BasicProperties
 
-from .recorder_abc import AbstractRecorder
-from ..spec.exit_message import ExitMessage
-from ...common import AmqpHelper
 from stdl.utils.error import stacktrace
 from stdl.utils.logger import log
-
-EXIT_QUEUE_PREFIX = "stdl.exit"
+from .recorder_abc import AbstractRecorder
+from ..spec.exit_message import ExitMessage, ExitCommand
+from ..spec.recording_constants import EXIT_QUEUE_PREFIX
+from ...common.amqp import AmqpHelper
 
 
 class RecorderListener:

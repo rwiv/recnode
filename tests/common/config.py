@@ -1,6 +1,6 @@
 import json
 
-from stdl.common import read_app_config_by_file, AppConfig
+from stdl.common.request import read_app_config_by_file, AppConfig
 from stdl.utils.path import find_project_root, path_join
 
 

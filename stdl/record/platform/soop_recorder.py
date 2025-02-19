@@ -1,10 +1,11 @@
 from streamlink.plugins.soop import Soop
 
-from .soop_types import SoopCredential
+from stdl.utils.fs.fs_common_abstract import FsAccessor
 from ..recorder.recorder import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
-from ...common import PlatformType, AmqpHelper
-from stdl.utils.fs.fs_common_abstract import FsAccessor
+from ...common.amqp import AmqpHelper
+from ...common.request.request_types import SoopCredential
+from ...common.spec import PlatformType
 
 
 class SoopLiveRecorder(StreamRecorder):
