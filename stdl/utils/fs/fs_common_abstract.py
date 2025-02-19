@@ -8,6 +8,10 @@ from stdl.utils.fs.fs_s3_utils import to_dir_path
 
 class FsAccessor(ABC):
     @abstractmethod
+    def normalize_base_path(self, base_path: str) -> str:
+        pass
+
+    @abstractmethod
     def head(self, path: str) -> FileInfo | None:
         pass
 

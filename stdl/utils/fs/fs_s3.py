@@ -4,6 +4,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 from mypy_boto3_s3.client import S3Client
+from pyutils import filename
 
 from stdl.utils.fs.fs_common_abstract import FsAccessor
 from stdl.utils.fs.fs_common_types import FileInfo
@@ -17,6 +18,9 @@ class S3FsAccessor(FsAccessor):
         self.config = config
         self.bucket = config.bucket
         self.__s3 = self.__get_client()
+
+    def normalize_base_path(self, base_path: str) -> str:
+        return filename(base_path, "/")
 
     def head(self, path: str) -> FileInfo | None:
         try:

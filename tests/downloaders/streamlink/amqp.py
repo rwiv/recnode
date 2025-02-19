@@ -31,6 +31,7 @@ def test_post_record():
         "http://localhost:9083/api/recordings",
         json=AppConfig(
             fsType=FsType.LOCAL,
+            # fsType=FsType.S3,
             reqType=RequestType.CHZZK_LIVE,
             chzzkLive=conf.chzzk_live,
         ).model_dump(by_alias=True, mode="json"),

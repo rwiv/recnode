@@ -25,7 +25,6 @@ class RecordingScheduler:
 
     def record(self, req: AppConfig):
         ac = create_fs_accessor(self.env, req)
-        ac.mkdir(self.env.out_dir_path)
         recorder = RecorderResolver(self.env, req, ac).create_recorder()
         key = create_key(recorder.platform_type, recorder.uid)
         if self.__recorder_map.get(key):

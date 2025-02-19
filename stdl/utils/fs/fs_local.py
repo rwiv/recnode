@@ -13,6 +13,9 @@ class LocalFsAccessor(FsAccessor):
     def __init__(self, chunk_size=4096):
         self.chunk_size = chunk_size
 
+    def normalize_base_path(self, base_path: str) -> str:
+        return base_path
+
     def head(self, path: str) -> FileInfo | None:
         p = Path(path)
         if not p.exists():

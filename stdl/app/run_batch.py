@@ -6,8 +6,7 @@ from pyutils import get_query_string
 from ..common.env import get_env
 from ..common.fs import create_fs_accessor
 from ..common.request import read_config, RequestType
-from ..record.platform.recorder_resolver import RecorderResolver
-from ..record.utils.streamlink_utils import disable_streamlink_log
+from ..record import RecorderResolver, disable_streamlink_log
 from ..utils.hls.downloader import HlsDownloader
 from ..utils.http import get_headers
 from ..utils.ytdl.ytdl_downloader import YtdlDownloader
@@ -22,24 +21,20 @@ class BatchRunner:
         self.recorder_resolver = RecorderResolver(self.env, self.conf, self.ac)
 
     def run(self):
-        disable_streamlink_log()
+        if self.conf.req_type in {RequestType.CHZZK_LIVE, RequestType.SOOP_LIVE, RequestType.TWITCH_LIVE}:
+            return self.__record_live()
+
         self.ac.mkdir(self.env.out_dir_path)
-        if self.conf.req_type == RequestType.CHZZK_LIVE:
-            self.__record_live()
-        elif self.conf.req_type == RequestType.CHZZK_VIDEO:
-            self.__run_chzzk_video()
-        elif self.conf.req_type == RequestType.SOOP_LIVE:
-            self.__record_live()
+        if self.conf.req_type == RequestType.CHZZK_VIDEO:
+            return self.__run_chzzk_video()
         elif self.conf.req_type == RequestType.SOOP_VIDEO:
-            self.__run_soop_video()
-        elif self.conf.req_type == RequestType.TWITCH_LIVE:
-            self.__record_live()
+            return self.__run_soop_video()
         elif self.conf.req_type == RequestType.YTDL_VIDEO:
-            self.__run_ytdl_video()
+            return self.__run_ytdl_video()
         elif self.conf.req_type == RequestType.HLS_M3U8:
-            self.__run_hls_m3u8()
-        else:
-            raise ValueError("Invalid Request Type")
+            return self.__run_hls_m3u8()
+
+        raise ValueError("Invalid Request Type")
 
     def __run_hls_m3u8(self):
         req = self.conf.hls_m3u8
@@ -96,4 +91,5 @@ class BatchRunner:
         print("end")
 
     def __record_live(self):
+        disable_streamlink_log()
         self.recorder_resolver.create_recorder().record()

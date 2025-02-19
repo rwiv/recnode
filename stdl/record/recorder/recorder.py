@@ -39,9 +39,9 @@ class StreamRecorder(AbstractRecorder):
         self.use_credentials = recorder_args.use_credentials
 
         self.vid_name: str | None = None
-        self.incomplete_dir_path = "incomplete"
-        if isinstance(self.ac, LocalFsAccessor):
-            self.incomplete_dir_path = path_join(recorder_args.out_dir_path, "incomplete")
+        self.incomplete_dir_path = self.ac.normalize_base_path(
+            path_join(recorder_args.out_dir_path, "incomplete")
+        )
         self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
