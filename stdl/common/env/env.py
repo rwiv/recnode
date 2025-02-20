@@ -1,13 +1,15 @@
 import os
 
 from pydantic import BaseModel
+from pynifs import FsType
 from pyutils import load_dot_env, path_join, find_project_root
 
-from .env_configs import AmqpConfig
+from .env_amqp import AmqpConfig, read_amqp_config
 
 
 class Env(BaseModel):
     env: str
+    fs_type: FsType
     fs_config_path: str | None
     out_dir_path: str
     tmp_dir_path: str
@@ -21,6 +23,10 @@ def get_env() -> Env:
         env = "dev"
     if env == "dev":
         load_dot_env(path_join(find_project_root(), "dev", ".env"))
+    
+    fs_type = os.getenv("FS_TYPE")
+    if fs_type is None:
+        raise ValueError("FS_TYPE is not set")
 
     fs_config_path = os.getenv("FS_CONFIG_PATH")
     out_dir_path = os.getenv("OUT_DIR_PATH")
@@ -31,24 +37,12 @@ def get_env() -> Env:
         raise ValueError("TMP_DIR_PATH is not set")
     config_path = os.getenv("CONFIG_PATH")
 
-    amqp_host = os.getenv("AMQP_HOST")
-    amqp_port_str = os.getenv("AMQP_PORT")
-    amqp_username = os.getenv("AMQP_USERNAME")
-    amqp_password = os.getenv("AMQP_PASSWORD")
-    if amqp_host is None or amqp_port_str is None or amqp_username is None or amqp_password is None:
-        raise ValueError("AMQP config is not set")
-    amqp_config = AmqpConfig(
-        host=amqp_host,
-        port=int(amqp_port_str),
-        username=amqp_username,
-        password=amqp_password,
-    )
-
     return Env(
         env=env,
+        fs_type=FsType(fs_type),
         fs_config_path=fs_config_path,
         out_dir_path=out_dir_path,
         tmp_dir_path=tmp_dir_path,
         config_path=config_path,
-        amqp=amqp_config,
+        amqp=read_amqp_config(),
     )

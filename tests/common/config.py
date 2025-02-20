@@ -2,12 +2,12 @@ import json
 
 from pyutils import path_join, find_project_root
 
-from stdl.common.request import read_app_config_by_file, AppConfig
+from stdl.common.request import read_request_by_file, AppConfig
 
 
 def test_yaml():
     print()
-    conf = read_app_config_by_file(path_join(find_project_root(), "dev", "conf.yaml"))
+    conf = read_request_by_file(path_join(find_project_root(), "dev", "conf.yaml"))
     print(conf)
 
 
@@ -16,5 +16,5 @@ def test_json():
     with open(path_join(find_project_root(), "dev", "test_req.json"), "r") as file:
         text = file.read()
     print(json.loads(text))
-    conf = AppConfig(**json.loads(text))
-    print(conf)
+    req = AppConfig(**json.loads(text))
+    print(req)

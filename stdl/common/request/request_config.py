@@ -3,7 +3,6 @@ import os
 
 import yaml
 from pydantic import BaseModel, Field
-from pynifs import FsType
 
 from .request_types import (
     RequestType,
@@ -19,7 +18,6 @@ from ..env import Env
 
 
 class AppConfig(BaseModel):
-    fs_type: FsType | None = Field(alias="fsType", default=None)  # TODO: remove None after modifying stmgr
     req_type: RequestType = Field(alias="reqType")
     chzzk_live: ChzzkLiveRequest | None = Field(alias="chzzkLive", default=None)
     chzzk_video: ChzzkVideoRequest | None = Field(alias="chzzkVideo", default=None)
@@ -30,18 +28,18 @@ class AppConfig(BaseModel):
     hls_m3u8: HlsM3u8Request | None = Field(alias="hlsM3u8", default=None)
 
 
-def read_app_config_by_file(config_path: str) -> AppConfig:
+def read_request_by_file(config_path: str) -> AppConfig:
     with open(config_path, "r") as file:
         text = file.read()
     return AppConfig(**yaml.load(text, Loader=yaml.FullLoader))
 
 
-def read_config(env: Env):
+def read_request_by_env(env: Env):
     conf = __read_app_config_by_env()
     if conf is None:
         conf_path = env.config_path
         if conf_path is not None:
-            conf = read_app_config_by_file(conf_path)
+            conf = read_request_by_file(conf_path)
     if conf is None:
         raise ValueError("Config not found")
     return conf

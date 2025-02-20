@@ -10,23 +10,23 @@ from ...common.request import RequestType, AppConfig
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, conf: AppConfig, ac: FsAccessor):
+    def __init__(self, env: Env, req: AppConfig, ac: FsAccessor):
         self.env = env
-        self.conf = conf
+        self.req = req
         self.ac = ac
 
     def create_recorder(self) -> StreamRecorder:
-        if self.conf.req_type == RequestType.CHZZK_LIVE:
+        if self.req.req_type == RequestType.CHZZK_LIVE:
             return self.__create_chzzk_recorder()
-        elif self.conf.req_type == RequestType.SOOP_LIVE:
+        elif self.req.req_type == RequestType.SOOP_LIVE:
             return self.__create_soop_recorder()
-        elif self.conf.req_type == RequestType.TWITCH_LIVE:
+        elif self.req.req_type == RequestType.TWITCH_LIVE:
             return self.__create_twitch_recorder()
         else:
             raise ValueError("Invalid Request Type")
 
     def __create_chzzk_recorder(self):
-        req = self.conf.chzzk_live
+        req = self.req.chzzk_live
         if req is None:
             raise ValueError("Invalid Request Type")
         return ChzzkLiveRecorder(
@@ -38,7 +38,7 @@ class RecorderResolver:
         )
 
     def __create_soop_recorder(self):
-        req = self.conf.soop_live
+        req = self.req.soop_live
         if req is None:
             raise ValueError("Invalid Request Type")
         return SoopLiveRecorder(
@@ -50,7 +50,7 @@ class RecorderResolver:
         )
 
     def __create_twitch_recorder(self):
-        req = self.conf.twitch_live
+        req = self.req.twitch_live
         if req is None:
             raise ValueError("Invalid Request Type")
         return TwitchLiveRecorder(

@@ -5,7 +5,7 @@ from pyutils import get_query_string
 
 from ..common.env import get_env
 from ..common.fs import create_fs_accessor
-from ..common.request import read_config, RequestType
+from ..common.request import read_request_by_env, RequestType
 from ..record import RecorderResolver, disable_streamlink_log
 from ..utils.hls.downloader import HlsDownloader
 from ..utils.http import get_headers
@@ -16,8 +16,8 @@ from ..video import ChzzkVideoDownloader, ChzzkVideoDownloaderLegacy, SoopVideoD
 class BatchRunner:
     def __init__(self):
         self.env = get_env()
-        self.conf = read_config(self.env)
-        self.ac = create_fs_accessor(self.env, self.conf)
+        self.conf = read_request_by_env(self.env)
+        self.ac = create_fs_accessor(self.env)
         self.recorder_resolver = RecorderResolver(self.env, self.conf, self.ac)
 
     def run(self):

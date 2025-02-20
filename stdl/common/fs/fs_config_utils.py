@@ -4,12 +4,11 @@ from pynifs import FsType, FsAccessor, LocalFsAccessor, S3FsAccessor, disable_wa
 
 from .fs_config import read_fs_config_by_file
 from ..env import Env
-from ..request import AppConfig
 
 
-def create_fs_accessor(env: Env, conf: AppConfig) -> FsAccessor:
-    if env.fs_config_path is not None and conf.fs_type is not None:
-        return __create_fs_accessor(env.fs_config_path, conf.fs_type)
+def create_fs_accessor(env: Env) -> FsAccessor:
+    if env.fs_config_path is not None:
+        return __create_fs_accessor(env.fs_config_path, env.fs_type)
     else:
         return LocalFsAccessor()
 

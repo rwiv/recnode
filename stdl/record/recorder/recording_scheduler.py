@@ -24,7 +24,7 @@ class RecordingScheduler:
         return [recorder.get_state() for recorder in self.__recorder_map.values()]
 
     def record(self, req: AppConfig):
-        ac = create_fs_accessor(self.env, req)
+        ac = create_fs_accessor(self.env)
         recorder = RecorderResolver(self.env, req, ac).create_recorder()
         key = create_key(recorder.platform_type, recorder.uid)
         if self.__recorder_map.get(key):

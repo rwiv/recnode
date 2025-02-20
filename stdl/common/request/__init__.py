@@ -11,7 +11,7 @@ from .request_types import (
     YtdlVideoRequest,
     HlsM3u8Request,
 )
-from .request_config import AppConfig, read_config, read_app_config_by_file
+from .request_config import AppConfig, read_request_by_env, read_request_by_file
 
 targets = ["request_config", "request_config_utils"]
 if os.getenv("PY_ENV") != "prod":
