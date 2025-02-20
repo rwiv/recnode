@@ -1,8 +1,8 @@
 from enum import Enum
 
 from pydantic import BaseModel, Field, constr
-from pynifs import FsType
 
+from ...common.fs import FsType
 from ...common.spec import PlatformType
 
 

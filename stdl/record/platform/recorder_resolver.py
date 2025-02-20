@@ -1,19 +1,18 @@
-from pynifs import FsAccessor
-
 from .chzzk_recorder import ChzzkLiveRecorder
 from .soop_recorder import SoopLiveRecorder
 from .twitch_recorder import TwitchLiveRecorder
 from ..recorder.recorder import StreamRecorder
 from ...common.amqp import create_amqp
 from ...common.env import Env
+from ...common.fs import FsWriter
 from ...common.request import RequestType, AppRequest
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, req: AppRequest, ac: FsAccessor):
+    def __init__(self, env: Env, req: AppRequest, writer: FsWriter):
         self.env = env
         self.req = req
-        self.ac = ac
+        self.writer = writer
 
     def create_recorder(self) -> StreamRecorder:
         if self.req.req_type == RequestType.CHZZK_LIVE:
@@ -33,7 +32,7 @@ class RecorderResolver:
             req.uid,
             self.env.out_dir_path,
             req.cookies,
-            self.ac,
+            self.writer,
             create_amqp(self.env),
         )
 
@@ -45,7 +44,7 @@ class RecorderResolver:
             req.user_id,
             self.env.out_dir_path,
             req.cred,
-            self.ac,
+            self.writer,
             create_amqp(self.env),
         )
 
@@ -57,6 +56,6 @@ class RecorderResolver:
             req.channel_name,
             self.env.out_dir_path,
             req.cookies,
-            self.ac,
+            self.writer,
             create_amqp(self.env),
         )

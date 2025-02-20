@@ -1,10 +1,10 @@
 import os
 
 from pydantic import BaseModel, constr
-from pynifs import FsType
 from pyutils import load_dot_env, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
+from ..fs import FsType
 
 
 class Env(BaseModel):

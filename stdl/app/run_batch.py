@@ -1,10 +1,11 @@
 import asyncio
 import json
+import os
 
 from pyutils import get_query_string
 
 from ..common.env import get_env
-from ..common.fs import create_fs_accessor
+from ..common.fs import create_fs_writer
 from ..common.request import read_request_by_env, RequestType
 from ..record import RecorderResolver, disable_streamlink_log
 from ..utils.hls.downloader import HlsDownloader
@@ -17,14 +18,14 @@ class BatchRunner:
     def __init__(self):
         self.env = get_env()
         self.conf = read_request_by_env(self.env)
-        self.ac = create_fs_accessor(self.env)
-        self.recorder_resolver = RecorderResolver(self.env, self.conf, self.ac)
+        self.writer = create_fs_writer(self.env.fs_type, self.env.fs_config_path)
+        self.recorder_resolver = RecorderResolver(self.env, self.conf, self.writer)
 
     def run(self):
         if self.conf.req_type in {RequestType.CHZZK_LIVE, RequestType.SOOP_LIVE, RequestType.TWITCH_LIVE}:
             return self.__record_live()
 
-        self.ac.mkdir(self.env.out_dir_path)
+        os.makedirs(self.env.tmp_dir_path, exist_ok=True)  # TODO: update
         if self.conf.req_type == RequestType.CHZZK_VIDEO:
             return self.__run_chzzk_video()
         elif self.conf.req_type == RequestType.SOOP_VIDEO:

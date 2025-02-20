@@ -3,7 +3,6 @@ import time
 from datetime import datetime
 from threading import Thread
 
-from pynifs import FsAccessor
 from pyutils import log, path_join
 
 from .listener import RecorderListener, EXIT_QUEUE_PREFIX
@@ -18,6 +17,7 @@ from ..spec.recording_constants import (
 )
 from ..spec.recording_status import RecorderStatus
 from ...common.amqp import AmqpHelper
+from ...common.fs import FsWriter
 
 
 class StreamRecorder(AbstractRecorder):
@@ -26,26 +26,25 @@ class StreamRecorder(AbstractRecorder):
         self,
         stream_args: StreamlinkArgs,
         recorder_args: RecorderArgs,
-        fs_accessor: FsAccessor,
+        fs_writer: FsWriter,
         amqp_helper: AmqpHelper,
     ):
         super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
-        self.ac = fs_accessor
+        self.writer = fs_writer
         self.uid = stream_args.uid
         self.url = stream_args.url
         self.platform_type = recorder_args.platform_type
         self.use_credentials = recorder_args.use_credentials
 
         self.vid_name: str | None = None
-        self.incomplete_dir_path = self.ac.normalize_base_path(
+        self.incomplete_dir_path = self.writer.normalize_base_path(
             path_join(recorder_args.out_dir_path, "incomplete")
         )
-        self.ac.mkdir(self.incomplete_dir_path)
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
         self.restart_delay_sec = RECORDER_DEFAULT_RESTART_DELAY_SEC
         self.chunk_threshold = RECORDER_DEFAULT_CHUNK_THRESHOLD
-        self.streamlink = StreamlinkManager(stream_args, self.incomplete_dir_path, self.ac)
+        self.streamlink = StreamlinkManager(stream_args, self.incomplete_dir_path, self.writer)
         self.listener = RecorderListener(self, amqp_helper)
         self.amqp = amqp_helper
 
@@ -80,7 +79,7 @@ class StreamRecorder(AbstractRecorder):
         self.record_thread = threading.Thread(target=self.__record)
         self.record_thread.start()
 
-        if block is False:
+        if not block:
             return
 
         while True:
@@ -159,7 +158,7 @@ class StreamRecorder(AbstractRecorder):
             platform=self.platform_type,
             uid=self.uid,
             video_name=vid_name,
-            fs_type=self.ac.fs_type,
+            fs_type=self.writer.fs_type,
         ).model_dump_json(by_alias=True)
         conn, chan = self.amqp.connect()
         self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)

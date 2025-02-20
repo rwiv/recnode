@@ -2,7 +2,6 @@ import json
 import threading
 import time
 
-from pynifs import FsAccessor
 from pyutils import stacktrace_dict, log
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
@@ -11,16 +10,17 @@ from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 from ..spec.recording_arguments import StreamlinkArgs
 from ..spec.recording_constants import STREAMLINK_RETRY_COUNT, STREAMLINK_BUFFER_SIZE
 from ..spec.recording_status import RecordingState
+from ...common.fs import FsWriter
 
 
 class StreamlinkManager:
-    def __init__(self, args: StreamlinkArgs, out_dir_path: str, ac: FsAccessor):
+    def __init__(self, args: StreamlinkArgs, out_dir_path: str, writer: FsWriter):
         self.url = args.url
         self.uid = args.uid
         self.out_dir_path = out_dir_path
         self.cookies = args.cookies
         self.options = args.options
-        self.ac = ac
+        self.writer = writer
 
         self.idx = 0
         self.wait_delay_sec = 1
@@ -74,9 +74,6 @@ class StreamlinkManager:
 
         self.idx = 0
 
-        if not self.ac.exists(out_dir_path):
-            self.ac.mkdir(out_dir_path)
-
         log.info("Start Recording")
         while True:
             if self.abort_flag:
@@ -103,6 +100,6 @@ class StreamlinkManager:
 
             self.idx += 1
             file_path = f"{out_dir_path}/{self.idx}.ts"
-            threading.Thread(target=self.ac.write, args=(file_path, data)).start()
+            threading.Thread(target=self.writer.write, args=(file_path, data)).start()
 
         return out_dir_path

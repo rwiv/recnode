@@ -7,7 +7,7 @@ from .recorder import StreamRecorder
 from ..platform.recorder_resolver import RecorderResolver
 from ..spec.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
-from ...common.fs import create_fs_accessor
+from ...common.fs import create_fs_writer
 from ...common.request import AppRequest
 from ...common.spec import PlatformType
 
@@ -23,8 +23,8 @@ class RecordingScheduler:
         return [recorder.get_state() for recorder in self.__recorder_map.values()]
 
     def record(self, req: AppRequest):
-        ac = create_fs_accessor(self.env)
-        recorder = RecorderResolver(self.env, req, ac).create_recorder()
+        writer = create_fs_writer(self.env.fs_type, self.env.fs_config_path)
+        recorder = RecorderResolver(self.env, req, writer).create_recorder()
         key = create_key(recorder.platform_type, recorder.uid)
         if self.__recorder_map.get(key):
             log.info("Already Recording")

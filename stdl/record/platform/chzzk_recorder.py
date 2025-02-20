@@ -1,8 +1,7 @@
-from pynifs import FsAccessor
-
 from ..recorder.recorder import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ...common.amqp import AmqpHelper
+from ...common.fs import FsWriter
 from ...common.spec import PlatformType
 
 
@@ -13,7 +12,7 @@ class ChzzkLiveRecorder(StreamRecorder):
         uid: str,
         out_dir_path: str,
         cookies: str | None,
-        fs_accessor: FsAccessor,
+        fs_writer: FsWriter,
         amqp_helper: AmqpHelper,
     ):
         url = f"https://chzzk.naver.com/live/{uid}"
@@ -24,6 +23,6 @@ class ChzzkLiveRecorder(StreamRecorder):
                 platform_type=PlatformType.CHZZK,
                 use_credentials=cookies is not None,
             ),
-            fs_accessor=fs_accessor,
+            fs_writer=fs_writer,
             amqp_helper=amqp_helper,
         )
