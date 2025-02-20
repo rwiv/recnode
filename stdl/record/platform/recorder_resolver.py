@@ -6,11 +6,11 @@ from .twitch_recorder import TwitchLiveRecorder
 from ..recorder.recorder import StreamRecorder
 from ...common.amqp import create_amqp
 from ...common.env import Env
-from ...common.request import RequestType, AppConfig
+from ...common.request import RequestType, AppRequest
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, req: AppConfig, ac: FsAccessor):
+    def __init__(self, env: Env, req: AppRequest, ac: FsAccessor):
         self.env = env
         self.req = req
         self.ac = ac

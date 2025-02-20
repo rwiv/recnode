@@ -17,7 +17,7 @@ from .request_types import (
 from ..env import Env
 
 
-class AppConfig(BaseModel):
+class AppRequest(BaseModel):
     req_type: RequestType = Field(alias="reqType")
     chzzk_live: ChzzkLiveRequest | None = Field(alias="chzzkLive", default=None)
     chzzk_video: ChzzkVideoRequest | None = Field(alias="chzzkVideo", default=None)
@@ -28,10 +28,10 @@ class AppConfig(BaseModel):
     hls_m3u8: HlsM3u8Request | None = Field(alias="hlsM3u8", default=None)
 
 
-def read_request_by_file(config_path: str) -> AppConfig:
+def read_request_by_file(config_path: str) -> AppRequest:
     with open(config_path, "r") as file:
         text = file.read()
-    return AppConfig(**yaml.load(text, Loader=yaml.FullLoader))
+    return AppRequest(**yaml.load(text, Loader=yaml.FullLoader))
 
 
 def read_request_by_env(env: Env):
@@ -45,8 +45,8 @@ def read_request_by_env(env: Env):
     return conf
 
 
-def __read_app_config_by_env() -> AppConfig | None:
+def __read_app_config_by_env() -> AppRequest | None:
     text = os.getenv("APP_CONFIG") or None
     if text is None:
         return None
-    return AppConfig(**json.loads(text))
+    return AppRequest(**json.loads(text))

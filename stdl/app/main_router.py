@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
-from ..common.request import AppConfig
+from ..common.request import AppRequest
 from ..common.spec import PlatformType
 from ..record import RecordingScheduler
 
@@ -24,7 +24,7 @@ class MainController:
     def health(self):
         return "ok"
 
-    def record(self, req: AppConfig):
+    def record(self, req: AppRequest):
         self.scheduler.record(req)
         return "ok"
 

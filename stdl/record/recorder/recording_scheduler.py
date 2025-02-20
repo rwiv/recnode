@@ -5,12 +5,11 @@ from pyutils import stacktrace_entry, log
 
 from .recorder import StreamRecorder
 from ..platform.recorder_resolver import RecorderResolver
+from ..spec.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
 from ...common.fs import create_fs_accessor
-from ...common.request import AppConfig
+from ...common.request import AppRequest
 from ...common.spec import PlatformType
-
-CHECK_DELAY = 1
 
 
 class RecordingScheduler:
@@ -23,7 +22,7 @@ class RecordingScheduler:
     def ger_status(self):
         return [recorder.get_state() for recorder in self.__recorder_map.values()]
 
-    def record(self, req: AppConfig):
+    def record(self, req: AppRequest):
         ac = create_fs_accessor(self.env)
         recorder = RecorderResolver(self.env, req, ac).create_recorder()
         key = create_key(recorder.platform_type, recorder.uid)
@@ -60,10 +59,10 @@ class RecordingScheduler:
                             f"Remove Done Recorder: platform={recorder.platform_type}, uid={recorder.uid}"
                         )
                         del self.__recorder_map[key]
-                time.sleep(CHECK_DELAY)
+                time.sleep(SCHEDULER_CHECK_DELAY_SEC)
             except:
                 log.error(*stacktrace_entry())
-                time.sleep(CHECK_DELAY)
+                time.sleep(SCHEDULER_CHECK_DELAY_SEC)
 
 
 def create_key(platform_type: PlatformType, uid: str) -> str:

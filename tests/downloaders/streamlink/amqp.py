@@ -8,7 +8,7 @@ from pyutils import load_dot_env, path_join, find_project_root
 from stdl.app import CancelRequest
 from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
-from stdl.common.request import read_request_by_file, AppConfig, RequestType
+from stdl.common.request import read_request_by_file, AppRequest, RequestType
 from stdl.common.spec import PlatformType
 from stdl.record import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME, ExitMessage, ExitCommand
 
@@ -29,7 +29,7 @@ def test_post_record():
     print()
     res = requests.post(
         "http://localhost:9083/api/recordings",
-        json=AppConfig(
+        json=AppRequest(
             reqType=RequestType.CHZZK_LIVE,
             chzzkLive=conf.chzzk_live,
         ).model_dump(by_alias=True, mode="json"),

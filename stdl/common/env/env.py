@@ -23,7 +23,7 @@ def get_env() -> Env:
         env = "dev"
     if env == "dev":
         load_dot_env(path_join(find_project_root(), "dev", ".env"))
-    
+
     fs_type = os.getenv("FS_TYPE")
     if fs_type is None:
         raise ValueError("FS_TYPE is not set")
