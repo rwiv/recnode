@@ -156,10 +156,10 @@ class StreamRecorder(AbstractRecorder):
     def __publish_done(self, status: DoneStatus, vid_name: str):
         msg = DoneMessage(
             status=status,
-            ptype=self.platform_type,
+            platform=self.platform_type,
             uid=self.uid,
-            vidname=vid_name,
-            fstype=self.ac.fs_type,
+            video_name=vid_name,
+            fs_type=self.ac.fs_type,
         ).model_dump_json(by_alias=True)
         conn, chan = self.amqp.connect()
         self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)

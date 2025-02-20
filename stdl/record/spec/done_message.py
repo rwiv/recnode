@@ -13,7 +13,7 @@ class DoneStatus(Enum):
 
 class DoneMessage(BaseModel):
     status: DoneStatus
-    ptype: PlatformType
+    platform: PlatformType
     uid: str
-    vidname: str
-    fstype: FsType
+    video_name: str
+    fs_type: FsType
