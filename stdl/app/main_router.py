@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, constr
 
 from ..common.request import AppRequest
 from ..common.spec import PlatformType
@@ -7,8 +7,8 @@ from ..record import RecordingScheduler
 
 
 class CancelRequest(BaseModel):
-    platform_type: PlatformType = Field(alias="platformType")
-    uid: str
+    platform: PlatformType
+    uid: constr(min_length=1)
 
 
 class MainController:
@@ -29,7 +29,7 @@ class MainController:
         return "ok"
 
     def cancel(self, req: CancelRequest):
-        self.scheduler.cancel(req.platform_type, req.uid)
+        self.scheduler.cancel(req.platform, req.uid)
         return "ok"
 
     def get_status(self):

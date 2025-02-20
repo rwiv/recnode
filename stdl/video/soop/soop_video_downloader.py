@@ -32,7 +32,7 @@ class SoopVideoDownloader:
         )
 
     def download_one(self, title_no: int):
-        m3u8_urls, title, bjId = self._get_url(title_no)
+        m3u8_urls, title, bjId = self.__get_url(title_no)
         for i, m3u8_url in enumerate(m3u8_urls):
             if self.req.is_parallel:
                 asyncio.run(self.hls.download_parallel(m3u8_url, bjId, f"{title}_{i}"))
@@ -61,7 +61,7 @@ class SoopVideoDownloader:
             os.remove(input_file)
         print(title)
 
-    def _get_url(self, title_no: int):
+    def __get_url(self, title_no: int):
         url = f"https://api.m.sooplive.co.kr/station/video/a/view"
         res = requests.post(
             url,

@@ -42,7 +42,7 @@ def test_delete_record():
     res = requests.delete(
         "http://localhost:9083/api/recordings",
         json=CancelRequest(
-            platformType=PlatformType.CHZZK,
+            platform=PlatformType.CHZZK,
             uid=uid,
         ).model_dump(by_alias=True, mode="json"),
     )

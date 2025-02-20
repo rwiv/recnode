@@ -4,5 +4,6 @@
   "ignore": [],
   "venvPath": ".",
   "venv": ".venv",
-  "typeCheckingMode": "standard"
+  "typeCheckingMode": "standard",
+  "reportInvalidTypeForm": "none"
 }

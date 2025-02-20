@@ -1,51 +1,51 @@
 from pydantic import BaseModel
 
 
-class CdnInfo(BaseModel):
-    cdnType: str
-    zeroRating: bool
-
-
-class Meta(BaseModel):
-    videoId: str
-    streamSeq: int
-    liveId: str
-    paidLive: bool
-    cdnInfo: CdnInfo
-    cmcdEnabled: bool
-    liveRewind: bool
-    duration: float
-
-
-class EncodingTrack(BaseModel):
-    encodingTrackId: str
-    videoProfile: str
-    audioProfile: str
-    videoCodec: str
-    videoBitRate: int
-    audioBitRate: int
-    videoFrameRate: str
-    videoWidth: int
-    videoHeight: int
-    audioSamplingRate: int
-    audioChannel: int
-    avoidReencoding: bool
-    videoDynamicRange: str
+# class EncodingTrack(BaseModel):
+#     encodingTrackId: str
+#     videoProfile: str
+#     audioProfile: str
+#     videoCodec: str
+#     videoBitRate: int
+#     audioBitRate: int
+#     videoFrameRate: str
+#     videoWidth: int
+#     videoHeight: int
+#     audioSamplingRate: int
+#     audioChannel: int
+#     avoidReencoding: bool
+#     videoDynamicRange: str
 
 
 class Media(BaseModel):
-    mediaId: str
-    protocol: str
+    # mediaId: str
+    # protocol: str
     path: str
-    encodingTrack: list[EncodingTrack]
+    # encodingTrack: list[EncodingTrack]
 
 
-class ApiInfo(BaseModel):
-    name: str
-    path: str
+# class CdnInfo(BaseModel):
+#     cdnType: str
+#     zeroRating: bool
+#
+#
+# class Meta(BaseModel):
+#     videoId: str
+#     streamSeq: int
+#     liveId: str
+#     paidLive: bool
+#     cdnInfo: CdnInfo
+#     cmcdEnabled: bool
+#     liveRewind: bool
+#     duration: float
+#
+#
+# class ApiInfo(BaseModel):
+#     name: str
+#     path: str
 
 
 class ChzzkPlayback(BaseModel):
-    meta: Meta
-    api: list[ApiInfo]
+    # meta: Meta
+    # api: list[ApiInfo]
     media: list[Media]

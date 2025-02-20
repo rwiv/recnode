@@ -1,16 +1,16 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, constr
 
 from ...common.spec import PlatformType
 
 
 class RecorderArgs(BaseModel):
-    out_dir_path: str = Field(min_length=1)
+    out_dir_path: constr(min_length=1)
     platform_type: PlatformType
     use_credentials: bool
 
 
 class StreamlinkArgs(BaseModel):
-    url: str = Field(min_length=1)
-    uid: str = Field(min_length=1)
-    cookies: str | None = Field(min_length=1, default=None)
-    options: dict[str, str] | None = Field(min_length=1, default=None)
+    url: constr(min_length=1)
+    uid: constr(min_length=1)
+    cookies: constr(min_length=1) | None = None
+    options: dict[str, str] | None = None
