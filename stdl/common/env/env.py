@@ -1,6 +1,6 @@
 import os
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pynifs import FsType
 from pyutils import load_dot_env, path_join, find_project_root
 
@@ -8,12 +8,12 @@ from .env_amqp import AmqpConfig, read_amqp_config
 
 
 class Env(BaseModel):
-    env: str
+    env: str = Field(min_length=1)
     fs_type: FsType
-    fs_config_path: str | None
-    out_dir_path: str
+    fs_config_path: str | None = Field(min_length=1, default=None)
+    out_dir_path: str = Field(min_length=1)
     tmp_dir_path: str
-    config_path: str | None
+    config_path: str | None = Field(min_length=1, default=None)
     amqp: AmqpConfig
 
 
