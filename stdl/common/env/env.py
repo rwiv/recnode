@@ -26,7 +26,7 @@ def get_env() -> Env:
 
     fs_type = os.getenv("FS_TYPE")
     if fs_type is None:
-        raise ValueError("FS_TYPE is not set")
+        fs_type = FsType.LOCAL
 
     fs_config_path = os.getenv("FS_CONFIG_PATH")
     out_dir_path = os.getenv("OUT_DIR_PATH")
