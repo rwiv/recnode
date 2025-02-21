@@ -10,11 +10,11 @@ from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 from ..spec.recording_arguments import StreamlinkArgs
 from ..spec.recording_constants import STREAMLINK_RETRY_COUNT, STREAMLINK_BUFFER_SIZE
 from ..spec.recording_status import RecordingState
-from ...common.fs import FsWriter
+from ...common.fs import ObjectWriter
 
 
 class StreamlinkManager:
-    def __init__(self, args: StreamlinkArgs, out_dir_path: str, writer: FsWriter):
+    def __init__(self, args: StreamlinkArgs, out_dir_path: str, writer: ObjectWriter):
         self.url = args.url
         self.uid = args.uid
         self.out_dir_path = out_dir_path

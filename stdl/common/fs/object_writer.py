@@ -10,7 +10,7 @@ from .fs_types import FsType
 from ...utils import create_client
 
 
-class FsWriter(ABC):
+class ObjectWriter(ABC):
     def __init__(self, fs_type: FsType):
         self.fs_type = fs_type
 
@@ -23,7 +23,7 @@ class FsWriter(ABC):
         pass
 
 
-class LocalFsWriter(FsWriter):
+class LocalObjectWriter(ObjectWriter):
     def __init__(self, chunk_size: int = 4096):
         super().__init__(FsType.LOCAL)
         self.chunk_size = chunk_size
@@ -47,7 +47,7 @@ class LocalFsWriter(FsWriter):
                 raise ValueError(f"Unsupported data type: {type(data)}")
 
 
-class S3FsWriter(FsWriter):
+class S3ObjectWriter(ObjectWriter):
     def __init__(self, conf: S3Config):
         super().__init__(FsType.S3)
         self.conf = conf

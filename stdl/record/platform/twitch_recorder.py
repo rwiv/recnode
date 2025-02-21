@@ -1,7 +1,7 @@
 from ..recorder.recorder import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ...common.amqp import AmqpHelper
-from ...common.fs import FsWriter
+from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
 
 
@@ -12,7 +12,7 @@ class TwitchLiveRecorder(StreamRecorder):
         channel_name: str,
         out_dir_path: str,
         cookies: str | None,
-        writer: FsWriter,
+        writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
         url = f"https://www.twitch.tv/{channel_name}"

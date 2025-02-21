@@ -3,7 +3,7 @@ from streamlink.plugins.soop import Soop
 from ..recorder.recorder import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ...common.amqp import AmqpHelper
-from ...common.fs import FsWriter
+from ...common.fs import ObjectWriter
 from ...common.request.request_types import SoopCredential
 from ...common.spec import PlatformType
 
@@ -15,7 +15,7 @@ class SoopLiveRecorder(StreamRecorder):
         user_id: str,
         out_dir_path: str,
         cred: SoopCredential | None,
-        writer: FsWriter,
+        writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
         url = f"https://play.sooplive.co.kr/{user_id}"

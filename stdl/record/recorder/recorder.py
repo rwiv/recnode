@@ -17,7 +17,7 @@ from ..spec.recording_constants import (
 )
 from ..spec.recording_status import RecorderStatus
 from ...common.amqp import AmqpHelper
-from ...common.fs import FsWriter
+from ...common.fs import ObjectWriter
 
 
 class StreamRecorder(AbstractRecorder):
@@ -26,7 +26,7 @@ class StreamRecorder(AbstractRecorder):
         self,
         stream_args: StreamlinkArgs,
         recorder_args: RecorderArgs,
-        writer: FsWriter,
+        writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
         super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
