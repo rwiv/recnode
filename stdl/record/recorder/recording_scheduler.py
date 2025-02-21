@@ -1,3 +1,4 @@
+import threading
 import time
 from threading import Thread
 
@@ -20,7 +21,10 @@ class RecordingScheduler:
         self.start_monitoring_states()
 
     def ger_status(self):
-        return [recorder.get_state() for recorder in self.__recorder_map.values()]
+        return {
+            "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
+            "recorders": [recorder.get_state() for recorder in self.__recorder_map.values()],
+        }
 
     def record(self, req: AppRequest):
         writer = create_fs_writer(self.env.fs_type, self.env.fs_config_path)
@@ -30,7 +34,7 @@ class RecordingScheduler:
             log.info("Already Recording")
             return
         self.__recorder_map[key] = recorder
-        recorder.record(False)
+        recorder.record(block=False)
 
     def cancel(self, platform_type: PlatformType, uid: str):
         key = create_key(platform_type, uid)

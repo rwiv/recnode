@@ -1,6 +1,6 @@
 import os
 
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, conint
 from pyutils import load_dot_env, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
@@ -14,6 +14,7 @@ class Env(BaseModel):
     out_dir_path: constr(min_length=1)
     tmp_dir_path: constr(min_length=1)
     config_path: constr(min_length=1) | None = None
+    seg_size_mb: conint(ge=1) | None = None
     amqp: AmqpConfig
 
 
@@ -35,5 +36,6 @@ def get_env() -> Env:
         out_dir_path=os.getenv("OUT_DIR_PATH"),
         tmp_dir_path=os.getenv("TMP_DIR_PATH"),
         config_path=os.getenv("CONFIG_PATH"),
+        seg_size_mb=os.getenv("SEG_SIZE_MB"),
         amqp=read_amqp_config(),
     )

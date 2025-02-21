@@ -5,6 +5,8 @@ from ...common.spec import PlatformType
 
 class RecorderArgs(BaseModel):
     out_dir_path: constr(min_length=1)
+    tmp_dir_path: constr(min_length=1)
+    seg_size_mb: int | None
     platform_type: PlatformType
     use_credentials: bool
 

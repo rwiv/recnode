@@ -40,7 +40,7 @@ class LocalObjectWriter(ObjectWriter):
             elif isinstance(data, BufferedReader):
                 while True:
                     chunk = data.read(self.chunk_size)
-                    if not data:
+                    if not chunk:
                         break
                     f.write(chunk)
             else:

@@ -93,4 +93,5 @@ class BatchRunner:
 
     def __record_live(self):
         disable_streamlink_log()
-        self.recorder_resolver.create_recorder().record()
+        recorder = self.recorder_resolver.create_recorder()
+        recorder.record(block=True)

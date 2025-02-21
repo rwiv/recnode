@@ -1,3 +1,4 @@
+import signal
 import threading
 import time
 from datetime import datetime
@@ -17,6 +18,7 @@ from ..spec.recording_constants import (
 )
 from ..spec.recording_status import RecorderStatus
 from ...common.amqp import AmqpHelper
+from ...common.env import Env
 from ...common.fs import ObjectWriter
 
 
@@ -24,12 +26,14 @@ class StreamRecorder(AbstractRecorder):
 
     def __init__(
         self,
+        env: Env,
         stream_args: StreamlinkArgs,
         recorder_args: RecorderArgs,
         writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
         super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
+        self.env = env
         self.writer = writer
         self.uid = stream_args.uid
         self.url = stream_args.url
@@ -44,7 +48,12 @@ class StreamRecorder(AbstractRecorder):
 
         self.restart_delay_sec = RECORDER_DEFAULT_RESTART_DELAY_SEC
         self.chunk_threshold = RECORDER_DEFAULT_CHUNK_THRESHOLD
-        self.streamlink = StreamlinkManager(stream_args, self.incomplete_dir_path, self.writer)
+        self.streamlink = StreamlinkManager(
+            stream_args,
+            recorder_args,
+            self.incomplete_dir_path,
+            self.writer,
+        )
         self.listener = RecorderListener(self, amqp_helper)
         self.amqp = amqp_helper
 
@@ -72,22 +81,39 @@ class StreamRecorder(AbstractRecorder):
         self.streamlink.abort_flag = True
 
     def record(self, block: bool = True):
+        if block:
+            signal.signal(signal.SIGINT, self.__handle_sigterm)
+            signal.signal(signal.SIGTERM, self.__handle_sigterm)
+
         log.info(f"Start Record: {self.url}")
         if self.use_credentials:
             log.info("Using Credentials")
 
         self.record_thread = threading.Thread(target=self.__record)
+        self.record_thread.name = f"Thread-StreamRecorder-{self.platform_type.value}-{self.uid}"
         self.record_thread.start()
 
-        if not block:
-            return
+        if block:
+            while True:
+                if self.env.env == "dev":
+                    input("Press any key to exit")
+                    self.cancel()
+                    self.__check_closed()
+                    break
+                if self.is_done:
+                    self.__check_closed()
+                    break
+                time.sleep(1)
+            log.info("Done")
 
-        while True:
-            if self.is_done:
-                self.record_thread.join()
-                log.info("Done")
-                break
-            time.sleep(1)
+    def __handle_sigterm(self, *acrgs):
+        self.streamlink.check_tmp_dir()
+
+    def __check_closed(self):
+        if self.record_thread:
+            self.record_thread.join()
+        if self.amqp_thread:
+            self.amqp_thread.join()
 
     def __record(self):
         try:
@@ -124,6 +150,7 @@ class StreamRecorder(AbstractRecorder):
 
             # Start AMQP consumer thread
             self.amqp_thread = threading.Thread(target=self.listener.consume)
+            self.amqp_thread.name = f"Thread-RecorderListener-{self.platform_type.value}-{self.uid}"
             self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
             self.amqp_thread.start()
 
