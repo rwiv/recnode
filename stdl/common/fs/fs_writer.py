@@ -1,7 +1,7 @@
 import os
 from abc import ABC, abstractmethod
+from io import BufferedReader
 from pathlib import Path
-from typing import BinaryIO
 
 from pyutils import filename, dirname
 
@@ -19,7 +19,7 @@ class FsWriter(ABC):
         pass
 
     @abstractmethod
-    def write(self, path: str, data: bytes | BinaryIO) -> None:
+    def write(self, path: str, data: bytes | BufferedReader) -> None:
         pass
 
 
@@ -31,16 +31,16 @@ class LocalFsWriter(FsWriter):
     def normalize_base_path(self, base_path: str) -> str:
         return base_path
 
-    def write(self, path: str, data: bytes | BinaryIO) -> None:
+    def write(self, path: str, data: bytes | BufferedReader) -> None:
         if not Path(path).exists():
             os.makedirs(dirname(path), exist_ok=True)
         self.__write(path, data)
 
-    def __write(self, path: str, data: bytes | BinaryIO) -> None:
+    def __write(self, path: str, data: bytes | BufferedReader) -> None:
         with open(path, "wb") as f:
             if isinstance(data, bytes):
                 f.write(data)
-            elif isinstance(data, BinaryIO):
+            elif isinstance(data, BufferedReader):
                 while True:
                     chunk = data.read(self.chunk_size)
                     if not data:
@@ -58,8 +58,8 @@ class S3FsWriter(FsWriter):
     def normalize_base_path(self, base_path: str) -> str:
         return filename(base_path, "/")
 
-    def write(self, path: str, data: bytes | BinaryIO):
+    def write(self, path: str, data: bytes | BufferedReader):
         if isinstance(data, bytes):
             self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)
-        elif isinstance(data, BinaryIO):
+        elif isinstance(data, BufferedReader):
             self.__s3.upload_fileobj(data, self.bucket_name, path)
