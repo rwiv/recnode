@@ -10,7 +10,7 @@ from .fs_types import FsType
 from ...utils import create_client
 
 
-class FsAccessor(ABC):
+class FsWriter(ABC):
     def __init__(self, fs_type: FsType):
         self.fs_type = fs_type
 
@@ -23,7 +23,7 @@ class FsAccessor(ABC):
         pass
 
 
-class LocalFsAccessor(FsAccessor):
+class LocalFsWriter(FsWriter):
     def __init__(self, chunk_size: int = 4096):
         super().__init__(FsType.LOCAL)
         self.chunk_size = chunk_size
@@ -32,11 +32,8 @@ class LocalFsAccessor(FsAccessor):
         return base_path
 
     def write(self, path: str, data: bytes | BufferedReader) -> None:
-        if not Path(path).exists():
+        if not Path(dirname(path)).exists():
             os.makedirs(dirname(path), exist_ok=True)
-        self.__write(path, data)
-
-    def __write(self, path: str, data: bytes | BufferedReader) -> None:
         with open(path, "wb") as f:
             if isinstance(data, bytes):
                 f.write(data)
@@ -50,7 +47,7 @@ class LocalFsAccessor(FsAccessor):
                 raise ValueError("data must be bytes or BufferedReader")
 
 
-class S3FsAccessor(FsAccessor):
+class S3FsWriter(FsWriter):
     def __init__(self, conf: S3Config):
         super().__init__(FsType.S3)
         self.conf = conf
