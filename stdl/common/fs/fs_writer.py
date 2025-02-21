@@ -44,7 +44,7 @@ class LocalFsWriter(FsWriter):
                         break
                     f.write(chunk)
             else:
-                raise ValueError("data must be bytes or BufferedReader")
+                raise ValueError(f"Unsupported data type: {type(data)}")
 
 
 class S3FsWriter(FsWriter):
@@ -63,4 +63,4 @@ class S3FsWriter(FsWriter):
         elif isinstance(data, BufferedReader):
             self.__s3.upload_fileobj(data, self.bucket_name, path)
         else:
-            raise ValueError("data must be bytes or BufferedReader")
+            raise ValueError(f"Unsupported data type: {type(data)}")
