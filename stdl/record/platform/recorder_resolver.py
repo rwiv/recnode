@@ -4,15 +4,15 @@ from .twitch_recorder import TwitchLiveRecorder
 from ..recorder.recorder import StreamRecorder
 from ...common.amqp import create_amqp
 from ...common.env import Env
-from ...common.fs import FsWriter
+from ...common.fs import FsAccessor
 from ...common.request import RequestType, AppRequest
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, req: AppRequest, writer: FsWriter):
+    def __init__(self, env: Env, req: AppRequest, ac: FsAccessor):
         self.env = env
         self.req = req
-        self.writer = writer
+        self.ac = ac
 
     def create_recorder(self) -> StreamRecorder:
         if self.req.req_type == RequestType.CHZZK_LIVE:
@@ -32,7 +32,7 @@ class RecorderResolver:
             req.uid,
             self.env.out_dir_path,
             req.cookies,
-            self.writer,
+            self.ac,
             create_amqp(self.env),
         )
 
@@ -44,7 +44,7 @@ class RecorderResolver:
             req.user_id,
             self.env.out_dir_path,
             req.cred,
-            self.writer,
+            self.ac,
             create_amqp(self.env),
         )
 
@@ -56,6 +56,6 @@ class RecorderResolver:
             req.channel_name,
             self.env.out_dir_path,
             req.cookies,
-            self.writer,
+            self.ac,
             create_amqp(self.env),
         )

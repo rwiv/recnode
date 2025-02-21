@@ -10,7 +10,7 @@ from .fs_types import FsType
 from ...utils import create_client
 
 
-class FsWriter(ABC):
+class FsAccessor(ABC):
     def __init__(self, fs_type: FsType):
         self.fs_type = fs_type
 
@@ -23,7 +23,7 @@ class FsWriter(ABC):
         pass
 
 
-class LocalFsWriter(FsWriter):
+class LocalFsAccessor(FsAccessor):
     def __init__(self, chunk_size: int = 4096):
         super().__init__(FsType.LOCAL)
         self.chunk_size = chunk_size
@@ -46,9 +46,11 @@ class LocalFsWriter(FsWriter):
                     if not data:
                         break
                     f.write(chunk)
+            else:
+                raise ValueError("data must be bytes or BufferedReader")
 
 
-class S3FsWriter(FsWriter):
+class S3FsAccessor(FsAccessor):
     def __init__(self, conf: S3Config):
         super().__init__(FsType.S3)
         self.conf = conf
@@ -63,3 +65,5 @@ class S3FsWriter(FsWriter):
             self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)
         elif isinstance(data, BufferedReader):
             self.__s3.upload_fileobj(data, self.bucket_name, path)
+        else:
+            raise ValueError("data must be bytes or BufferedReader")

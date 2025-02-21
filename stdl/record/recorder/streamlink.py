@@ -10,17 +10,17 @@ from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 from ..spec.recording_arguments import StreamlinkArgs
 from ..spec.recording_constants import STREAMLINK_RETRY_COUNT, STREAMLINK_BUFFER_SIZE
 from ..spec.recording_status import RecordingState
-from ...common.fs import FsWriter
+from ...common.fs import FsAccessor
 
 
 class StreamlinkManager:
-    def __init__(self, args: StreamlinkArgs, out_dir_path: str, writer: FsWriter):
+    def __init__(self, args: StreamlinkArgs, out_dir_path: str, ac: FsAccessor):
         self.url = args.url
         self.uid = args.uid
         self.out_dir_path = out_dir_path
         self.cookies = args.cookies
         self.options = args.options
-        self.writer = writer
+        self.ac = ac
 
         self.idx = 0
         self.wait_delay_sec = 1
@@ -100,6 +100,6 @@ class StreamlinkManager:
 
             self.idx += 1
             file_path = f"{out_dir_path}/{self.idx}.ts"
-            threading.Thread(target=self.writer.write, args=(file_path, data)).start()
+            threading.Thread(target=self.ac.write, args=(file_path, data)).start()
 
         return out_dir_path

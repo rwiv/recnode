@@ -5,7 +5,7 @@ import os
 from pyutils import get_query_string
 
 from ..common.env import get_env
-from ..common.fs import create_fs_writer
+from ..common.fs import create_fs_accessor
 from ..common.request import read_request_by_env, RequestType
 from ..record import RecorderResolver, disable_streamlink_log
 from ..utils.hls.downloader import HlsDownloader
@@ -18,8 +18,8 @@ class BatchRunner:
     def __init__(self):
         self.env = get_env()
         self.conf = read_request_by_env(self.env)
-        self.writer = create_fs_writer(self.env.fs_type, self.env.fs_config_path)
-        self.recorder_resolver = RecorderResolver(self.env, self.conf, self.writer)
+        self.ac = create_fs_accessor(self.env.fs_type, self.env.fs_config_path)
+        self.recorder_resolver = RecorderResolver(self.env, self.conf, self.ac)
 
     def run(self):
         if self.conf.req_type in {RequestType.CHZZK_LIVE, RequestType.SOOP_LIVE, RequestType.TWITCH_LIVE}:
