@@ -18,7 +18,7 @@ class BatchRunner:
     def __init__(self):
         self.env = get_env()
         self.conf = read_request_by_env(self.env)
-        self.writer = create_fs_writer(self.env.fs_type, self.env.fs_config_path)
+        self.writer = create_fs_writer(self.env.fs_type, self.env.fs_name, self.env.fs_config_path)
         self.recorder_resolver = RecorderResolver(self.env, self.conf, self.writer)
 
     def run(self):

@@ -12,4 +12,4 @@ RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.t
     rm -rf ffmpeg-release-amd64-static.tar.xz ffmpeg-7.0.2-amd64-static
 
 RUN pip install -r requirements.txt
-RUN pip install git+https://github.com/rwiv/pyutils.git@v0.1.2
+RUN pip install git+https://github.com/rwiv/pyutils.git@v0.1.3

@@ -13,7 +13,7 @@ class S3Config(BaseModel):
 
 
 class FsConfig(BaseModel):
-    s3: S3Config
+    s3: list[S3Config]
 
 
 def read_fs_config_by_file(config_path: str) -> FsConfig:

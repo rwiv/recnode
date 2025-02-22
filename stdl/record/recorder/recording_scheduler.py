@@ -27,7 +27,7 @@ class RecordingScheduler:
         }
 
     def record(self, req: AppRequest):
-        writer = create_fs_writer(self.env.fs_type, self.env.fs_config_path)
+        writer = create_fs_writer(self.env.fs_type, self.env.fs_name, self.env.fs_config_path)
         recorder = RecorderResolver(self.env, req, writer).create_recorder()
         key = create_key(recorder.platform_type, recorder.uid)
         if self.__recorder_map.get(key):
