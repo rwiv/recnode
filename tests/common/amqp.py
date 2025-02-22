@@ -4,13 +4,13 @@ import time
 
 from pika.adapters.blocking_connection import BlockingChannel
 from pika.spec import Basic, BasicProperties
-from pyutils import load_dot_env, path_join, find_project_root, stacktrace
+from pyutils import load_dotenv, path_join, find_project_root, stacktrace
 
 from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
 from stdl.record import EXIT_QUEUE_PREFIX
 
-load_dot_env(path_join(find_project_root(), "dev", ".env"))
+load_dotenv(path_join(find_project_root(), "dev", ".env"))
 conf = get_env().amqp
 amqp = AmqpHelperBlocking(conf)
 

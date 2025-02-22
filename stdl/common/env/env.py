@@ -1,7 +1,7 @@
 import os
 
 from pydantic import BaseModel, constr, conint
-from pyutils import load_dot_env, path_join, find_project_root
+from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
 from ..fs import FsType, LOCAL_FS_NAME
@@ -24,7 +24,7 @@ def get_env() -> Env:
     if env is None:
         env = "dev"
     if env == "dev":
-        load_dot_env(path_join(find_project_root(), "dev", ".env"))
+        load_dotenv(path_join(find_project_root(), "dev", ".env"))
 
     fs_type = os.getenv("FS_TYPE")
     if fs_type is None:
