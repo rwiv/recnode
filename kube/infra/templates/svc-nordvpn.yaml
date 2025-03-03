@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: stdl-nodeport-nordvpn1
+  name: stdl-nodeport-nordvpn
   namespace: media
 spec:
   selector:
     controller: eventsource-controller
-    eventsource-name: webhook-nordvpn1
-    owner-name: webhook-nordvpn1
+    eventsource-name: webhook-nordvpn
+    owner-name: webhook-nordvpn
   type: NodePort
   ports:
     - port: 12000
