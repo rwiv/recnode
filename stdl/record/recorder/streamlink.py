@@ -4,7 +4,7 @@ import threading
 import time
 from pathlib import Path
 
-from pyutils import stacktrace_dict, log, path_join, filename, error_dict
+from pyutils import stacktrace_dict, log, path_join, filename
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
@@ -144,4 +144,4 @@ class StreamlinkManager:
         with open(tmp_file_path, "rb") as f:
             self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f)
         os.remove(tmp_file_path)
-        log.info("Write Segment", {"idx": filename(tmp_file_path)})
+        log.debug("Write Segment", {"idx": filename(tmp_file_path)})

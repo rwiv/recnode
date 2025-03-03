@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .fs_config import FsConfig, S3Config
+from .fs_config import FsConfigYaml, S3Config
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter
 from .object_writer_utils import read_fs_config_by_file, create_fs_writer
 from .fs_types import FsType

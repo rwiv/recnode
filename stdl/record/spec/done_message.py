@@ -2,7 +2,6 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, constr
 
-from ...common.fs import FsType
 from ...common.spec import PlatformType
 
 
@@ -16,4 +15,4 @@ class DoneMessage(BaseModel):
     platform: PlatformType
     uid: constr(min_length=1)
     video_name: constr(min_length=1) = Field(serialization_alias="videoName")
-    fs_type: FsType = Field(serialization_alias="fsType")
+    fs_name: constr(min_length=1) = Field(serialization_alias="fsName")

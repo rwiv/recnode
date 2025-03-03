@@ -185,7 +185,7 @@ class StreamRecorder(AbstractRecorder):
             platform=self.platform_type,
             uid=self.uid,
             video_name=vid_name,
-            fs_type=self.writer.fs_type,
+            fs_name=self.env.fs_name,
         ).model_dump_json(by_alias=True)
         conn, chan = self.amqp.connect()
         self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)

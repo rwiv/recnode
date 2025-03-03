@@ -1,10 +1,10 @@
 import yaml
-
 from pydantic import BaseModel, Field, constr
+
+from .fs_types import FsType
 
 
 class S3Config(BaseModel):
-    name: constr(min_length=1)
     endpoint_url: constr(min_length=1) = Field(alias="endpointUrl")
     access_key: constr(min_length=1) = Field(alias="accessKey")
     secret_key: constr(min_length=1) = Field(alias="secretKey")
@@ -13,10 +13,16 @@ class S3Config(BaseModel):
 
 
 class FsConfig(BaseModel):
-    s3: list[S3Config]
+    name: constr(min_length=1)
+    type: FsType
+    s3: S3Config | None = None
 
 
-def read_fs_config_by_file(config_path: str) -> FsConfig:
+class FsConfigYaml(BaseModel):
+    configs: list[FsConfig]
+
+
+def read_fs_config_by_file(config_path: str) -> list[FsConfig]:
     with open(config_path, "r") as file:
         text = file.read()
-    return FsConfig(**yaml.load(text, Loader=yaml.FullLoader))
+    return FsConfigYaml(**yaml.load(text, Loader=yaml.FullLoader)).configs
