@@ -8,6 +8,7 @@ services:
       FS_CONFIG_PATH: /app/fs_conf.yaml
       OUT_DIR_PATH: /app/out
       TMP_DIR_PATH: /app/tmp
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
       AMQP_HOST: "${AMQP_HOST}"
       AMQP_PORT: "${AMQP_PORT}"
       AMQP_USERNAME: "${AMQP_USERNAME}"

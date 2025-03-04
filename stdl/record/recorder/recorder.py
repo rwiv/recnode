@@ -104,7 +104,7 @@ class StreamRecorder(AbstractRecorder):
                     self.__check_closed()
                     break
                 time.sleep(1)
-        log.info("Done")
+            log.info("Done")
 
     def __handle_sigterm(self, *acrgs):
         self.streamlink.check_tmp_dir()
