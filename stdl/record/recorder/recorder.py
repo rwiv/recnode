@@ -144,27 +144,25 @@ class StreamRecorder(AbstractRecorder):
             self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
 
     def __record_once(self):
-        # Todo: remove while loop
-        while True:
-            streams = self.streamlink.wait_for_live()
-            # abort_flag is set by cancel method
-            if streams is None:
-                break
+        streams = self.streamlink.wait_for_live()
+        # abort_flag is set by cancel method
+        if streams is None:
+            raise Exception("Stream is None")
 
-            if self.__is_recording_active():
-                log.info("Recording is already in progress, skipping recording")
-                break
+        if self.__is_recording_active():
+            log.info("Recording is already in progress, skipping recording")
+            return
 
-            # Start AMQP consumer thread
-            self.amqp_thread = threading.Thread(target=self.listener.consume)
-            self.amqp_thread.name = f"Thread-RecorderListener-{self.platform_type.value}-{self.uid}"
-            self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
-            self.amqp_thread.start()
+        # Start AMQP consumer thread
+        self.amqp_thread = threading.Thread(target=self.listener.consume)
+        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform_type.value}-{self.uid}"
+        self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
+        self.amqp_thread.start()
 
-            # Start recording
-            vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.vid_name = vid_name
-            self.streamlink.record(streams, vid_name)
+        # Start recording
+        vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.vid_name = vid_name
+        self.streamlink.record(streams, vid_name)
 
     def __is_recording_active(self):
         vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform_type.value}.{self.uid}"

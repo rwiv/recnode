@@ -4,7 +4,7 @@ global:
   suffix: proton
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.3.4
+  tag: 0.3.5
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
