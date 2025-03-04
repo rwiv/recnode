@@ -13,6 +13,7 @@ services:
       AMQP_PORT: "${AMQP_PORT}"
       AMQP_USERNAME: "${AMQP_USERNAME}"
       AMQP_PASSWORD: "${AMQP_PASSWORD}"
+    entrypoint: python -m stdl server
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
