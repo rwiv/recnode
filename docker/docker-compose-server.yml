@@ -1,6 +1,6 @@
 services:
   stdl:
-    image: stdl:latest
+    image: stdl:0.3.3
     container_name: stdl
     environment:
       PY_ENV: prod
