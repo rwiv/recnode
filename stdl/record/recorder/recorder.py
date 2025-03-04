@@ -145,7 +145,6 @@ class StreamRecorder(AbstractRecorder):
 
     def __record_once(self):
         streams = self.streamlink.wait_for_live()
-        # abort_flag is set by cancel method
         if streams is None:
             raise Exception("Stream is None")
 
