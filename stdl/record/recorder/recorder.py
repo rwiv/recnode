@@ -104,15 +104,6 @@ class StreamRecorder(AbstractRecorder):
                     self.__check_closed()
                     break
                 time.sleep(1)
-
-        if self.vid_name is None:
-            raise Exception("Video Name is None")
-
-        if self.cancel_flag:
-            self.__publish_done(DoneStatus.CANCELED, self.vid_name)
-        else:
-            self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
-
         log.info("Done")
 
     def __handle_sigterm(self, *acrgs):
@@ -144,6 +135,13 @@ class StreamRecorder(AbstractRecorder):
         if self.amqp_thread is not None:
             self.amqp_thread.join()
         self.is_done = True
+
+        if self.vid_name is None:
+            raise Exception("Video Name is None")
+        if self.cancel_flag:
+            self.__publish_done(DoneStatus.CANCELED, self.vid_name)
+        else:
+            self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
 
     def __record_once(self):
         # Todo: remove while loop

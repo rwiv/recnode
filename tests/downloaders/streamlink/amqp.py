@@ -24,11 +24,13 @@ uid = conf.chzzk_live.uid
 exit_queue_name = f"{EXIT_QUEUE_PREFIX}.chzzk.{uid}"
 amqp = AmqpHelperBlocking(amqp_conf)
 
+worker_url = "http://localhost:9083/api/recordings"
+
 
 def test_post_record():
     print()
     res = requests.post(
-        "http://localhost:9083/api/recordings",
+        worker_url,
         json=AppRequest(
             reqType=RequestType.CHZZK_LIVE,
             chzzkLive=conf.chzzk_live,
@@ -40,7 +42,7 @@ def test_post_record():
 def test_delete_record():
     print()
     res = requests.delete(
-        "http://localhost:9083/api/recordings",
+        worker_url,
         json=CancelRequest(
             platform=PlatformType.CHZZK,
             uid=uid,

@@ -50,4 +50,4 @@ server-rm:
 	sudo docker compose -f ../docker/docker-compose-server.yml --env-file ../secret/.env rm -f
 
 server-logs:
-	sudo docker logs vidconv-worker --tail 20
+	sudo docker logs stdl --tail 20
