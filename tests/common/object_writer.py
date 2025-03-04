@@ -4,7 +4,7 @@ from stdl.common.fs import read_fs_config_by_file, S3ObjectWriter
 from stdl.common.fs.fs_config import FsConfig
 
 fs_name = "minio"
-fs_configs = read_fs_config_by_file(path_join(find_project_root(), "dev", "test_fs_conf.yaml"))
+fs_configs = read_fs_config_by_file(path_join(find_project_root(), "dev", "fs_conf_test.yaml"))
 fs_conf: FsConfig | None = None
 for conf in fs_configs:
     if conf.name == fs_name:
