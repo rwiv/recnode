@@ -3,8 +3,19 @@ services:
     image: stdl:latest
     container_name: stdl
     environment:
+      PY_ENV: prod
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
       OUT_DIR_PATH: /app/out
-      PY_ENV: dev
+      TMP_DIR_PATH: /app/tmp
+      CONFIG_PATH: /app/conf.yaml
+      AMQP_HOST: "${AMQP_HOST}"
+      AMQP_PORT: "${AMQP_PORT}"
+      AMQP_USERNAME: "${AMQP_USERNAME}"
+      AMQP_PASSWORD: "${AMQP_PASSWORD}"
+#    entrypoint: python -m stdl server
     volumes:
-      - ../dev/event.json:/etc/jobsink-event/event
-      - ../dev/out:/app/out
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${OUT_DIR_PATH}:/app/out"
+      - "${TMP_DIR_PATH}:/app/tmp"
+      - "${CONFIG_PATH}:/app/conf.yaml"

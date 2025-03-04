@@ -1,4 +1,3 @@
 cd ..
-docker compose -f ./docker/docker-compose.yml rm
-docker compose -f ./docker/docker-compose.yml up
+docker compose -f ./docker/docker-compose.yml --env-file ./dev/.env up
 pause

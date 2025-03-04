@@ -1,9 +1,11 @@
-FROM python:3.9.19-alpine
+FROM python:3.13.2-alpine
 
 WORKDIR /app
 
 COPY requirements.txt requirements.txt
 COPY stdl stdl
+
+RUN apk add git
 
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
     tar -xvf ffmpeg-release-amd64-static.tar.xz && \
@@ -12,4 +14,5 @@ RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.t
     rm -rf ffmpeg-release-amd64-static.tar.xz ffmpeg-7.0.2-amd64-static
 
 RUN pip install -r requirements.txt
-RUN pip install git+https://github.com/rwiv/pyutils.git@v0.1.3
+
+ENTRYPOINT ["python", "-m", "stdl", "batch"]
