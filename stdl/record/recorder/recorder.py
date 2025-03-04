@@ -104,7 +104,16 @@ class StreamRecorder(AbstractRecorder):
                     self.__check_closed()
                     break
                 time.sleep(1)
-            log.info("Done")
+
+        if self.vid_name is None:
+            raise Exception("Video Name is None")
+
+        if self.cancel_flag:
+            self.__publish_done(DoneStatus.CANCELED, self.vid_name)
+        else:
+            self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
+
+        log.info("Done")
 
     def __handle_sigterm(self, *acrgs):
         self.streamlink.check_tmp_dir()
@@ -158,19 +167,6 @@ class StreamRecorder(AbstractRecorder):
             vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
             self.vid_name = vid_name
             self.streamlink.record(streams, vid_name)
-
-            if self.cancel_flag:
-                self.__publish_done(DoneStatus.CANCELED, vid_name)
-                # TODO: remove break
-                break
-            else:
-                self.__publish_done(DoneStatus.COMPLETE, vid_name)
-
-            # TODO: remove codes below
-            time.sleep(self.restart_delay_sec)
-            if self.streamlink.get_streams() == {}:
-                break
-            self.streamlink.abort_flag = False
 
     def __is_recording_active(self):
         vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform_type.value}.{self.uid}"

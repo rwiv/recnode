@@ -4,7 +4,7 @@ global:
   suffix: proton
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.3.2
+  tag: 0.3.3
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
@@ -37,3 +37,4 @@ app:
     username: admin
     secretName: rabbitmq-main
     passwordKey: password
+  tmpDirPath: /app/tmp

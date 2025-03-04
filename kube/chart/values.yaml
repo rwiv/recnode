@@ -27,3 +27,4 @@ app:
     username: admin
     secretName: rabbitmq-main
     passwordKey: password
+  tmpDirPath: /app/tmp

@@ -44,7 +44,7 @@ spec:
                         - name: OUT_DIR_PATH
                           value: {{ .Values.persistence.nfs.mountPath }}
                         - name: TMP_DIR_PATH
-                          value: {{ .Values.persistence.nfs.mountPath }}
+                          value: {{ .Values.app.tmpDirPath }}
                         - name: AMQP_HOST
                           value: {{ .Values.app.rabbitmq.host }}
                         - name: AMQP_PORT

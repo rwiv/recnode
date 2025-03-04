@@ -132,11 +132,17 @@ class StreamlinkManager:
     def check_tmp_dir(self):
         if self.video_name is None:
             return
-        out_dir_path = path_join(self.incomplete_dir_path, self.uid, self.video_name)
-        tmp_dir_path = path_join(self.tmp_base_path, self.uid, self.video_name)
-        for f in os.listdir(tmp_dir_path):
+        out_chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.video_name)
+        tmp_chunks_dir_path = path_join(self.tmp_base_path, self.uid, self.video_name)
+        for f in os.listdir(tmp_chunks_dir_path):
             log.info("Detect Segment", {"idx": f})
-            self.__write_segment(path_join(tmp_dir_path, f), out_dir_path)
+            self.__write_segment(path_join(tmp_chunks_dir_path, f), out_chunks_dir_path)
+
+        if len(os.listdir(tmp_chunks_dir_path)) == 0:
+            os.rmdir(tmp_chunks_dir_path)
+        tmp_channel_dir_path = path_join(self.tmp_base_path, self.uid)
+        if len(os.listdir(tmp_channel_dir_path)) == 0:
+            os.rmdir(tmp_channel_dir_path)
 
     def __write_segment(self, tmp_file_path: str, out_dir_path: str):
         if not Path(tmp_file_path).exists():

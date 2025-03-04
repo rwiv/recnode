@@ -10,7 +10,7 @@ from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
 from stdl.common.request import read_request_by_file, AppRequest, RequestType
 from stdl.common.spec import PlatformType
-from stdl.record import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME, ExitMessage, ExitCommand
+from stdl.record import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME, ExitMessage, ExitCommand, DoneMessage, DoneStatus
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 amqp_conf = get_env().amqp
@@ -61,6 +61,22 @@ def test_exit_publish():
     ).model_dump_json(by_alias=True)
     body = msg.encode("utf-8")
     amqp.publish(chan, exit_queue_name, body)
+    amqp.close(conn)
+
+
+def test_done_publish():
+    print()
+    conn, chan = amqp.connect()
+    amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
+    msg = DoneMessage(
+        status=DoneStatus.CANCELED,
+        platform=PlatformType.CHZZK,
+        uid=uid,
+        video_name="20250304_021658",
+        fs_name="local",
+    ).model_dump_json(by_alias=True)
+    body = msg.encode("utf-8")
+    amqp.publish(chan, DONE_QUEUE_NAME, body)
     amqp.close(conn)
 
 
