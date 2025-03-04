@@ -39,3 +39,15 @@ sub-run:
 
 sub-rm:
 	helm uninstall stdl-proxy-sub1 -n media
+
+
+server-up:
+	sudo docker compose -f ../docker/docker-compose-server.yml --env-file ../secret/.env rm
+	sudo docker compose -f ../docker/docker-compose-server.yml --env-file ../secret/.env up -d
+
+server-rm:
+	sudo docker compose -f ../docker/docker-compose-server.yml --env-file ../secret/.env stop
+	sudo docker compose -f ../docker/docker-compose-server.yml --env-file ../secret/.env rm -f
+
+server-logs:
+	sudo docker logs vidconv-worker --tail 20
