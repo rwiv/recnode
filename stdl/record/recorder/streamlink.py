@@ -33,6 +33,7 @@ class StreamlinkManager:
 
         self.idx = 0
         self.wait_delay_sec = 1
+        self.wait_timeout_sec = 60
         self.state: RecordingState = RecordingState.WAIT
         self.abort_flag = False
         self.video_name: str | None = None
@@ -63,6 +64,9 @@ class StreamlinkManager:
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         cnt = 0
         while True:
+            if cnt > self.wait_timeout_sec:
+                log.info("Timeout Wait")
+                return None
             if self.abort_flag:
                 log.info("Abort Wait")
                 return None
@@ -148,6 +152,6 @@ class StreamlinkManager:
         if not Path(tmp_file_path).exists():
             return
         with open(tmp_file_path, "rb") as f:
-            self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f)
+            self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f.read())
         os.remove(tmp_file_path)
         log.debug("Write Segment", {"idx": filename(tmp_file_path)})

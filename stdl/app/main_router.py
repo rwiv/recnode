@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, constr
 
 from ..common.request import AppRequest
 from ..common.spec import PlatformType

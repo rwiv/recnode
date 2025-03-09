@@ -1,6 +1,5 @@
 import os
 from abc import ABC, abstractmethod
-from io import BufferedReader
 from pathlib import Path
 
 from pyutils import filename, dirname
@@ -19,7 +18,7 @@ class ObjectWriter(ABC):
         pass
 
     @abstractmethod
-    def write(self, path: str, data: bytes | BufferedReader) -> None:
+    def write(self, path: str, data: bytes) -> None:
         pass
 
 
@@ -31,20 +30,11 @@ class LocalObjectWriter(ObjectWriter):
     def normalize_base_path(self, base_path: str) -> str:
         return base_path
 
-    def write(self, path: str, data: bytes | BufferedReader) -> None:
+    def write(self, path: str, data: bytes) -> None:
         if not Path(dirname(path)).exists():
             os.makedirs(dirname(path), exist_ok=True)
         with open(path, "wb") as f:
-            if isinstance(data, bytes):
-                f.write(data)
-            elif isinstance(data, BufferedReader):
-                while True:
-                    chunk = data.read(self.chunk_size)
-                    if not chunk:
-                        break
-                    f.write(chunk)
-            else:
-                raise ValueError(f"Unsupported data type: {type(data)}")
+            f.write(data)
 
 
 class S3ObjectWriter(ObjectWriter):
@@ -57,10 +47,5 @@ class S3ObjectWriter(ObjectWriter):
     def normalize_base_path(self, base_path: str) -> str:
         return filename(base_path, "/")
 
-    def write(self, path: str, data: bytes | BufferedReader):
-        if isinstance(data, bytes):
-            self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)
-        elif isinstance(data, BufferedReader):
-            self.__s3.upload_fileobj(data, self.bucket_name, path)
-        else:
-            raise ValueError(f"Unsupported data type: {type(data)}")
+    def write(self, path: str, data: bytes):
+        self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)

@@ -119,7 +119,7 @@ class StreamRecorder(AbstractRecorder):
         try:
             self.__record_once()
             self.__close()
-            log.info("Complete Recording", {"latest_state": self.streamlink.state.name})
+            log.info("End Recording", {"latest_state": self.streamlink.state.name})
         except:
             self.__close()
             raise
@@ -136,17 +136,17 @@ class StreamRecorder(AbstractRecorder):
             self.amqp_thread.join()
         self.is_done = True
 
-        if self.vid_name is None:
-            raise Exception("Video Name is None")
-        if self.cancel_flag:
-            self.__publish_done(DoneStatus.CANCELED, self.vid_name)
-        else:
-            self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
+        if self.vid_name is not None:
+            if self.cancel_flag:
+                self.__publish_done(DoneStatus.CANCELED, self.vid_name)
+            else:
+                self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
 
     def __record_once(self):
         streams = self.streamlink.wait_for_live()
         if streams is None:
-            raise Exception("Stream is None")
+            log.error("Stream is None")
+            return
 
         if self.__is_recording_active():
             log.info("Recording is already in progress, skipping recording")
