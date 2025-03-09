@@ -15,6 +15,9 @@ from ..spec.recording_status import RecordingState
 from ...common.fs import ObjectWriter
 
 
+WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
+
+
 class StreamlinkManager:
     def __init__(
         self,
@@ -127,7 +130,7 @@ class StreamlinkManager:
                 f.write(data)
             if Path(tmp_file_path).stat().st_size > self.seg_size:
                 thread = threading.Thread(target=self.__write_segment, args=(tmp_file_path, out_dir_path))
-                thread.name = f"Thread-WriteSegment-{self.uid}-{vid_name}-{self.idx}"
+                thread.name = f"{WRITE_SEGMENT_THREAD_NAME}:{self.uid}:{vid_name}:{self.idx}"
                 thread.start()
                 self.idx += 1
 
@@ -138,9 +141,17 @@ class StreamlinkManager:
             return
         out_chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.video_name)
         tmp_chunks_dir_path = path_join(self.tmp_base_path, self.uid, self.video_name)
-        for f in os.listdir(tmp_chunks_dir_path):
-            log.info("Detect Segment", {"idx": f})
-            self.__write_segment(path_join(tmp_chunks_dir_path, f), out_chunks_dir_path)
+        thread_video_indices = [
+            th.name.split(":")[3]
+            for th in threading.enumerate()
+            if th.name.startswith(f"{WRITE_SEGMENT_THREAD_NAME}:{self.uid}:{self.video_name}")
+        ]
+        for file_name in os.listdir(tmp_chunks_dir_path):
+            if file_name.split(".")[0] in thread_video_indices:
+                log.info("Detect And Skip Segment", {"file_name": file_name})
+                continue
+            log.info("Detect And Write Segment", {"file_name": file_name})
+            self.__write_segment(path_join(tmp_chunks_dir_path, file_name), out_chunks_dir_path)
 
         if len(os.listdir(tmp_chunks_dir_path)) == 0:
             os.rmdir(tmp_chunks_dir_path)
@@ -153,5 +164,6 @@ class StreamlinkManager:
             return
         with open(tmp_file_path, "rb") as f:
             self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f.read())
-        os.remove(tmp_file_path)
+        if Path(tmp_file_path).exists():
+            os.remove(tmp_file_path)
         log.debug("Write Segment", {"idx": filename(tmp_file_path)})
