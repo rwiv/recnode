@@ -86,9 +86,7 @@ class StreamlinkManager:
                 if streams != {}:
                     return streams
             except:
-                dct = stacktrace_dict()
-                dct["uid"] = self.uid
-                log.error("Failed to get streams", dct)
+                log.error("Failed to get streams", self.__get_stacktrace())
 
             if retry_cnt == 0:
                 log.info("Wait For Live")
@@ -127,10 +125,10 @@ class StreamlinkManager:
                     break
                 except:
                     if retry_cnt >= self.read_retry_limit:
-                        log.error("HTTP Error: Retry Limit Exceeded", stacktrace_dict())
+                        log.error("HTTP Error: Retry Limit Exceeded", self.__get_stacktrace())
                         is_failed = True
                         break
-                    log.error(f"HTTP Error: cnt={retry_cnt}", stacktrace_dict())
+                    log.error(f"HTTP Error: cnt={retry_cnt}", self.__get_stacktrace())
                     time.sleep(self.read_retry_delay_sec * (2**retry_cnt))
                     retry_cnt += 1
 
@@ -154,6 +152,12 @@ class StreamlinkManager:
         self.state = RecordingState.DONE
         self.check_tmp_dir()
         log.info(message)
+
+    def __get_stacktrace(self) -> dict:
+        dct = stacktrace_dict()
+        dct["uid"] = self.uid
+        dct["url"] = self.url
+        return dct
 
     def check_tmp_dir(self):
         if self.video_name is None:
@@ -191,9 +195,9 @@ class StreamlinkManager:
                 break
             except:
                 if retry_cnt == self.write_retry_limit:
-                    log.error("Write Segment: Retry Limit Exceeded", stacktrace_dict())
+                    log.error("Write Segment: Retry Limit Exceeded", self.__get_stacktrace())
                     break
-                log.error(f"Write Segment: cnt={retry_cnt}", stacktrace_dict())
+                log.error(f"Write Segment: cnt={retry_cnt}", self.__get_stacktrace())
                 time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
                 retry_cnt += 1
 
