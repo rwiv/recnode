@@ -10,7 +10,7 @@ from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
-from ..spec.recording_constants import STREAMLINK_RETRY_COUNT, STREAMLINK_BUFFER_SIZE, DEFAULT_SEGMENT_SIZE_MB
+from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..spec.recording_status import RecordingState
 from ...common.fs import ObjectWriter
 
@@ -34,9 +34,15 @@ class StreamlinkManager:
         self.options = stream_args.options
         self.writer = writer
 
-        self.idx = 0
+        self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
-        self.wait_timeout_sec = 60
+        self.read_buf_size = 4 * 1024
+        self.read_retry_limit = 3
+        self.read_retry_delay_sec = 0.5
+        self.write_retry_limit = 3
+        self.write_retry_delay_sec = 1
+
+        self.idx = 0
         self.state: RecordingState = RecordingState.WAIT
         self.abort_flag = False
         self.video_name: str | None = None
@@ -65,26 +71,30 @@ class StreamlinkManager:
         return session
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
-        cnt = 0
+        retry_cnt = 0
+        start_time = time.time()
         while True:
-            if cnt > self.wait_timeout_sec:
-                log.info("Timeout Wait")
+            if time.time() - start_time > self.wait_timeout_sec:
+                log.info("Wait Timeout")
                 return None
             if self.abort_flag:
                 log.info("Abort Wait")
                 return None
+
             try:
                 streams = self.get_streams()
                 if streams != {}:
                     return streams
             except:
-                log.error("Failed to get streams", stacktrace_dict())
+                dct = stacktrace_dict()
+                dct["uid"] = self.uid
+                log.error("Failed to get streams", dct)
 
-            if cnt == 0:
+            if retry_cnt == 0:
                 log.info("Wait For Live")
             self.state = RecordingState.WAIT
             time.sleep(self.wait_delay_sec)
-            cnt += 1
+            retry_cnt += 1
 
     def record(self, streams: dict[str, HLSStream], vid_name: str) -> str:
         self.video_name = vid_name
@@ -100,30 +110,34 @@ class StreamlinkManager:
         log.info("Start Recording")
         while True:
             if self.abort_flag:
-                log.info("Abort Stream")
-                input_stream.close()
-                input_stream.worker.join()
-                input_stream.writer.join()
-                self.state = RecordingState.DONE
-                self.check_tmp_dir()
+                close_stream(input_stream)
+                self.__close_recording("Abort Stream")
                 break
 
             if input_stream.closed:
-                log.info("Stream Closed")
-                self.state = RecordingState.DONE
-                self.check_tmp_dir()
+                self.__close_recording("Stream Closed")
                 break
 
             data = b""
-            for i in range(STREAMLINK_RETRY_COUNT):
+            is_failed = False
+            retry_cnt = 0
+            while retry_cnt <= self.read_retry_limit:
                 try:
-                    data: bytes = input_stream.read(STREAMLINK_BUFFER_SIZE)
+                    data: bytes = input_stream.read(self.read_buf_size)
                     break
                 except:
-                    log.error(f"HTTP Error: cnt={i}", stacktrace_dict())
+                    if retry_cnt >= self.read_retry_limit:
+                        log.error("HTTP Error: Retry Limit Exceeded", stacktrace_dict())
+                        is_failed = True
+                        break
+                    log.error(f"HTTP Error: cnt={retry_cnt}", stacktrace_dict())
+                    time.sleep(self.read_retry_delay_sec * (2**retry_cnt))
+                    retry_cnt += 1
 
-            if len(data) == 0:
-                continue
+            if is_failed or len(data) == 0:
+                close_stream(input_stream)
+                self.__close_recording("Stream read failed")
+                break
 
             tmp_file_path = path_join(tmp_dir_path, f"{self.idx}.ts")
             with open(tmp_file_path, "ab") as f:
@@ -135,6 +149,11 @@ class StreamlinkManager:
                 self.idx += 1
 
         return out_dir_path
+
+    def __close_recording(self, message: str):
+        self.state = RecordingState.DONE
+        self.check_tmp_dir()
+        log.info(message)
 
     def check_tmp_dir(self):
         if self.video_name is None:
@@ -162,8 +181,27 @@ class StreamlinkManager:
     def __write_segment(self, tmp_file_path: str, out_dir_path: str):
         if not Path(tmp_file_path).exists():
             return
-        with open(tmp_file_path, "rb") as f:
-            self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f.read())
+
+        retry_cnt = 0
+        while retry_cnt <= self.write_retry_limit:
+            try:
+                with open(tmp_file_path, "rb") as f:
+                    self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f.read())
+                log.debug("Write Segment", {"idx": filename(tmp_file_path)})
+                break
+            except:
+                if retry_cnt == self.write_retry_limit:
+                    log.error("Write Segment: Retry Limit Exceeded", stacktrace_dict())
+                    break
+                log.error(f"Write Segment: cnt={retry_cnt}", stacktrace_dict())
+                time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
+                retry_cnt += 1
+
         if Path(tmp_file_path).exists():
             os.remove(tmp_file_path)
-        log.debug("Write Segment", {"idx": filename(tmp_file_path)})
+
+
+def close_stream(input_stream: HLSStreamReader):
+    input_stream.close()
+    input_stream.worker.join()
+    input_stream.writer.join()

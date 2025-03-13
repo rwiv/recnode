@@ -4,7 +4,7 @@ global:
   suffix: sub
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.3.7
+  tag: 0.3.8
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun

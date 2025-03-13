@@ -11,11 +11,7 @@ from .recorder_abc import AbstractRecorder
 from .streamlink import StreamlinkManager
 from ..spec.done_message import DoneStatus, DoneMessage
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
-from ..spec.recording_constants import (
-    DONE_QUEUE_NAME,
-    RECORDER_DEFAULT_RESTART_DELAY_SEC,
-    RECORDER_DEFAULT_CHUNK_THRESHOLD,
-)
+from ..spec.recording_constants import DONE_QUEUE_NAME, RECORDING_SHUTDOWN_SEC
 from ..spec.recording_status import RecorderStatus
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
@@ -46,8 +42,6 @@ class StreamRecorder(AbstractRecorder):
         )
         self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
-        self.restart_delay_sec = RECORDER_DEFAULT_RESTART_DELAY_SEC
-        self.chunk_threshold = RECORDER_DEFAULT_CHUNK_THRESHOLD
         self.streamlink = StreamlinkManager(
             stream_args,
             recorder_args,
@@ -118,6 +112,7 @@ class StreamRecorder(AbstractRecorder):
     def __record(self):
         try:
             self.__record_once()
+            time.sleep(RECORDING_SHUTDOWN_SEC)
             self.__close()
             log.info("End Recording", {"latest_state": self.streamlink.state.name})
         except:
