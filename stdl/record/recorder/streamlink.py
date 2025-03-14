@@ -37,9 +37,11 @@ class StreamlinkManager:
         self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
         self.read_buf_size = 4 * 1024
-        self.read_retry_limit = 3
+        # When a read timeout occurs, a retry is triggered, but the timeout is 1 minute
+        # (Read timeout occurs when the internet connection is unstable)
+        self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
-        self.write_retry_limit = 3
+        self.write_retry_limit = 2
         self.write_retry_delay_sec = 1
 
         self.idx = 0
@@ -124,7 +126,7 @@ class StreamlinkManager:
                     data: bytes = input_stream.read(self.read_buf_size)
                     break
                 except:
-                    if retry_cnt >= self.read_retry_limit:
+                    if retry_cnt == self.read_retry_limit:
                         log.error("HTTP Error: Retry Limit Exceeded", self.__get_stacktrace())
                         is_failed = True
                         break
