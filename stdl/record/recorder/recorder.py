@@ -11,7 +11,7 @@ from .recorder_abc import AbstractRecorder
 from .streamlink import StreamlinkManager
 from ..spec.done_message import DoneStatus, DoneMessage
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
-from ..spec.recording_constants import DONE_QUEUE_NAME, RECORDING_SHUTDOWN_WAIT_SEC
+from ..spec.recording_constants import DONE_QUEUE_NAME
 from ..spec.recording_status import RecorderStatus
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
@@ -112,8 +112,6 @@ class StreamRecorder(AbstractRecorder):
     def __record(self):
         try:
             self.__record_once()
-            if not self.streamlink.abort_flag:
-                time.sleep(RECORDING_SHUTDOWN_WAIT_SEC)
             self.__close()
             log.info("End Recording", {"latest_state": self.streamlink.state.name})
         except:

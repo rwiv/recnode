@@ -36,11 +36,12 @@ class StreamlinkManager:
 
         self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
-        self.read_buf_size = 4 * 1024
         # When a read timeout occurs, a retry is triggered, but the timeout is 1 minute
         # (Read timeout occurs when the internet connection is unstable)
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
+        self.read_session_timeout = 30
+        self.read_buf_size = 4 * 1024
         self.write_retry_limit = 2
         self.write_retry_delay_sec = 1
 
@@ -52,25 +53,25 @@ class StreamlinkManager:
         seg_size_mb: int = recorder_args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
 
-    def get_streams(self) -> dict[str, HLSStream]:
-        session = self.get_session()
+    def get_session(self) -> Streamlink:
+        options = Options()
+        options.set("stream-timeout", self.read_session_timeout)
         if self.options is not None:
-            options = Options()
             for key, value in self.options.items():
                 options.set(key, value)
-            streams: dict[str, HLSStream] = session.streams(self.url, options=options)
-        else:
-            streams: dict[str, HLSStream] = session.streams(self.url)
 
-        return streams
-
-    def get_session(self) -> Streamlink:
-        session = Streamlink()
+        session = Streamlink(options=options)
         if self.cookies is not None:
             data: list[dict] = json.loads(self.cookies)
             for cookie in data:
                 session.http.cookies.set(cookie["name"], cookie["value"])
         return session
+
+    def get_streams(self) -> dict[str, HLSStream] | None:
+        streams = self.get_session().streams(self.url)
+        if streams is None or len(streams) == 0:
+            return None
+        return streams
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         retry_cnt = 0
@@ -85,7 +86,7 @@ class StreamlinkManager:
 
             try:
                 streams = self.get_streams()
-                if streams != {}:
+                if streams is not None:
                     return streams
             except:
                 log.error("Failed to get streams", self.__get_stacktrace())
@@ -118,21 +119,23 @@ class StreamlinkManager:
                 self.__close_recording("Stream Closed")
                 break
 
-            data = b""
+            data: bytes = b""
             is_failed = False
-            retry_cnt = 0
-            while retry_cnt <= self.read_retry_limit:
+            for retry_cnt in range(self.read_retry_limit + 1):
                 try:
-                    data: bytes = input_stream.read(self.read_buf_size)
+                    data = input_stream.read(self.read_buf_size)
+                    break
+                except OSError:
+                    log.error("Stream Read Failure", self.__get_stacktrace())
+                    is_failed = True
                     break
                 except:
                     if retry_cnt == self.read_retry_limit:
-                        log.error("HTTP Error: Retry Limit Exceeded", self.__get_stacktrace())
+                        log.error("Stream Read Failure: Retry Limit Exceeded", self.__get_stacktrace())
                         is_failed = True
                         break
-                    log.error(f"HTTP Error: cnt={retry_cnt}", self.__get_stacktrace())
+                    log.error(f"Stream Read Error: cnt={retry_cnt}", self.__get_stacktrace())
                     time.sleep(self.read_retry_delay_sec * (2**retry_cnt))
-                    retry_cnt += 1
 
             if is_failed or len(data) == 0:
                 close_stream(input_stream)
@@ -188,8 +191,7 @@ class StreamlinkManager:
         if not Path(tmp_file_path).exists():
             return
 
-        retry_cnt = 0
-        while retry_cnt <= self.write_retry_limit:
+        for retry_cnt in range(self.write_retry_limit + 1):
             try:
                 with open(tmp_file_path, "rb") as f:
                     self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f.read())
@@ -201,7 +203,6 @@ class StreamlinkManager:
                     break
                 log.error(f"Write Segment: cnt={retry_cnt}", self.__get_stacktrace())
                 time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
-                retry_cnt += 1
 
         if Path(tmp_file_path).exists():
             os.remove(tmp_file_path)
