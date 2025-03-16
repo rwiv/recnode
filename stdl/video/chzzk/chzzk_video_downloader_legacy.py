@@ -1,6 +1,5 @@
 import asyncio
 import json
-import time
 from typing import Any
 from urllib.parse import urlparse, parse_qs
 from xml.etree.ElementTree import fromstring, Element
@@ -30,7 +29,7 @@ class ChzzkVideoDownloaderLegacy:
 
     def download_one(self, video_no: int):
         m3u_url, qs, title, channelId = self.__get_info(video_no)
-        file_title = f"{str(time.time_ns() // 1000)[-6:]}_{title}"
+        file_title = str(video_no)
         if self.req.is_parallel:
             asyncio.run(self.hls.download_parallel(m3u_url, channelId, file_title, qs))
         else:

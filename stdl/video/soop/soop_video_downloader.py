@@ -33,11 +33,12 @@ class SoopVideoDownloader:
 
     def download_one(self, title_no: int):
         m3u8_urls, title, bjId = self.__get_url(title_no)
+        file_title = str(title_no)
         for i, m3u8_url in enumerate(m3u8_urls):
             if self.req.is_parallel:
-                asyncio.run(self.hls.download_parallel(m3u8_url, bjId, f"{title}_{i}"))
+                asyncio.run(self.hls.download_parallel(m3u8_url, bjId, file_title))
             else:
-                asyncio.run(self.hls.download_non_parallel(m3u8_url, bjId, f"{title}_{i}"))
+                asyncio.run(self.hls.download_non_parallel(m3u8_url, bjId, file_title))
 
         # merge
         os.makedirs(path_join(self.out_dir, bjId), exist_ok=True)
