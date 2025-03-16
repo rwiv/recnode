@@ -39,7 +39,7 @@ class SoopCredential(BaseModel):
 
 class SoopLiveRequest(BaseModel):
     user_id: constr(min_length=1) = Field(alias="userId")
-    cred: SoopCredential | None = None
+    cookies: constr(min_length=1) | None = None
 
 
 class SoopVideoRequest(BaseModel):

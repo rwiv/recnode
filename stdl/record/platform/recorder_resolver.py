@@ -33,7 +33,7 @@ class RecorderResolver:
         req = self.req.soop_live
         if req is None:
             raise ValueError("Invalid Request Type")
-        return SoopLiveRecorder(self.env, req.user_id, self.writer, req.cred)
+        return SoopLiveRecorder(self.env, req.user_id, self.writer, req.cookies)
 
     def __create_twitch_recorder(self):
         req = self.req.twitch_live

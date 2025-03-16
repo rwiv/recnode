@@ -1,6 +1,6 @@
 services:
   stdl:
-    image: harbor.rwiv.xyz/private/stdl:0.3.9
+    image: harbor.rwiv.xyz/private/stdl:0.4.1
     container_name: stdl
     environment:
       PY_ENV: prod

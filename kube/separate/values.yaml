@@ -3,7 +3,7 @@ global:
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.3.9
+  tag: 0.4.1
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
