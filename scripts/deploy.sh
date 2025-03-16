@@ -10,4 +10,5 @@ git pull
 sudo docker compose -f ./docker/docker-compose-server.yml --env-file ./secret/.env up -d
 
 docker rmi harbor.rwiv.xyz/private/stdl:0.3.8
+sleep 3
 docker logs stdl
