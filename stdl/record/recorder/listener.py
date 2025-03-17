@@ -35,6 +35,7 @@ class RecorderListener:
             log.error("Failed to handle message", stacktrace_dict())
 
     def consume(self):
+        # TODO: Implementing retry logic. Error occurred before
         try:
             platform = self.recorder.platform_type.value
             vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
