@@ -137,10 +137,14 @@ class StreamlinkManager:
                     log.error(f"Stream Read Error: cnt={retry_cnt}", self.__get_stacktrace())
                     time.sleep(self.read_retry_delay_sec * (2**retry_cnt))
 
-            if is_failed or len(data) == 0:
+            if is_failed:
                 close_stream(input_stream)
                 self.__close_recording("Stream read failed")
                 break
+
+            if len(data) == 0:
+                log.info("The length of the read data is 0")
+                continue
 
             tmp_file_path = path_join(tmp_dir_path, f"{self.idx}.ts")
             with open(tmp_file_path, "ab") as f:
