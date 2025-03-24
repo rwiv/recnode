@@ -31,7 +31,7 @@ services:
       - 8388:8388/tcp # Shadowsocks
       - 8388:8388/udp # Shadowsocks
     volumes:
-      - "${OVPN_CONFIG_PATH}:/ovpn/client.ovpn"
+      - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
     environment:
       - VPN_SERVICE_PROVIDER=custom
       - VPN_TYPE=openvpn
