@@ -1,8 +1,28 @@
 services:
-  stdl:
+  stdl1:
     image: harbor.rwiv.xyz/private/stdl:0.4.1
-    container_name: stdl
-    network_mode: container:gluetun
+    container_name: stdl1
+    network_mode: container:gluetun1
+    environment:
+      PY_ENV: prod
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+      OUT_DIR_PATH: /app/out
+      TMP_DIR_PATH: /app/tmp
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
+      AMQP_HOST: "${AMQP_HOST}"
+      AMQP_PORT: "${AMQP_PORT}"
+      AMQP_USERNAME: "${AMQP_USERNAME}"
+      AMQP_PASSWORD: "${AMQP_PASSWORD}"
+    entrypoint: python -m stdl server
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${OUT_DIR_PATH}:/app/out"
+      - "${TMP_DIR_PATH}:/app/tmp"
+  stdl2:
+    image: harbor.rwiv.xyz/private/stdl:0.4.1
+    container_name: stdl2
+    network_mode: container:gluetun2
     environment:
       PY_ENV: prod
       FS_NAME: "${FS_NAME}"
