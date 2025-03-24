@@ -1,0 +1,41 @@
+services:
+  stdl:
+    image: harbor.rwiv.xyz/private/stdl:0.4.1
+    container_name: stdl
+    environment:
+      PY_ENV: prod
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+      OUT_DIR_PATH: /app/out
+      TMP_DIR_PATH: /app/tmp
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
+      AMQP_HOST: "${AMQP_HOST}"
+      AMQP_PORT: "${AMQP_PORT}"
+      AMQP_USERNAME: "${AMQP_USERNAME}"
+      AMQP_PASSWORD: "${AMQP_PASSWORD}"
+    entrypoint: python -m stdl server
+    ports:
+      - "${SERVER_PORT}:9083"
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${OUT_DIR_PATH}:/app/out"
+      - "${TMP_DIR_PATH}:/app/tmp"
+  gluetun:
+    image: qmcgaw/gluetun:v3.40
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+    volumes:
+      - "${OVPN_CONFIG_PATH}:/ovpn/client.ovpn"
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=openvpn
+      - "OPENVPN_USER=${OPENVPN_USER}"
+      - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
+      - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
+#      - DNS_KEEP_NAMESERVER=on
