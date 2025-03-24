@@ -8,9 +8,6 @@ services:
       - /dev/net/tun:/dev/net/tun
     ports:
       - "${SERVER_PORT1}:9083"
-      - 8888:8888/tcp # HTTP proxy
-      - 8388:8388/tcp # Shadowsocks
-      - 8388:8388/udp # Shadowsocks
     volumes:
       - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
     environment:
@@ -28,9 +25,6 @@ services:
       - /dev/net/tun:/dev/net/tun
     ports:
       - "${SERVER_PORT2}:9083"
-      - 8888:8888/tcp # HTTP proxy
-      - 8388:8388/tcp # Shadowsocks
-      - 8388:8388/udp # Shadowsocks
     volumes:
       - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
     environment:
