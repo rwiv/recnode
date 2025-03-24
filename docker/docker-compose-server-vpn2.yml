@@ -1,24 +1,21 @@
 services:
-  stdl1:
-    image: harbor.rwiv.xyz/private/stdl:0.4.1
-    container_name: stdl1
-    network_mode: container:gluetun1
-    environment:
-      PY_ENV: prod
-      FS_NAME: "${FS_NAME}"
-      FS_CONFIG_PATH: /app/fs_conf.yaml
-      OUT_DIR_PATH: /app/out
-      TMP_DIR_PATH: /app/tmp
-      SEG_SIZE_MB: "${SEG_SIZE_MB}"
-      AMQP_HOST: "${AMQP_HOST}"
-      AMQP_PORT: "${AMQP_PORT}"
-      AMQP_USERNAME: "${AMQP_USERNAME}"
-      AMQP_PASSWORD: "${AMQP_PASSWORD}"
-    entrypoint: python -m stdl server
+  gluetun2:
+    image: qmcgaw/gluetun:v3.40
+    container_name: gluetun2
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "${SERVER_PORT2}:9083"
     volumes:
-      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
-      - "${OUT_DIR_PATH}:/app/out"
-      - "${TMP_DIR_PATH}:/app/tmp"
+      - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=openvpn
+      - "OPENVPN_USER=${OPENVPN_USER}"
+      - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
+      - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
   stdl2:
     image: harbor.rwiv.xyz/private/stdl:0.4.1
     container_name: stdl2
