@@ -1,0 +1,20 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:v3.40
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+    volumes:
+      - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=openvpn
+      - "OPENVPN_USER=${OPENVPN_USER}"
+      - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
+      - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
+#      - DNS_KEEP_NAMESERVER=on
