@@ -12,10 +12,11 @@ from ...common.amqp import AmqpHelper
 
 class RecorderListener:
 
-    def __init__(self, recorder: AbstractRecorder, amqp: AmqpHelper):
+    def __init__(self, recorder: AbstractRecorder, amqp: AmqpHelper, max_retry: int = 10):
         self.recorder = recorder
         self.amqp = amqp
         self.conn: BlockingConnection | None = None
+        self.max_retry = max_retry
 
     def on_message(self, ch: BlockingChannel, method: Basic.Deliver, props: BasicProperties, body: bytes):
         try:
@@ -35,16 +36,22 @@ class RecorderListener:
             log.error("Failed to handle message", stacktrace_dict())
 
     def consume(self):
-        # TODO: Implementing retry logic. Error occurred before
-        try:
-            platform = self.recorder.platform_type.value
-            vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
-            self.conn, chan = self.amqp.connect()
-            self.amqp.ensure_queue(chan, vid_queue_name, auto_delete=True)
-            self.amqp.consume(chan, vid_queue_name, self.on_message)
-        except:
-            log.error("Failed to __consume", stacktrace_dict())
-        finally:
-            if self.conn is not None:
-                self.amqp.close(self.conn)
-            self.conn = None
+        for retry_cnt in range(self.max_retry + 1):
+            try:
+                platform = self.recorder.platform_type.value
+                vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{platform}.{self.recorder.uid}"
+                self.conn, chan = self.amqp.connect()
+                self.amqp.ensure_queue(chan, vid_queue_name, auto_delete=True)
+                self.amqp.consume(chan, vid_queue_name, self.on_message)
+                break
+            except:
+                err_info = stacktrace_dict()
+                err_info["retry_cnt"] = retry_cnt
+                log.error("Failed to __consume", err_info)
+                if retry_cnt == self.max_retry:
+                    self.recorder.finish()
+                    raise
+            finally:
+                if self.conn is not None:
+                    self.amqp.close(self.conn)
+                self.conn = None

@@ -163,28 +163,34 @@ class StreamlinkManager:
         log.info(message)
 
     def __get_stacktrace(self) -> dict:
-        dct = stacktrace_dict()
-        dct["uid"] = self.uid
-        dct["url"] = self.url
-        return dct
+        err_info = stacktrace_dict()
+        err_info["uid"] = self.uid
+        err_info["url"] = self.url
+        return err_info
 
     def check_tmp_dir(self):
         if self.video_name is None:
             return
+
         out_chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.video_name)
         tmp_chunks_dir_path = path_join(self.tmp_base_path, self.uid, self.video_name)
-        thread_video_indices = [
-            th.name.split(":")[3]
+
+        # Wait for existing threads to finish
+        pending_write_threads = [
+            th
             for th in threading.enumerate()
             if th.name.startswith(f"{WRITE_SEGMENT_THREAD_NAME}:{self.uid}:{self.video_name}")
         ]
+        for th in pending_write_threads:
+            log.info("Wait For Thread", {"thread_name": th.name})
+            th.join()
+
+        # Write remaining segments
         for file_name in os.listdir(tmp_chunks_dir_path):
-            if file_name.split(".")[0] in thread_video_indices:
-                log.info("Detect And Skip Segment", {"file_name": file_name})
-                continue
             log.info("Detect And Write Segment", {"file_name": file_name})
             self.__write_segment(path_join(tmp_chunks_dir_path, file_name), out_chunks_dir_path)
 
+        # Clear tmp dir
         if len(os.listdir(tmp_chunks_dir_path)) == 0:
             os.rmdir(tmp_chunks_dir_path)
         tmp_channel_dir_path = path_join(self.tmp_base_path, self.uid)

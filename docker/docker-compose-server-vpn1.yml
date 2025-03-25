@@ -17,7 +17,7 @@ services:
       - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
       - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
   stdl1:
-    image: harbor.rwiv.xyz/private/stdl:0.4.1
+    image: harbor.rwiv.xyz/private/stdl:0.4.2
     container_name: stdl1
     network_mode: container:gluetun1
     environment:
