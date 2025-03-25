@@ -198,7 +198,11 @@ class StreamRecorder(AbstractRecorder):
 
         start_time = time.time()
         while True:
-            if Path(path_join(self.tmp_dir_path, self.uid)).exists():
+            if time.time() - start_time > self.dir_clear_timeout_sec:
+                log.error("Timeout waiting for tmp dir to be cleared")
+                return
+
+            if Path(path_join(self.tmp_dir_path, self.uid, self.vid_name)).exists():
                 log.debug("Waiting for tmp dir to be cleared")
                 time.sleep(self.dir_clear_wait_delay_sec)
                 continue
@@ -209,9 +213,6 @@ class StreamRecorder(AbstractRecorder):
             if len(os.listdir(chunks_dir_path)) == 0:
                 os.rmdir(chunks_dir_path)
                 break
-            if time.time() - start_time > self.dir_clear_timeout_sec:
-                log.error("Timeout waiting for tmp dir to be cleared")
-                return
 
             log.debug("Waiting for chunks dir to be cleared")
             time.sleep(self.dir_clear_wait_delay_sec)

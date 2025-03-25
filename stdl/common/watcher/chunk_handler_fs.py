@@ -1,6 +1,5 @@
 import os
 import time
-from pathlib import Path
 
 from pyutils import log, path_join, stacktrace_dict, split_path
 
@@ -28,8 +27,7 @@ class FsChunkHandler(ChunkHandler):
 
         out_file_path = path_join("incomplete", uid, video_name, file_name)
         self.__write_segment(file_path, out_file_path)
-        # log.debug(f"Write Segment: {out_file_path}")
-        log.info(f"Write Segment: {out_file_path}")  # TODO: remove
+        log.debug(f"Write Segment: {out_file_path}")
         os.remove(file_path)
 
     def __write_segment(self, tmp_file_path: str, out_file_path: str):
@@ -44,6 +42,3 @@ class FsChunkHandler(ChunkHandler):
                     break
                 log.error(f"Write Segment: cnt={retry_cnt}", stacktrace_dict())
                 time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
-
-        if Path(tmp_file_path).exists():
-            os.remove(tmp_file_path)

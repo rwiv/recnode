@@ -3,13 +3,17 @@ from pathlib import Path
 from .fs_config import read_fs_config_by_file
 from .fs_types import FsType
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter
+from ..common import LOCAL_FS_NAME
 from ..env import Env
 from ...utils import disable_warning_log
 
 
 def create_fs_writer(env: Env, is_watcher: bool = False) -> ObjectWriter:
-    if env.use_watcher and not is_watcher:
-        return LocalObjectWriter()
+    if env.use_watcher:
+        if env.fs_name == LOCAL_FS_NAME:
+            raise ValueError("WatcherRunner not supported for local fs")
+        if not is_watcher:
+            return LocalObjectWriter()
 
     fs_name = env.fs_name
     fs_conf_path = env.fs_config_path

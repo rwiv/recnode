@@ -14,7 +14,7 @@ class ChunkWatcher:
         handler: ChunkHandler,
         target_path: str,
         parallel: int = 3,
-        threshold_sec: int = 0,
+        threshold_sec: int = 3,
     ):
         self.handler = handler
         self.target_path = target_path
