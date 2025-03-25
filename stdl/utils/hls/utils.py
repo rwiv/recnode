@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 
 
-def get_ext(path: str) -> str:
-    return path.split(".")[-1]
+def get_ext(file_path: str) -> str | None:
+    chunks = file_path.split(".")
+    if len(chunks) == 1:
+        return None
+    if chunks[-1] == "":
+        raise ValueError("Invalid file path")
+    return chunks[-1]
 
 
 def merge_intersected_strings(str1: str, str2: str) -> str:

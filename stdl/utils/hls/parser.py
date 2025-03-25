@@ -24,13 +24,13 @@ class MasterPlaylist:
 class MediaPlaylist:
     segment_paths: list[str]
     init_section_path: str | None
-    ext: str
+    ext: str | None
 
 
 @dataclass
 class MediaPaths:
     segment_paths: list[str]
-    ext: str
+    ext: str | None
 
 
 @dataclass

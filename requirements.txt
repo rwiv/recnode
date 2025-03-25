@@ -10,4 +10,4 @@ yt-dlp==2025.2.19
 boto3==1.36.21
 boto3-stubs[s3]==1.36.21
 
-git+https://github.com/rwiv/pyutils.git@v0.1.7
+git+https://github.com/rwiv/pyutils.git@v0.2.1

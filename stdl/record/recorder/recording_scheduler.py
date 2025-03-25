@@ -22,12 +22,12 @@ class RecordingScheduler:
 
     def ger_status(self):
         return {
-            "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
+            # "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
             "recorders": [recorder.get_state() for recorder in self.__recorder_map.values()],
         }
 
     def record(self, req: AppRequest):
-        writer = create_fs_writer(self.env.fs_name, self.env.fs_config_path)
+        writer = create_fs_writer(self.env)
         recorder = RecorderResolver(self.env, req, writer).create_recorder()
         key = create_key(recorder.platform_type, recorder.uid)
         if self.__recorder_map.get(key):

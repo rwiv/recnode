@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from pyutils import filename, dirname
+from pyutils import filename, dirpath
 
 from .fs_config import S3Config
 from .fs_types import FsType
@@ -31,8 +31,8 @@ class LocalObjectWriter(ObjectWriter):
         return base_path
 
     def write(self, path: str, data: bytes) -> None:
-        if not Path(dirname(path)).exists():
-            os.makedirs(dirname(path), exist_ok=True)
+        if not Path(dirpath(path)).exists():
+            os.makedirs(dirpath(path), exist_ok=True)
         with open(path, "wb") as f:
             f.write(data)
 
@@ -45,7 +45,7 @@ class S3ObjectWriter(ObjectWriter):
         self.__s3 = create_client(self.conf)
 
     def normalize_base_path(self, base_path: str) -> str:
-        return filename(base_path, "/")
+        return filename(base_path)
 
     def write(self, path: str, data: bytes):
         self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)

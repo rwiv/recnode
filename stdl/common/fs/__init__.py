@@ -5,7 +5,6 @@ from .fs_config import FsConfigYaml, S3Config
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter
 from .object_writer_utils import read_fs_config_by_file, create_fs_writer
 from .fs_types import FsType
-from .fs_constants import LOCAL_FS_NAME
 
 targets = ["fs_configs", "fs_constants", "fs_types", "object_writer", "object_writer_utils"]
 if os.getenv("PY_ENV") != "prod":

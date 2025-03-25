@@ -1,7 +1,9 @@
+import os
 import signal
 import threading
 import time
 from datetime import datetime
+from pathlib import Path
 from threading import Thread
 
 from pyutils import log, path_join
@@ -37,10 +39,12 @@ class StreamRecorder(AbstractRecorder):
         self.use_credentials = recorder_args.use_credentials
 
         self.vid_name: str | None = None
+        self.tmp_dir_path = recorder_args.tmp_dir_path
+        self.dir_clear_timeout_sec = 180
+        self.dir_clear_wait_delay_sec = 1
         self.incomplete_dir_path = self.writer.normalize_base_path(
             path_join(recorder_args.out_dir_path, "incomplete")
         )
-        self.lock_path = f"{self.incomplete_dir_path}/{stream_args.uid}/lock.json"
 
         self.streamlink = StreamlinkManager(
             stream_args,
@@ -119,6 +123,7 @@ class StreamRecorder(AbstractRecorder):
             raise
 
     def __close(self):
+        # Close AMQP connection
         conn = self.listener.conn
         if conn is not None:
 
@@ -128,13 +133,22 @@ class StreamRecorder(AbstractRecorder):
             conn.add_callback_threadsafe(close_conn)
         if self.amqp_thread is not None:
             self.amqp_thread.join()
-        self.is_done = True
 
+        # Wait for tmp dir to be cleared
+        if self.env.use_watcher:
+            log.info("Waiting for dir to be cleared")
+            self.wait_for_clear_dir()
+            log.info("Dir cleared")
+
+        # Publish Done Message
         if self.vid_name is not None:
             if self.cancel_flag:
                 self.__publish_done(DoneStatus.CANCELED, self.vid_name)
             else:
                 self.__publish_done(DoneStatus.COMPLETE, self.vid_name)
+
+        # Set done flag
+        self.is_done = True
 
     def __record_once(self):
         streams = self.streamlink.wait_for_live()
@@ -177,3 +191,31 @@ class StreamRecorder(AbstractRecorder):
         self.amqp.publish(chan, DONE_QUEUE_NAME, msg.encode("utf-8"))
         self.amqp.close(conn)
         log.info("Published Done Message")
+
+    def wait_for_clear_dir(self):
+        if self.vid_name is None:
+            return
+
+        start_time = time.time()
+        while True:
+            if Path(path_join(self.tmp_dir_path, self.uid)).exists():
+                log.debug("Waiting for tmp dir to be cleared")
+                time.sleep(self.dir_clear_wait_delay_sec)
+                continue
+
+            chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.vid_name)
+            if not Path(chunks_dir_path).exists():
+                break
+            if len(os.listdir(chunks_dir_path)) == 0:
+                os.rmdir(chunks_dir_path)
+                break
+            if time.time() - start_time > self.dir_clear_timeout_sec:
+                log.error("Timeout waiting for tmp dir to be cleared")
+                return
+
+            log.debug("Waiting for chunks dir to be cleared")
+            time.sleep(self.dir_clear_wait_delay_sec)
+
+        channel_dir_path = path_join(self.incomplete_dir_path, self.uid)
+        if len(os.listdir(channel_dir_path)) == 0:
+            os.rmdir(channel_dir_path)

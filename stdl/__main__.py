@@ -11,12 +11,15 @@ if __name__ == "__main__":
     if mode == "batch":
         from .app import BatchRunner
 
-        r = BatchRunner()
-        r.run()
+        BatchRunner().run()
     elif mode == "server":
         from .app import run_server
 
         run_server()
+    elif mode == "watcher":
+        from .app import WatcherRunner
+
+        WatcherRunner().run()
     else:
         print(f"Unknown mode: {mode}")
         sys.exit(1)
