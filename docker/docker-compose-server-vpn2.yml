@@ -19,7 +19,6 @@ services:
   stdl2:
     image: harbor.rwiv.xyz/private/stdl:0.4.2
     container_name: stdl2
-    network_mode: container:gluetun2
     environment:
       PY_ENV: prod
       FS_NAME: "${FS_NAME}"
@@ -36,3 +35,7 @@ services:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
       - "${TMP_DIR_PATH}:/app/tmp"
+    depends_on:
+      gluetun2:
+        condition: service_healthy
+    network_mode: container:gluetun2
