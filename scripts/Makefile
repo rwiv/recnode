@@ -1,6 +1,9 @@
 proxy-run: proton-run nordvpn-run
 proxy-rm: proton-rm nordvpn-rm
 
+argo-run:
+	kubectl create -f ../kube/argocd/application.yaml
+
 infra-run:
 	helm install stdl-infra ../kube/infra -n media
 
