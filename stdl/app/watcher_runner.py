@@ -20,7 +20,7 @@ class WatcherRunner:
         if not Path(target_path).exists():
             os.makedirs(target_path, exist_ok=True)
         log.info(f"Start watching: {target_path}")
-        watcher = ChunkWatcher(self.__create_handler(), target_path)
+        watcher = ChunkWatcher(self.env, self.__create_handler(), target_path)
         watcher.watch()
 
     def __create_handler(self):
