@@ -3,7 +3,7 @@ from threading import Thread
 
 from pyutils import log, error_dict
 
-from .recorder import StreamRecorder
+from .recorder import LiveRecorder
 from ..platform.recorder_resolver import RecorderResolver
 from ..spec.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
@@ -15,7 +15,7 @@ from ...common.spec import PlatformType
 class RecordingScheduler:
     def __init__(self, env: Env):
         self.env = env
-        self.__recorder_map: dict[str, StreamRecorder] = {}
+        self.__recorder_map: dict[str, LiveRecorder] = {}
         self.check_thread: Thread | None = None
         self.start_monitoring_states()
 
@@ -28,7 +28,7 @@ class RecordingScheduler:
     def record(self, req: AppRequest):
         writer = create_fs_writer(self.env)
         recorder = RecorderResolver(self.env, req, writer).create_recorder()
-        key = create_key(recorder.platform_type, recorder.uid)
+        key = create_key(recorder.platform, recorder.uid)
         if self.__recorder_map.get(key):
             log.info("Already Recording")
             return
@@ -54,13 +54,9 @@ class RecordingScheduler:
                 for key in keys:
                     recorder = self.__recorder_map.get(key)
                     if recorder is not None and recorder.is_done:
-                        if recorder.record_thread:
-                            recorder.record_thread.join()
-                        if recorder.amqp_thread:
-                            recorder.amqp_thread.join()
-                        log.info(
-                            f"Remove Done Recorder: platform={recorder.platform_type}, uid={recorder.uid}"
-                        )
+                        if recorder.recording_thread:
+                            recorder.recording_thread.join()
+                        log.info(f"Remove Done Recorder: platform={recorder.platform}, uid={recorder.uid}")
                         del self.__recorder_map[key]
                 time.sleep(SCHEDULER_CHECK_DELAY_SEC)
             except Exception as e:

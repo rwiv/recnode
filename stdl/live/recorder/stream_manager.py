@@ -1,18 +1,16 @@
-import json
 import os
 import threading
 import time
 from pathlib import Path
 
 from pyutils import log, path_join, filename, error_dict
-from streamlink.options import Options
-from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
-from .stream_listener import RecorderListener
-from ..spec.recording_arguments import StreamlinkArgs, RecordingArgs
+from .stream_listener import StreamListener
+from ..spec.recording_arguments import StreamArgs
 from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..spec.recording_schema import RecordingState, RecordingStatus
+from ..utils.streamlink_utils import get_streams
 from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 
@@ -22,26 +20,24 @@ WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 class StreamManager:
     def __init__(
         self,
-        args: StreamlinkArgs,
+        args: StreamArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
         self.url = args.info.url
         self.uid = args.info.uid
+        self.platform = args.info.platform
+
         self.incomplete_dir_path = incomplete_dir_path
         self.tmp_base_path = args.tmp_dir_path
-        self.cookies = args.cookies
-        self.options = args.options
-        self.writer = writer
+
+        self.session_args = args.session_args
 
         self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
-        # When a read timeout occurs, a retry is triggered, but the timeout is 1 minute
-        # (Read timeout occurs when the internet connection is unstable)
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
-        self.read_session_timeout = 30
         self.read_buf_size = 4 * 1024
         self.write_retry_limit = 2
         self.write_retry_delay_sec = 1
@@ -51,30 +47,12 @@ class StreamManager:
         self.status: RecordingStatus = RecordingStatus.WAIT
         self.video_name: str | None = None
 
-        self.listener = RecorderListener(args.info, self.state, amqp_helper)
+        self.writer = writer
+        self.listener = StreamListener(args.info, self.state, amqp_helper)
+        self.amqp_thread: threading.Thread | None = None
 
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
-
-    def get_session(self) -> Streamlink:
-        options = Options()
-        options.set("stream-timeout", self.read_session_timeout)
-        if self.options is not None:
-            for key, value in self.options.items():
-                options.set(key, value)
-
-        session = Streamlink(options=options)
-        if self.cookies is not None:
-            data: list[dict] = json.loads(self.cookies)
-            for cookie in data:
-                session.http.cookies.set(cookie["name"], cookie["value"])
-        return session
-
-    def get_streams(self) -> dict[str, HLSStream] | None:
-        streams = self.get_session().streams(self.url)
-        if streams is None or len(streams) == 0:
-            return None
-        return streams
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         retry_cnt = 0
@@ -88,7 +66,7 @@ class StreamManager:
                 return None
 
             try:
-                streams = self.get_streams()
+                streams = get_streams(self.url, self.session_args)
                 if streams is not None:
                     return streams
             except Exception as e:
@@ -101,6 +79,12 @@ class StreamManager:
             retry_cnt += 1
 
     def record(self, streams: dict[str, HLSStream], vid_name: str) -> str:
+        # Start AMQP consumer thread
+        self.amqp_thread = threading.Thread(target=self.listener.consume)
+        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{self.uid}"
+        self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
+        self.amqp_thread.start()
+
         self.video_name = vid_name
         out_dir_path = path_join(self.incomplete_dir_path, self.uid, vid_name)
         tmp_dir_path = path_join(self.tmp_base_path, self.uid, vid_name)
@@ -114,12 +98,13 @@ class StreamManager:
         log.info("Start Recording")
         while True:
             if self.state.abort_flag:
-                close_stream(input_stream)
-                self.__close_recording("Abort Stream")
+                log.info("Abort Stream")
+                self.__close_recording(input_stream)
                 break
 
             if input_stream.closed:
-                self.__close_recording("Stream Closed")
+                log.info("Stream Closed")
+                self.__close_recording()
                 break
 
             data: bytes = b""
@@ -141,8 +126,8 @@ class StreamManager:
                     time.sleep(self.read_retry_delay_sec * (2**retry_cnt))
 
             if is_failed:
-                close_stream(input_stream)
-                self.__close_recording("Stream read failed")
+                log.info("Stream read failed")
+                self.__close_recording(input_stream)
                 break
 
             if len(data) == 0:
@@ -160,10 +145,26 @@ class StreamManager:
 
         return out_dir_path
 
-    def __close_recording(self, message: str):
-        self.status = RecordingStatus.DONE
+    def __close_recording(self, stream: HLSStreamReader | None = None):
+        # Close AMQP connection
+        conn = self.listener.conn
+        if conn is not None:
+
+            def close_conn():
+                self.listener.amqp.close(conn)
+
+            conn.add_callback_threadsafe(close_conn)
+        if self.amqp_thread is not None:
+            self.amqp_thread.join()
+
+        # Close stream
+        if stream is not None:
+            stream.close()
+            stream.worker.join()
+            stream.writer.join()
+
         self.check_tmp_dir()
-        log.info(message)
+        self.status = RecordingStatus.DONE
 
     def __error_info(self, ex: Exception) -> dict:
         err_info = error_dict(ex)
@@ -219,9 +220,3 @@ class StreamManager:
 
         if Path(tmp_file_path).exists():
             os.remove(tmp_file_path)
-
-
-def close_stream(input_stream: HLSStreamReader):
-    input_stream.close()
-    input_stream.worker.join()
-    input_stream.writer.join()

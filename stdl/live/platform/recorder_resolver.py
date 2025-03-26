@@ -1,7 +1,7 @@
 from .chzzk_recorder import ChzzkLiveRecorder
 from .soop_recorder import SoopLiveRecorder
 from .twitch_recorder import TwitchLiveRecorder
-from ..recorder.recorder import StreamRecorder
+from ..recorder.recorder import LiveRecorder
 from ...common.env import Env
 from ...common.fs import ObjectWriter
 from ...common.request import RequestType, AppRequest
@@ -13,7 +13,7 @@ class RecorderResolver:
         self.req = req
         self.writer = writer
 
-    def create_recorder(self) -> StreamRecorder:
+    def create_recorder(self) -> LiveRecorder:
         if self.req.req_type == RequestType.CHZZK_LIVE:
             return self.__create_chzzk_recorder()
         elif self.req.req_type == RequestType.SOOP_LIVE:

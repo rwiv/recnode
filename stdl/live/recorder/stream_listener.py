@@ -10,9 +10,15 @@ from ..spec.recording_schema import RecordingState, StreamInfo
 from ...common.amqp import AmqpHelper
 
 
-class RecorderListener:
+class StreamListener:
 
-    def __init__(self, info: StreamInfo, state: RecordingState, amqp: AmqpHelper, max_retry: int = 10):
+    def __init__(
+        self,
+        info: StreamInfo,
+        state: RecordingState,
+        amqp: AmqpHelper,
+        max_retry: int = 10,
+    ):
         self.info = info
         self.state = state
         self.amqp = amqp

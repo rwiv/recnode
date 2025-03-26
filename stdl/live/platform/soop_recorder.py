@@ -1,5 +1,5 @@
-from ..recorder.recorder import StreamRecorder
-from ..spec.recording_arguments import StreamlinkArgs, RecordingArgs
+from ..recorder.recorder import LiveRecorder
+from ..spec.recording_arguments import StreamArgs, RecordingArgs, StreamLinkSessionArgs
 from ..spec.recording_schema import StreamInfo
 from ...common.amqp import create_amqp
 from ...common.env import Env
@@ -7,8 +7,7 @@ from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
 
 
-class SoopLiveRecorder(StreamRecorder):
-
+class SoopLiveRecorder(LiveRecorder):
     def __init__(
         self,
         env: Env,
@@ -19,13 +18,16 @@ class SoopLiveRecorder(StreamRecorder):
         url = f"https://play.sooplive.co.kr/{user_id}"
         super().__init__(
             env=env,
-            stream_args=StreamlinkArgs(
+            stream_args=StreamArgs(
                 info=StreamInfo(uid=user_id, url=url, platform=PlatformType.SOOP),
+                session_args=StreamLinkSessionArgs(
+                    read_session_timeout_sec=env.stream.read_session_timeout_sec,
+                    cookies=cookies,
+                ),
                 tmp_dir_path=env.tmp_dir_path,
-                seg_size_mb=env.seg_size_mb,
-                cookies=cookies,
+                seg_size_mb=env.stream.seg_size_mb,
             ),
-            recorder_args=RecordingArgs(
+            recording_args=RecordingArgs(
                 out_dir_path=env.out_dir_path,
                 use_credentials=cookies is not None,
             ),

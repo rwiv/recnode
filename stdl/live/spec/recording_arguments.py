@@ -8,9 +8,15 @@ class RecordingArgs(BaseModel):
     use_credentials: bool
 
 
-class StreamlinkArgs(BaseModel):
-    info: StreamInfo
+class StreamLinkSessionArgs(BaseModel):
     cookies: constr(min_length=1) | None = None
     options: dict[str, str] | None = None
+    # Read session timeout occurs when the internet connection is unstable
+    read_session_timeout_sec: float
+
+
+class StreamArgs(BaseModel):
+    info: StreamInfo
+    session_args: StreamLinkSessionArgs
     tmp_dir_path: constr(min_length=1)
     seg_size_mb: int | None

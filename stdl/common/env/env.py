@@ -1,9 +1,10 @@
 import os
 
-from pydantic import BaseModel, constr, conint
+from pydantic import BaseModel, constr
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
+from .env_stream import StreamConfig, read_stream_config
 from .env_watcher import read_watcher_config, WatcherConfig
 from ..spec import LOCAL_FS_NAME
 
@@ -15,7 +16,7 @@ class Env(BaseModel):
     out_dir_path: constr(min_length=1)
     tmp_dir_path: constr(min_length=1)
     config_path: constr(min_length=1) | None = None
-    seg_size_mb: conint(ge=1) | None = None
+    stream: StreamConfig
     amqp: AmqpConfig
     watcher: WatcherConfig
 
@@ -38,7 +39,7 @@ def get_env() -> Env:
         out_dir_path=os.getenv("OUT_DIR_PATH"),
         tmp_dir_path=os.getenv("TMP_DIR_PATH"),
         config_path=os.getenv("CONFIG_PATH"),
-        seg_size_mb=os.getenv("SEG_SIZE_MB"),
+        stream=read_stream_config(),
         amqp=read_amqp_config(),
         watcher=read_watcher_config(),
     )
