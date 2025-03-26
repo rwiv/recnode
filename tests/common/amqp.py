@@ -32,6 +32,13 @@ def test_publish():
     publish(chan)
 
 
+def test_exists():
+    conn, chan = amqp.connect()
+    assert amqp.queue_exists(chan, "asdasiod") is False
+    conn, chan = amqp.connect()
+    assert amqp.queue_exists(chan, "stdl.done") is True
+
+
 def test_blocking():
     print()
     print(f"[{thname()}] Start")

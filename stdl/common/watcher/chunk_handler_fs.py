@@ -1,7 +1,7 @@
 import os
 import time
 
-from pyutils import log, path_join, stacktrace_dict, split_path
+from pyutils import log, path_join, split_path, error_dict
 
 from .chunk_handler import ChunkHandler
 from ..fs import ObjectWriter, FsType
@@ -36,9 +36,9 @@ class FsChunkHandler(ChunkHandler):
                 with open(tmp_file_path, "rb") as f:
                     self.writer.write(out_file_path, f.read())
                 break
-            except:
+            except Exception as e:
                 if retry_cnt == self.write_retry_limit:
-                    log.error("Write Segment: Retry Limit Exceeded", stacktrace_dict())
+                    log.error("Write Segment: Retry Limit Exceeded", error_dict(e))
                     break
-                log.error(f"Write Segment: cnt={retry_cnt}", stacktrace_dict())
+                log.error(f"Write Segment: cnt={retry_cnt}", error_dict(e))
                 time.sleep(self.write_retry_delay_sec * (2**retry_cnt))

@@ -32,7 +32,7 @@ class RecorderListener:
                 self.recorder.finish()
 
             ch.stop_consuming()
-        except BaseException as e:
+        except Exception as e:
             log.error("Failed to handle message", error_dict(e))
 
     def consume(self):
@@ -44,7 +44,7 @@ class RecorderListener:
                 self.amqp.ensure_queue(chan, vid_queue_name, auto_delete=True)
                 self.amqp.consume(chan, vid_queue_name, self.on_message)
                 break
-            except BaseException as e:
+            except Exception as e:
                 err_info = error_dict(e)
                 err_info["retry_cnt"] = retry_cnt
                 log.error("Failed to __consume", err_info)

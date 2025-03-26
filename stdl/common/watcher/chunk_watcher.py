@@ -3,7 +3,7 @@ import queue
 import threading
 import time
 
-from pyutils import stacktrace, log, error_dict
+from pyutils import log, error_dict
 
 from .chunk_handler import ChunkHandler
 from ..env import Env
@@ -36,8 +36,8 @@ class ChunkWatcher:
                 if not self.queue.empty():
                     self.__process()
                 time.sleep(0.1)
-            except:
-                print(stacktrace())
+            except BaseException as e:
+                log.error("Watcher failed", error_dict(e))
                 break
         log.info("Watcher stopped")
 
@@ -49,7 +49,7 @@ class ChunkWatcher:
             target_path = self.queue.get()
             try:
                 self.set.remove(target_path)  # set.discard() is not used to check for errors
-            except Exception as e:
+            except Exception as e:  # catch KeyError
                 log.error(f"Failed to remove from set: {target_path}", error_dict(e))
             thread = threading.Thread(target=self.handler.handle, args=(target_path,))
             thread.start()

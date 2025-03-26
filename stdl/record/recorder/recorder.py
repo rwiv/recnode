@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from threading import Thread
 
-from pyutils import log, path_join
+from pyutils import log, path_join, error_dict
 
 from .listener import RecorderListener, EXIT_QUEUE_PREFIX
 from .recorder_abc import AbstractRecorder
@@ -118,9 +118,9 @@ class StreamRecorder(AbstractRecorder):
             self.__record_once()
             self.__close()
             log.info("End Recording", {"latest_state": self.streamlink.state.name})
-        except:
+        except Exception as e:
+            log.error("Recording failed", error_dict(e))
             self.__close()
-            raise
 
     def __close(self):
         # Close AMQP connection

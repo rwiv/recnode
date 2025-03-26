@@ -3,8 +3,9 @@ from typing import Callable
 
 import pika
 from pika.adapters.blocking_connection import BlockingConnection, BlockingChannel
+from pika.exceptions import ChannelClosedByBroker
 from pika.spec import Basic, BasicProperties
-from pyutils import stacktrace_dict, log
+from pyutils import log, error_dict
 
 from ..env import AmqpConfig
 
@@ -54,8 +55,11 @@ class AmqpHelperBlocking(AmqpHelper):
         try:
             chan.queue_declare(queue=queue_name, passive=True)
             return True
-        except:
-            return False
+        except ChannelClosedByBroker as e:
+            if e.reply_code == 404:
+                return False
+            else:
+                raise e
 
     def ensure_queue(self, chan: BlockingChannel, queue_name: str, auto_delete: bool = False):
         chan.queue_declare(
@@ -83,8 +87,8 @@ class AmqpHelperBlocking(AmqpHelper):
             if not conn.is_closed:
                 conn.close()
                 log.debug("AMQP connection closed")
-        except:
-            log.error("Error closing AMQP connection", stacktrace_dict())
+        except Exception as e:
+            log.error("Error closing AMQP connection", error_dict(e))
 
 
 class AmqpHelperMock(AmqpHelper):

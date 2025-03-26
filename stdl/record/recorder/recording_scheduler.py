@@ -1,8 +1,7 @@
-import threading
 import time
 from threading import Thread
 
-from pyutils import stacktrace_entry, log
+from pyutils import log, error_dict
 
 from .recorder import StreamRecorder
 from ..platform.recorder_resolver import RecorderResolver
@@ -64,8 +63,8 @@ class RecordingScheduler:
                         )
                         del self.__recorder_map[key]
                 time.sleep(SCHEDULER_CHECK_DELAY_SEC)
-            except:
-                log.error(*stacktrace_entry())
+            except Exception as e:
+                log.error("Failed to monitor states", error_dict(e))
                 time.sleep(SCHEDULER_CHECK_DELAY_SEC)
 
 

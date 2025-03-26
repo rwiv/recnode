@@ -4,7 +4,7 @@ import threading
 import time
 from pathlib import Path
 
-from pyutils import stacktrace_dict, log, path_join, filename
+from pyutils import log, path_join, filename, error_dict
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
@@ -13,7 +13,6 @@ from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..spec.recording_status import RecordingState
 from ...common.fs import ObjectWriter
-
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
@@ -88,8 +87,8 @@ class StreamlinkManager:
                 streams = self.get_streams()
                 if streams is not None:
                     return streams
-            except:
-                log.error("Failed to get streams", self.__get_stacktrace())
+            except Exception as e:
+                log.error("Failed to get streams", self.__error_info(e))
 
             if retry_cnt == 0:
                 log.info("Wait For Live")
@@ -125,16 +124,16 @@ class StreamlinkManager:
                 try:
                     data = input_stream.read(self.read_buf_size)
                     break
-                except OSError:
-                    log.error("Stream Read Failure", self.__get_stacktrace())
+                except OSError as e:
+                    log.error("Stream Read Failure", self.__error_info(e))
                     is_failed = True
                     break
-                except:
+                except Exception as e:
                     if retry_cnt == self.read_retry_limit:
-                        log.error("Stream Read Failure: Retry Limit Exceeded", self.__get_stacktrace())
+                        log.error("Stream Read Failure: Retry Limit Exceeded", self.__error_info(e))
                         is_failed = True
                         break
-                    log.error(f"Stream Read Error: cnt={retry_cnt}", self.__get_stacktrace())
+                    log.error(f"Stream Read Error: cnt={retry_cnt}", self.__error_info(e))
                     time.sleep(self.read_retry_delay_sec * (2**retry_cnt))
 
             if is_failed:
@@ -162,8 +161,8 @@ class StreamlinkManager:
         self.check_tmp_dir()
         log.info(message)
 
-    def __get_stacktrace(self) -> dict:
-        err_info = stacktrace_dict()
+    def __error_info(self, ex: Exception) -> dict:
+        err_info = error_dict(ex)
         err_info["uid"] = self.uid
         err_info["url"] = self.url
         return err_info
@@ -207,11 +206,11 @@ class StreamlinkManager:
                     self.writer.write(path_join(out_dir_path, filename(tmp_file_path)), f.read())
                 log.debug("Write Segment", {"idx": filename(tmp_file_path)})
                 break
-            except:
+            except Exception as e:
                 if retry_cnt == self.write_retry_limit:
-                    log.error("Write Segment: Retry Limit Exceeded", self.__get_stacktrace())
+                    log.error("Write Segment: Retry Limit Exceeded", self.__error_info(e))
                     break
-                log.error(f"Write Segment: cnt={retry_cnt}", self.__get_stacktrace())
+                log.error(f"Write Segment: cnt={retry_cnt}", self.__error_info(e))
                 time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
 
         if Path(tmp_file_path).exists():
