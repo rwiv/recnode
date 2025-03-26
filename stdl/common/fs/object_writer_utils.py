@@ -9,7 +9,7 @@ from ...utils import disable_warning_log
 
 
 def create_fs_writer(env: Env, is_watcher: bool = False) -> ObjectWriter:
-    if env.use_watcher:
+    if env.watcher.enabled:
         if env.fs_name == LOCAL_FS_NAME:
             raise ValueError("WatcherRunner not supported for local fs")
         if not is_watcher:

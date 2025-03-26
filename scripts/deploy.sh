@@ -7,8 +7,9 @@ sudo docker compose -f ./docker/docker-compose-server.yml --env-file ./secret/.e
 
 git pull
 
+sudo docker rmi harbor.rwiv.xyz/private/stdl:0.4.1
+
 sudo docker compose -f ./docker/docker-compose-server.yml --env-file ./secret/.env up -d
 
-docker rmi harbor.rwiv.xyz/private/stdl:0.4.1
 sleep 3
-docker logs stdl
+sudo docker logs stdl

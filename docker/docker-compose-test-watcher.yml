@@ -1,25 +1,24 @@
 services:
-  stdl:
-    image: harbor.rwiv.xyz/private/stdl:0.4.2
-    container_name: stdl
+  watcher:
+    image: stdl:latest
+    container_name: watcher
     environment:
       PY_ENV: prod
-      SEG_SIZE_MB: "${SEG_SIZE_MB}"
-      WATCHER_ENABLED: "${WATCHER_ENABLED}"
+      WATCHER_ENABLED: true
+      WATCHER_PARALLEL: "${WATCHER_PARALLEL}"
+      WATCHER_THRESHOLD_SEC: "${WATCHER_THRESHOLD_SEC}"
+      WATCHER_INTERVAL_DELAY_SEC: "${WATCHER_INTERVAL_DELAY_SEC}"
 
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
-
       OUT_DIR_PATH: /app/out
       TMP_DIR_PATH: /app/tmp
-
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
       AMQP_HOST: "${AMQP_HOST}"
       AMQP_PORT: "${AMQP_PORT}"
       AMQP_USERNAME: "${AMQP_USERNAME}"
       AMQP_PASSWORD: "${AMQP_PASSWORD}"
-    entrypoint: python -m stdl server
-    ports:
-      - "${SERVER_PORT}:9083"
+    entrypoint: python -m stdl watcher
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"

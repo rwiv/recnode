@@ -3,7 +3,7 @@ import queue
 import threading
 import time
 
-from pyutils import log, error_dict
+from pyutils import log, error_dict, not_none
 
 from .chunk_handler import ChunkHandler
 from ..env import Env
@@ -18,11 +18,13 @@ class ChunkWatcher:
     ):
         self.handler = handler
         self.target_path = target_path
-        conf = env.watcher
-        if conf is None:
-            raise ValueError("Watcher config is not set")
-        self.parallel = conf.parallel
-        self.threshold_sec = conf.threshold_sec
+
+        if not env.watcher.enabled:
+            raise ValueError("Watcher is not enabled")
+        self.parallel = not_none(env.watcher.parallel, "Watcher parallel")
+        self.threshold_sec = not_none(env.watcher.threshold_sec, "Watcher threshold_sec")
+        self.interval_delay_sec = not_none(env.watcher.interval_delay_sec, "Watcher interval_delay_sec")
+
         self.queue = queue.Queue()
         self.set = set()
 
@@ -35,7 +37,7 @@ class ChunkWatcher:
                         self.set.add(file_path)
                 if not self.queue.empty():
                     self.__process()
-                time.sleep(0.1)
+                time.sleep(self.interval_delay_sec)
             except BaseException as e:
                 log.error("Watcher failed", error_dict(e))
                 break

@@ -135,7 +135,7 @@ class StreamRecorder(AbstractRecorder):
             self.amqp_thread.join()
 
         # Wait for tmp dir to be cleared
-        if self.env.use_watcher:
+        if self.env.watcher.enabled:
             log.info("Waiting for dir to be cleared")
             self.wait_for_clear_dir()
             log.info("Dir cleared")

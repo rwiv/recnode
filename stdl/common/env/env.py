@@ -17,8 +17,7 @@ class Env(BaseModel):
     config_path: constr(min_length=1) | None = None
     seg_size_mb: conint(ge=1) | None = None
     amqp: AmqpConfig
-    use_watcher: bool
-    watcher: WatcherConfig | None = None
+    watcher: WatcherConfig
 
 
 def get_env() -> Env:
@@ -32,11 +31,6 @@ def get_env() -> Env:
     if fs_name is None:
         fs_name = LOCAL_FS_NAME
 
-    use_watcher = os.getenv("USE_WATCHER") == "true"
-    watcher_conf = None
-    if use_watcher:
-        watcher_conf = read_watcher_config()
-
     return Env(
         env=env,
         fs_name=fs_name,
@@ -46,6 +40,5 @@ def get_env() -> Env:
         config_path=os.getenv("CONFIG_PATH"),
         seg_size_mb=os.getenv("SEG_SIZE_MB"),
         amqp=read_amqp_config(),
-        use_watcher=use_watcher,
-        watcher=watcher_conf,
+        watcher=read_watcher_config(),
     )
