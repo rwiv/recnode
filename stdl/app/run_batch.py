@@ -7,7 +7,7 @@ from pyutils import get_query_string
 from ..common.env import get_env
 from ..common.fs import create_fs_writer
 from ..common.request import read_request_by_env, RequestType
-from ..record import RecorderResolver, disable_streamlink_log
+from ..live import RecorderResolver, disable_streamlink_log
 from ..utils.hls.downloader import HlsDownloader
 from ..utils.http import get_headers
 from ..utils.ytdl.ytdl_downloader import YtdlDownloader

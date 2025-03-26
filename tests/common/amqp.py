@@ -8,7 +8,7 @@ from pyutils import load_dotenv, path_join, find_project_root, stacktrace
 
 from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
-from stdl.record import EXIT_QUEUE_PREFIX
+from stdl.live import EXIT_QUEUE_PREFIX
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 conf = get_env().amqp

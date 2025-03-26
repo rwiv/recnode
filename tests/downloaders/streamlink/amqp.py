@@ -10,7 +10,7 @@ from stdl.common.amqp import AmqpHelperBlocking
 from stdl.common.env import get_env
 from stdl.common.request import read_request_by_file, AppRequest, RequestType
 from stdl.common.spec import PlatformType
-from stdl.record import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME, ExitMessage, ExitCommand, DoneMessage, DoneStatus
+from stdl.live import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME, ExitMessage, ExitCommand, DoneMessage, DoneStatus
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 amqp_conf = get_env().amqp
