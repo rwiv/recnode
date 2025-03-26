@@ -1,6 +1,6 @@
 from streamlink.plugins.soop import Soop
 
-from ..recorder.recorder import StreamRecorder
+from ..recorder.recorder_impl import StreamRecorder
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ...common.amqp import create_amqp
 from ...common.env import Env

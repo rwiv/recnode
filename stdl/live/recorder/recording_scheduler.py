@@ -3,7 +3,7 @@ from threading import Thread
 
 from pyutils import log, error_dict
 
-from .recorder import StreamRecorder
+from .recorder_impl import StreamRecorder
 from ..platform.recorder_resolver import RecorderResolver
 from ..spec.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env

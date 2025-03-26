@@ -1,7 +1,7 @@
 from .chzzk_recorder import ChzzkLiveRecorder
 from .soop_recorder import SoopLiveRecorder
 from .twitch_recorder import TwitchLiveRecorder
-from ..recorder.recorder import StreamRecorder
+from ..recorder.recorder_impl import StreamRecorder
 from ...common.env import Env
 from ...common.fs import ObjectWriter
 from ...common.request import RequestType, AppRequest
