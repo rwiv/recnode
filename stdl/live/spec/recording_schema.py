@@ -6,8 +6,9 @@ from pyutils import log
 from ...common.spec import PlatformType
 
 
-class RecordingInfo(BaseModel):
+class StreamInfo(BaseModel):
     uid: str
+    url: str
     platform: PlatformType
 
 

@@ -9,28 +9,30 @@ from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
-from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from .stream_listener import RecorderListener
+from ..spec.recording_arguments import StreamlinkArgs, RecordingArgs
 from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..spec.recording_schema import RecordingState, RecordingStatus
+from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
 
-class StreamlinkManager:
+class StreamManager:
     def __init__(
         self,
-        stream_args: StreamlinkArgs,
-        recorder_args: RecorderArgs,
+        args: StreamlinkArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
+        amqp_helper: AmqpHelper,
     ):
-        self.url = stream_args.url
-        self.uid = stream_args.uid
+        self.url = args.info.url
+        self.uid = args.info.uid
         self.incomplete_dir_path = incomplete_dir_path
-        self.tmp_base_path = recorder_args.tmp_dir_path
-        self.cookies = stream_args.cookies
-        self.options = stream_args.options
+        self.tmp_base_path = args.tmp_dir_path
+        self.cookies = args.cookies
+        self.options = args.options
         self.writer = writer
 
         self.wait_timeout_sec = 30
@@ -47,10 +49,11 @@ class StreamlinkManager:
         self.idx = 0
         self.state = RecordingState()
         self.status: RecordingStatus = RecordingStatus.WAIT
-        # self.abort_flag = False
         self.video_name: str | None = None
 
-        seg_size_mb: int = recorder_args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
+        self.listener = RecorderListener(args.info, self.state, amqp_helper)
+
+        seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
 
     def get_session(self) -> Streamlink:

@@ -1,5 +1,6 @@
-from ..recorder.recorder_impl import StreamRecorder
-from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from ..recorder.recorder import StreamRecorder
+from ..spec.recording_arguments import StreamlinkArgs, RecordingArgs
+from ..spec.recording_schema import StreamInfo
 from ...common.amqp import create_amqp
 from ...common.env import Env
 from ...common.fs import ObjectWriter
@@ -18,12 +19,14 @@ class ChzzkLiveRecorder(StreamRecorder):
         url = f"https://chzzk.naver.com/live/{uid}"
         super().__init__(
             env=env,
-            stream_args=StreamlinkArgs(url=url, uid=uid, cookies=cookies),
-            recorder_args=RecorderArgs(
-                out_dir_path=env.out_dir_path,
+            stream_args=StreamlinkArgs(
+                info=StreamInfo(uid=uid, url=url, platform=PlatformType.CHZZK),
+                cookies=cookies,
                 tmp_dir_path=env.tmp_dir_path,
                 seg_size_mb=env.seg_size_mb,
-                platform_type=PlatformType.CHZZK,
+            ),
+            recorder_args=RecordingArgs(
+                out_dir_path=env.out_dir_path,
                 use_credentials=cookies is not None,
             ),
             writer=writer,

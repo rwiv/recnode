@@ -8,12 +8,12 @@ from threading import Thread
 
 from pyutils import log, path_join, error_dict
 
-from .recorder_listener import RecorderListener, EXIT_QUEUE_PREFIX
-from .streamlink_manager import StreamlinkManager
+from .stream_listener import RecorderListener, EXIT_QUEUE_PREFIX
+from .stream_manager import StreamManager
 from ..spec.done_message import DoneStatus, DoneMessage
-from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
+from ..spec.recording_arguments import StreamlinkArgs, RecordingArgs
 from ..spec.recording_constants import DONE_QUEUE_NAME
-from ..spec.recording_schema import RecorderStatusInfo, RecordingInfo
+from ..spec.recording_schema import RecorderStatusInfo
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
 from ...common.fs import ObjectWriter
@@ -24,34 +24,34 @@ class StreamRecorder:
         self,
         env: Env,
         stream_args: StreamlinkArgs,
-        recorder_args: RecorderArgs,
+        recorder_args: RecordingArgs,
         writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
         self.env = env
         self.writer = writer
-        self.uid = stream_args.uid
-        self.url = stream_args.url
-        self.platform_type = recorder_args.platform_type
+        self.uid = stream_args.info.uid
+        self.url = stream_args.info.url
+        self.platform_type = stream_args.info.platform
         self.use_credentials = recorder_args.use_credentials
 
         self.vid_name: str | None = None
-        self.tmp_dir_path = recorder_args.tmp_dir_path
+        self.tmp_dir_path = stream_args.tmp_dir_path
         self.dir_clear_timeout_sec = 180
         self.dir_clear_wait_delay_sec = 1
         self.incomplete_dir_path = self.writer.normalize_base_path(
             path_join(recorder_args.out_dir_path, "incomplete")
         )
 
-        self.streamlink = StreamlinkManager(
+        self.stream = StreamManager(
             stream_args,
-            recorder_args,
             self.incomplete_dir_path,
             self.writer,
+            amqp_helper,
         )
-        self.state = self.streamlink.state
+        self.state = self.stream.state
         self.listener = RecorderListener(
-            RecordingInfo(uid=self.uid, platform=self.platform_type),
+            stream_args.info,
             self.state,
             amqp_helper,
         )
@@ -67,8 +67,8 @@ class StreamRecorder:
         return RecorderStatusInfo(
             platform=self.platform_type,
             uid=self.uid,
-            idx=self.streamlink.idx,
-            streamStatus=self.streamlink.status,
+            idx=self.stream.idx,
+            streamStatus=self.stream.status,
         )
 
     def record(self, block: bool = True):
@@ -98,7 +98,7 @@ class StreamRecorder:
             log.info("Done")
 
     def __handle_sigterm(self, *acrgs):
-        self.streamlink.check_tmp_dir()
+        self.stream.check_tmp_dir()
 
     def __check_closed(self):
         if self.record_thread:
@@ -110,7 +110,7 @@ class StreamRecorder:
         try:
             self.__record_once()
             self.__close()
-            log.info("End Recording", {"latest_state": self.streamlink.status.name})
+            log.info("End Recording", {"latest_state": self.stream.status.name})
         except Exception as e:
             log.error("Recording failed", error_dict(e))
             self.__close()
@@ -144,7 +144,7 @@ class StreamRecorder:
         self.is_done = True
 
     def __record_once(self):
-        streams = self.streamlink.wait_for_live()
+        streams = self.stream.wait_for_live()
         if streams is None:
             log.error("Stream is None")
             return
@@ -162,7 +162,7 @@ class StreamRecorder:
         # Start recording
         vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.vid_name = vid_name
-        self.streamlink.record(streams, vid_name)
+        self.stream.record(streams, vid_name)
 
     def __is_recording_active(self):
         vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform_type.value}.{self.uid}"
