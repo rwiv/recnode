@@ -10,7 +10,7 @@ from ..spec.recording_arguments import StreamLinkSessionArgs
 
 def get_session(args: StreamLinkSessionArgs) -> Streamlink:
     options = Options()
-    options.set("stream-timeout", args.read_session_timeout_sec)
+    options.set("stream-timeout", args.stream_timeout_sec)
     if args.options is not None:
         for key, value in args.options.items():
             options.set(key, value)

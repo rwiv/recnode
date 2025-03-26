@@ -21,7 +21,7 @@ class TwitchLiveRecorder(LiveRecorder):
             stream_args=StreamArgs(
                 info=StreamInfo(uid=channel_name, url=url, platform=PlatformType.TWITCH),
                 session_args=StreamLinkSessionArgs(
-                    read_session_timeout_sec=env.stream.read_session_timeout_sec,
+                    stream_timeout_sec=env.stream.stream_timeout_sec,
                     cookies=cookies,
                 ),
                 tmp_dir_path=env.tmp_dir_path,

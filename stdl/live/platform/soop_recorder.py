@@ -21,7 +21,7 @@ class SoopLiveRecorder(LiveRecorder):
             stream_args=StreamArgs(
                 info=StreamInfo(uid=user_id, url=url, platform=PlatformType.SOOP),
                 session_args=StreamLinkSessionArgs(
-                    read_session_timeout_sec=env.stream.read_session_timeout_sec,
+                    stream_timeout_sec=env.stream.stream_timeout_sec,
                     cookies=cookies,
                 ),
                 tmp_dir_path=env.tmp_dir_path,
