@@ -1,0 +1,39 @@
+from enum import Enum
+
+from pydantic import BaseModel, Field
+from pyutils import log
+
+from ...common.spec import PlatformType
+
+
+class RecordingInfo(BaseModel):
+    uid: str
+    platform: PlatformType
+
+
+class RecordingState(BaseModel):
+    abort_flag: bool = False
+    cancel_flag: bool = False
+
+    def cancel(self):
+        log.info("Cancel Request")
+        self.abort_flag = True
+        self.cancel_flag = True
+
+    def finish(self):
+        log.info("Finish Request")
+        self.abort_flag = True
+
+
+class RecordingStatus(Enum):
+    WAIT = "wait"
+    RECORDING = "recording"
+    DONE = "done"
+    FAILED = "failed"
+
+
+class RecorderStatusInfo(BaseModel):
+    platform: PlatformType
+    uid: str
+    idx: int
+    stream_status: RecordingStatus = Field(alias="streamStatus")

@@ -38,7 +38,7 @@ class RecordingScheduler:
     def cancel(self, platform_type: PlatformType, uid: str):
         key = create_key(platform_type, uid)
         if self.__recorder_map.get(key):
-            self.__recorder_map[key].cancel()
+            self.__recorder_map[key].streamlink.state.cancel()
         else:
             log.info(f"Not found recorder: platform={platform_type}, uid={uid}")
 

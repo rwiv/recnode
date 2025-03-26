@@ -9,19 +9,17 @@ from threading import Thread
 from pyutils import log, path_join, error_dict
 
 from .recorder_listener import RecorderListener, EXIT_QUEUE_PREFIX
-from .recorder import AbstractRecorder
 from .streamlink_manager import StreamlinkManager
 from ..spec.done_message import DoneStatus, DoneMessage
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ..spec.recording_constants import DONE_QUEUE_NAME
-from ..spec.recording_status import RecorderStatus
+from ..spec.recording_schema import RecorderStatusInfo, RecordingInfo
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
 from ...common.fs import ObjectWriter
 
 
-class StreamRecorder(AbstractRecorder):
-
+class StreamRecorder:
     def __init__(
         self,
         env: Env,
@@ -30,7 +28,6 @@ class StreamRecorder(AbstractRecorder):
         writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
-        super().__init__(uid=stream_args.uid, platform_type=recorder_args.platform_type)
         self.env = env
         self.writer = writer
         self.uid = stream_args.uid
@@ -52,31 +49,27 @@ class StreamRecorder(AbstractRecorder):
             self.incomplete_dir_path,
             self.writer,
         )
-        self.listener = RecorderListener(self, amqp_helper)
+        self.state = self.streamlink.state
+        self.listener = RecorderListener(
+            RecordingInfo(uid=self.uid, platform=self.platform_type),
+            self.state,
+            amqp_helper,
+        )
         self.amqp = amqp_helper
 
         self.is_done = False
-        self.cancel_flag = False
+        # self.cancel_flag = False
 
         self.record_thread: Thread | None = None
         self.amqp_thread: Thread | None = None
 
     def get_state(self):
-        return RecorderStatus(
+        return RecorderStatusInfo(
             platform=self.platform_type,
             uid=self.uid,
             idx=self.streamlink.idx,
-            streamStatus=self.streamlink.state,
+            streamStatus=self.streamlink.status,
         )
-
-    def cancel(self):
-        log.info("Cancel Request")
-        self.streamlink.abort_flag = True
-        self.cancel_flag = True
-
-    def finish(self):
-        log.info("Finish Request")
-        self.streamlink.abort_flag = True
 
     def record(self, block: bool = True):
         if block:
@@ -95,7 +88,7 @@ class StreamRecorder(AbstractRecorder):
             while True:
                 if self.env.env == "dev":
                     input("Press any key to exit")
-                    self.cancel()
+                    self.state.cancel()
                     self.__check_closed()
                     break
                 if self.is_done:
@@ -117,7 +110,7 @@ class StreamRecorder(AbstractRecorder):
         try:
             self.__record_once()
             self.__close()
-            log.info("End Recording", {"latest_state": self.streamlink.state.name})
+            log.info("End Recording", {"latest_state": self.streamlink.status.name})
         except Exception as e:
             log.error("Recording failed", error_dict(e))
             self.__close()
@@ -142,7 +135,7 @@ class StreamRecorder(AbstractRecorder):
 
         # Publish Done Message
         if self.vid_name is not None:
-            if self.cancel_flag:
+            if self.state.cancel_flag:
                 self.__publish_done(DoneStatus.CANCELED, self.vid_name)
             else:
                 self.__publish_done(DoneStatus.COMPLETE, self.vid_name)

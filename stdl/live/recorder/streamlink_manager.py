@@ -11,7 +11,7 @@ from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from ..spec.recording_arguments import StreamlinkArgs, RecorderArgs
 from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
-from ..spec.recording_status import RecordingState
+from ..spec.recording_schema import RecordingState, RecordingStatus
 from ...common.fs import ObjectWriter
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
@@ -45,8 +45,9 @@ class StreamlinkManager:
         self.write_retry_delay_sec = 1
 
         self.idx = 0
-        self.state: RecordingState = RecordingState.WAIT
-        self.abort_flag = False
+        self.state = RecordingState()
+        self.status: RecordingStatus = RecordingStatus.WAIT
+        # self.abort_flag = False
         self.video_name: str | None = None
 
         seg_size_mb: int = recorder_args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
@@ -79,7 +80,7 @@ class StreamlinkManager:
             if time.time() - start_time > self.wait_timeout_sec:
                 log.info("Wait Timeout")
                 return None
-            if self.abort_flag:
+            if self.state.abort_flag:
                 log.info("Abort Wait")
                 return None
 
@@ -92,7 +93,7 @@ class StreamlinkManager:
 
             if retry_cnt == 0:
                 log.info("Wait For Live")
-            self.state = RecordingState.WAIT
+            self.status = RecordingStatus.WAIT
             time.sleep(self.wait_delay_sec)
             retry_cnt += 1
 
@@ -103,13 +104,13 @@ class StreamlinkManager:
         os.makedirs(tmp_dir_path, exist_ok=True)
 
         input_stream: HLSStreamReader = streams["best"].open()
-        self.state = RecordingState.RECORDING
+        self.status = RecordingStatus.RECORDING
 
         self.idx = 0
 
         log.info("Start Recording")
         while True:
-            if self.abort_flag:
+            if self.state.abort_flag:
                 close_stream(input_stream)
                 self.__close_recording("Abort Stream")
                 break
@@ -157,7 +158,7 @@ class StreamlinkManager:
         return out_dir_path
 
     def __close_recording(self, message: str):
-        self.state = RecordingState.DONE
+        self.status = RecordingStatus.DONE
         self.check_tmp_dir()
         log.info(message)
 
