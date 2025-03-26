@@ -13,7 +13,10 @@ from .request_types import (
 )
 from .request import AppRequest, read_request_by_env, read_request_by_file
 
-targets = ["request_config", "request_config_utils"]
+targets = [
+    "request",
+    "request_types",
+]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):
         for target in targets:
