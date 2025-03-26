@@ -5,7 +5,7 @@ from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
 from .env_watcher import read_watcher_config, WatcherConfig
-from ..common import LOCAL_FS_NAME
+from ..spec import LOCAL_FS_NAME
 
 
 class Env(BaseModel):

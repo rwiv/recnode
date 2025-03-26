@@ -3,8 +3,8 @@ from pathlib import Path
 from .fs_config import read_fs_config_by_file
 from .fs_types import FsType
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter
-from ..common import LOCAL_FS_NAME
 from ..env import Env
+from ..spec import LOCAL_FS_NAME
 from ...utils import disable_warning_log
 
 
