@@ -6,11 +6,13 @@ from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
 
 from ..spec.recording_arguments import StreamLinkSessionArgs
+from ..spec.recording_constants import DEFAULT_STREAM_TIMEOUT_SEC
 
 
 def get_session(args: StreamLinkSessionArgs) -> Streamlink:
     options = Options()
-    options.set("stream-timeout", args.stream_timeout_sec)
+    stream_timeout_sec = args.stream_timeout_sec or DEFAULT_STREAM_TIMEOUT_SEC
+    options.set("stream-timeout", stream_timeout_sec)
     if args.options is not None:
         for key, value in args.options.items():
             options.set(key, value)
