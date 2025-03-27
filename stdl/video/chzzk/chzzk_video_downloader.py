@@ -11,7 +11,6 @@ from ...utils.http import get_headers
 
 
 class ChzzkVideoDownloader:
-
     def __init__(self, tmp_dir: str, out_dir: str, req: ChzzkVideoRequest):
         self.cookies = None
         if req.cookies is not None:

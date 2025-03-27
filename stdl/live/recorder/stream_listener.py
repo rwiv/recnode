@@ -11,7 +11,6 @@ from ...common.amqp import AmqpHelper
 
 
 class StreamListener:
-
     def __init__(
         self,
         info: StreamInfo,
