@@ -4,7 +4,7 @@ services:
     container_name: watcher
     environment:
       PY_ENV: prod
-      WATCHER_ENABLED: "${WATCHER_ENABLED}"
+      WATCHER_ENABLED: "true"
       WATCHER_PARALLEL: "${WATCHER_PARALLEL}"
       WATCHER_THRESHOLD_SEC: "${WATCHER_THRESHOLD_SEC}"
       WATCHER_INTERVAL_DELAY_SEC: "${WATCHER_INTERVAL_DELAY_SEC}"
