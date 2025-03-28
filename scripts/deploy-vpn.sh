@@ -25,5 +25,6 @@ sudo docker compose -f ./docker/docker-compose-server-vpn1.yml --env-file ./secr
 sudo docker compose -f ./docker/docker-compose-server-vpn2.yml --env-file ./secret/.env up -d
 
 sleep 3
-sudo docker logs stdl1
-sudo docker logs stdl2
+sudo docker logs stdl
+sudo docker logs stdl-vpn1
+sudo docker logs stdl-vpn2
