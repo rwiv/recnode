@@ -164,12 +164,16 @@ class LiveRecorder:
                 time.sleep(self.dir_clear_wait_delay_sec)
                 continue
 
-            chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.vid_name)
-            if not Path(chunks_dir_path).exists():
-                break
-            if len(os.listdir(chunks_dir_path)) == 0:
-                os.rmdir(chunks_dir_path)
-                break
+            try:
+                chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.vid_name)
+                if not Path(chunks_dir_path).exists():
+                    break
+                if len(os.listdir(chunks_dir_path)) == 0:
+                    os.rmdir(chunks_dir_path)
+                    break
+            except Exception as e:
+                log.error("Failed to remove chunks dir", error_dict(e))
+                continue
 
             log.debug("Waiting for chunks dir to be cleared")
             time.sleep(self.dir_clear_wait_delay_sec)
