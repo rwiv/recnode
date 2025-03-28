@@ -7,7 +7,7 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - "${SERVER_PORT2}:9083"
+      - "${SERVER_PORT_VPN2}:9083"
     volumes:
       - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
     environment:
@@ -16,9 +16,9 @@ services:
       - "OPENVPN_USER=${OPENVPN_USER}"
       - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
       - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
-  stdl2:
+  stdl-vpn2:
     image: harbor.rwiv.xyz/private/stdl:0.4.7
-    container_name: stdl2
+    container_name: stdl-vpn2
     environment:
       PY_ENV: prod
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
