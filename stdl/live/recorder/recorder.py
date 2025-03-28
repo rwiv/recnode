@@ -105,10 +105,10 @@ class LiveRecorder:
             self.stream.record(streams, self.vid_name)
 
             # Wait for recording to finish
-            self.__close()
             log.info("End Recording", {"latest_state": self.stream.status.name})
         except Exception as e:
             log.error("Recording failed", error_dict(e))
+        finally:
             self.__close()
 
     def __close(self):
@@ -173,6 +173,7 @@ class LiveRecorder:
                     break
             except Exception as e:
                 log.error("Failed to remove chunks dir", error_dict(e))
+                time.sleep(self.dir_clear_wait_delay_sec)
                 continue
 
             log.debug("Waiting for chunks dir to be cleared")
