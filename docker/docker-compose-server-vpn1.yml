@@ -17,7 +17,7 @@ services:
       - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
       - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
   stdl-vpn1:
-    image: harbor.rwiv.xyz/private/stdl:0.4.7
+    image: harbor.rwiv.xyz/private/stdl:0.4.8
     container_name: stdl-vpn1
     environment:
       PY_ENV: prod
