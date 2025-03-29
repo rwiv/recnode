@@ -112,21 +112,24 @@ class LiveRecorder:
             self.__close()
 
     def __close(self):
-        # Wait for tmp dir to be cleared
-        if self.env.watcher.enabled:
-            log.info("Waiting for dir to be cleared")
-            self.__wait_for_clear_dir()
-            log.info("Dir cleared")
+        try:
+            # Wait for tmp dir to be cleared
+            if self.env.watcher.enabled:
+                log.info("Waiting for dir to be cleared")
+                self.__wait_for_clear_dir()
+                log.info("Dir cleared")
 
-        # Publish Done Message
-        if self.vid_name is not None:
-            if self.stream.state.cancel_flag:
-                self.__publish_done_message(DoneStatus.CANCELED, self.vid_name)
-            else:
-                self.__publish_done_message(DoneStatus.COMPLETE, self.vid_name)
-
-        # Set done flag
-        self.is_done = True
+            # Publish Done Message
+            if self.vid_name is not None:
+                if self.stream.state.cancel_flag:
+                    self.__publish_done_message(DoneStatus.CANCELED, self.vid_name)
+                else:
+                    self.__publish_done_message(DoneStatus.COMPLETE, self.vid_name)
+        except Exception as e:
+            log.error("Failed to close", error_dict(e))
+        finally:
+            # Set done flag
+            self.is_done = True
 
     def __is_already_recording(self):
         vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform.value}.{self.uid}"
@@ -164,23 +167,18 @@ class LiveRecorder:
                 time.sleep(self.dir_clear_wait_delay_sec)
                 continue
 
-            try:
-                chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.vid_name)
-                if not Path(chunks_dir_path).exists():
-                    break
-                if len(os.listdir(chunks_dir_path)) == 0:
-                    os.rmdir(chunks_dir_path)
-                    break
-            except Exception as e:
-                log.error("Failed to remove chunks dir", error_dict(e))
-                time.sleep(self.dir_clear_wait_delay_sec)
-                continue
+            chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.vid_name)
+            if not Path(chunks_dir_path).exists():
+                break
+            if len(os.listdir(chunks_dir_path)) == 0:
+                os.rmdir(chunks_dir_path)
+                break
 
             log.debug("Waiting for chunks dir to be cleared")
             time.sleep(self.dir_clear_wait_delay_sec)
 
         channel_dir_path = path_join(self.incomplete_dir_path, self.uid)
-        if len(os.listdir(channel_dir_path)) == 0:
+        if Path(channel_dir_path).exists() and len(os.listdir(channel_dir_path)) == 0:
             os.rmdir(channel_dir_path)
 
     def __handle_signal(self, *acrgs):
