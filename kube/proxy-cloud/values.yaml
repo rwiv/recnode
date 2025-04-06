@@ -6,6 +6,13 @@ image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.5.1
   pullSecret: image-pull-secret
+vault:
+  mount: kube
+  refreshAfter: 30s
+  proton:
+    path: platform/proton
+    version: 1
+    secretName: stdl-proton-secret
 gluetun:
   repository: qmcgaw/gluetun
   tag: v3.40
@@ -27,7 +34,6 @@ workflow:
     port: 12000
     method: POST
 secret:
-  name: stdl-proton-secret
   userKey: user
   passwordKey: password
 app:

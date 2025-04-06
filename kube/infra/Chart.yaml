@@ -1,5 +1,0 @@
-apiVersion: v2
-name: stdl-infra
-description: stdl-infra
-type: application
-version: 0.1.0

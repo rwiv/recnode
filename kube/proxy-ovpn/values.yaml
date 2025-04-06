@@ -1,11 +1,18 @@
 global:
   name: stdl
   namespace: media
-  suffix: sub
+  suffix: nordvpn
 image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.5.1
   pullSecret: image-pull-secret
+vault:
+  mount: kube
+  refreshAfter: 30s
+  nordvpn:
+    path: platform/nordvpn
+    version: 1
+    secretName: stdl-nordvpn-secret
 gluetun:
   repository: qmcgaw/gluetun
   tag: v3.40
@@ -26,7 +33,6 @@ workflow:
     method: POST
 ovpn:
   confFilePath: conf/client.ovpn
-  secretName: ~
   userKey: user
   passwordKey: password
 app:

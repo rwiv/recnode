@@ -75,12 +75,12 @@ spec:
                           - name: OPENVPN_USER
                             valueFrom:
                               secretKeyRef:
-                                name: {{ .Values.secret.name }}
+                                name: {{ .Values.vault.proton.secretName }}
                                 key: {{ .Values.secret.userKey }}
                           - name: OPENVPN_PASSWORD
                             valueFrom:
                               secretKeyRef:
-                                name: {{ .Values.secret.name }}
+                                name: {{ .Values.vault.proton.secretName }}
                                 key: {{ .Values.secret.passwordKey }}
                           - name: SERVER_COUNTRIES
                             value: {{ .Values.gluetun.countries }}
