@@ -10,7 +10,7 @@ vault:
   mount: kube
   refreshAfter: 30s
   nordvpn:
-    path: platform/nordvpn
+    path: platform/nordvpn/credentials
     version: 1
     secretName: stdl-nordvpn-secret
 gluetun:
@@ -33,7 +33,7 @@ workflow:
     method: POST
 ovpn:
   confFilePath: conf/client.ovpn
-  userKey: user
+  userKey: username
   passwordKey: password
 app:
   rabbitmq:
