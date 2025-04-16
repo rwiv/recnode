@@ -1,15 +1,18 @@
 from urllib.parse import urlparse
 
-from requests import Response
+import pytest
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
 from streamlink.stream.hls.m3u8 import M3U8Parser
 from streamlink.stream.hls.segment import HLSSegment
 
+from stdl.utils import fetch_text, fetch_bytes
+
 url = ""
 
 
-def test_streamlink_1():
+@pytest.mark.asyncio
+async def test_streamlink_1():
     print()
     session = Streamlink()
     print(session.http.headers)
@@ -17,9 +20,13 @@ def test_streamlink_1():
     stream: HLSStream = streams["best"]
 
     stream_url = stream.url
-    res: Response = session.http.get(stream_url)
+    headers = {}
+    for k, v in session.http.headers.items():
+        headers[k] = v
 
-    playlist = M3U8Parser().parse(res.text)
+    text = await fetch_text(stream_url, headers)
+
+    playlist = M3U8Parser().parse(text)
     if playlist.is_master:
         raise ValueError("Expected a media playlist, got a master playlist")
 
@@ -34,6 +41,8 @@ def test_streamlink_1():
     print(stream_url)
     print(query_string)
 
-    res = session.http.get("/".join([base_url, segments[0].uri]))
+    print(base_url)
+    b = await fetch_bytes("/".join([base_url, segments[0].uri]), headers=headers)
+    # res = session.http.get("/".join([base_url, segments[0].uri]))
     # res = session.http.get(segments[0].uri)
-    print(len(res.content) / 1024 / 1024)
+    print(len(b) / 1024 / 1024)

@@ -5,7 +5,7 @@ from .fs_types import FsType
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter
 from ..env import Env
 from ..spec import LOCAL_FS_NAME
-from ...utils import disable_warning_log
+from ...common.s3 import disable_warning_log
 
 
 def create_fs_writer(env: Env, is_watcher: bool = False) -> ObjectWriter:

@@ -6,7 +6,7 @@ from pyutils import filename, dirpath
 
 from .fs_config import S3Config
 from .fs_types import FsType
-from ...utils import create_client
+from ...common.s3 import create_client
 
 
 class ObjectWriter(ABC):
