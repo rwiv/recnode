@@ -6,7 +6,9 @@ from streamlink.stream.hls.hls import HLSStream
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
 
-from stdl.utils import fetch_text, fetch_bytes
+from stdl.utils import AsyncHttpClient
+
+http = AsyncHttpClient()
 
 url = ""
 
@@ -24,7 +26,7 @@ async def test_streamlink_1():
     for k, v in session.http.headers.items():
         headers[k] = v
 
-    text = await fetch_text(stream_url, headers)
+    text = await http.get_text(stream_url, headers)
     playlist: M3U8 = M3U8Parser().parse(text)
     if playlist.is_master:
         raise ValueError("Expected a media playlist, got a master playlist")
@@ -41,11 +43,7 @@ async def test_streamlink_1():
     print(query_string)
 
     print(base_url)
-    b = await fetch_bytes("/".join([base_url, segments[0].uri]), headers=headers)
+    b = await http.get_bytes("/".join([base_url, segments[0].uri]), headers=headers)
     # res = session.http.get("/".join([base_url, segments[0].uri]))
     # res = session.http.get(segments[0].uri)
     print(len(b) / 1024 / 1024)
-
-
-def test_b():
-    print()

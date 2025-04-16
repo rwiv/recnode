@@ -21,7 +21,7 @@ from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
 from ...fetcher import PlatformFetcher, LiveInfo
-from ...utils import fetch_text, fetch_bytes
+from ...utils import AsyncHttpClient
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
@@ -65,6 +65,7 @@ class SegmentedStreamManager:
         self.writer = writer
         self.listener = StreamListener(args.info, self.state, amqp_helper)
         self.amqp_thread: threading.Thread | None = None
+        self.http = AsyncHttpClient()
 
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
@@ -159,7 +160,7 @@ class SegmentedStreamManager:
         return live
 
     async def __interval(self, ctx: RequestContext, is_init: bool = False):
-        playlist = M3U8Parser().parse(await fetch_text(ctx.stream_url, ctx.headers))
+        playlist = M3U8Parser().parse(await self.http.get_text(ctx.stream_url, ctx.headers))
         if playlist.is_master:
             raise ValueError("Expected a media playlist, got a master playlist")
         segments: list[HLSSegment] = playlist.segments
@@ -173,7 +174,7 @@ class SegmentedStreamManager:
             url = map_seg.uri
             if ctx.base_url is not None:
                 url = "/".join([ctx.base_url, map_seg.uri])
-            b = await fetch_bytes(url, headers=ctx.headers)
+            b = await self.http.get_bytes(url, headers=ctx.headers)
             async with aiofiles.open(path_join(ctx.dir_path, "0.ts"), "wb") as f:
                 await f.write(b)
 
@@ -197,7 +198,7 @@ class SegmentedStreamManager:
         url = segment.uri
         if ctx.base_url is not None:
             url = "/".join([ctx.base_url, segment.uri])
-        b = await fetch_bytes(url, headers=ctx.headers)
+        b = await self.http.get_bytes(url, headers=ctx.headers)
         async with aiofiles.open(seg_path, "wb") as f:
             await f.write(b)
 
