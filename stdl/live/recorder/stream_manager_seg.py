@@ -28,9 +28,26 @@ WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
 class RequestContext(BaseModel):
     stream_url: str
-    base_url: str | None
+    stream_base_url: str | None
     headers: dict[str, str]
     dir_path: str
+    live: LiveInfo
+
+    def to_err(self, ex: Exception):
+        err = error_dict(ex)
+        err["stream_url"] = self.stream_url
+        err["dir_path"] = self.dir_path
+        self.live.set_dict(err)
+        return err
+
+    def to_dict(self):
+        result = {
+            "stream_url": self.stream_url,
+            "dir_path": self.dir_path,
+        }
+        for key, value in self.live.model_dump(mode="json").items():
+            result[key] = value
+        return result
 
 
 class SegmentedStreamManager:
@@ -58,14 +75,15 @@ class SegmentedStreamManager:
         self.write_retry_delay_sec = 1
 
         self.idx = 0
+        self.done_flag = False
         self.state = RecordingState()
         self.status: RecordingStatus = RecordingStatus.WAIT
         self.video_name: str | None = None
 
+        self.http = AsyncHttpClient(retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
         self.writer = writer
         self.listener = StreamListener(args.info, self.state, amqp_helper)
         self.amqp_thread: threading.Thread | None = None
-        self.http = AsyncHttpClient()
 
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
@@ -114,7 +132,9 @@ class SegmentedStreamManager:
             prev_filename = cur_filename
 
     async def record(self, streams: dict[str, HLSStream]):
-        live = self.__fetcher.fetch_live_info(self.url)
+        live = await self.__fetcher.fetch_live_info(self.url)
+        if live is None:
+            raise ValueError("Channel not live")
 
         # Start AMQP consumer thread
         self.amqp_thread = threading.Thread(target=self.listener.consume)
@@ -137,30 +157,45 @@ class SegmentedStreamManager:
 
         ctx = RequestContext(
             stream_url=stream_url,
-            base_url="/".join(stream_url.split("/")[:-1]),
+            stream_base_url="/".join(stream_url.split("/")[:-1]),
             headers=headers,
             dir_path=tmp_dir_path,
+            live=live,
         )
         if live.platform == PlatformType.TWITCH:
-            ctx.base_url = None
+            ctx.stream_base_url = None
 
-        log.info("Start Recording")
+        log.info("Start Recording", ctx.to_dict())
         self.status = RecordingStatus.RECORDING
 
-        await self.__interval(ctx, is_init=True)
+        try:
+            await self.__interval(ctx, is_init=True)
 
-        while True:
-            if self.state.abort_flag:
-                log.info("Abort Stream")
-                break
+            while True:
+                if self.done_flag:
+                    self.status = RecordingStatus.DONE
+                    log.info("Finish Stream")
+                    break
+                if self.state.abort_flag:
+                    self.status = RecordingStatus.DONE
+                    log.info("Abort Stream")
+                    break
 
-            await self.__interval(ctx)
+                await self.__interval(ctx)
+        except Exception as e:
+            log.error("Error during recording", ctx.to_err(e))
+            self.status = RecordingStatus.FAILED
 
-        self.status = RecordingStatus.DONE
         return live
 
     async def __interval(self, ctx: RequestContext, is_init: bool = False):
-        playlist = M3U8Parser().parse(await self.http.get_text(ctx.stream_url, ctx.headers))
+        try:
+            text = await self.http.get_text(ctx.stream_url, ctx.headers)
+        except Exception as e:
+            log.error("Failed to get playlist", ctx.to_err(e))
+            raise
+
+        playlist = M3U8Parser().parse(text)
         if playlist.is_master:
             raise ValueError("Expected a media playlist, got a master playlist")
         segments: list[HLSSegment] = playlist.segments
@@ -172,8 +207,8 @@ class SegmentedStreamManager:
             if map_seg is None:
                 raise ValueError("No map segment found in the playlist")
             url = map_seg.uri
-            if ctx.base_url is not None:
-                url = "/".join([ctx.base_url, map_seg.uri])
+            if ctx.stream_base_url is not None:
+                url = "/".join([ctx.stream_base_url, map_seg.uri])
             b = await self.http.get_bytes(url, headers=ctx.headers)
             async with aiofiles.open(path_join(ctx.dir_path, "0.ts"), "wb") as f:
                 await f.write(b)
@@ -196,8 +231,8 @@ class SegmentedStreamManager:
             return
 
         url = segment.uri
-        if ctx.base_url is not None:
-            url = "/".join([ctx.base_url, segment.uri])
+        if ctx.stream_base_url is not None:
+            url = "/".join([ctx.stream_base_url, segment.uri])
         b = await self.http.get_bytes(url, headers=ctx.headers)
         async with aiofiles.open(seg_path, "wb") as f:
             await f.write(b)

@@ -1,3 +1,4 @@
+import pytest
 from streamlink.session.session import Streamlink
 
 from stdl.fetcher import ChzzkFetcher
@@ -6,7 +7,8 @@ from stdl.fetcher import ChzzkFetcher
 channel_id = ""
 
 
-def test_chzzk_fetcher():
+@pytest.mark.asyncio
+async def test_chzzk_fetcher():
     fetcher = ChzzkFetcher()
-    info = fetcher.fetch_live_info(channel_id, Streamlink().http.headers)
+    info = await fetcher.fetch_live_info(channel_id, Streamlink().http.headers)
     print(info)

@@ -8,7 +8,7 @@ from .errors import HttpRequestError
 
 
 class AsyncHttpClient:
-    def __init__(self, retry_limit: int = 0, retry_delay_sec: float = 0, use_backoff: bool = True):
+    def __init__(self, retry_limit: int = 0, retry_delay_sec: float = 0, use_backoff: bool = False):
         self.retry_limit = retry_limit
         self.retry_delay_sec = retry_delay_sec
         self.use_backoff = use_backoff

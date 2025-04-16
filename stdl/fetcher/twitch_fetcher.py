@@ -1,11 +1,13 @@
 from datetime import datetime
+from typing import Any
 
+import aiohttp
 from pydantic import BaseModel
 from streamlink.session.session import Streamlink
-from streamlink.plugin.api import validate
 
 from .fetcher import LiveInfo
 from ..common.spec import PlatformType
+from ..utils.errors import HttpRequestError
 
 
 class TwitchLiveInfo(BaseModel):
@@ -25,7 +27,7 @@ class TwitchLiveInfo(BaseModel):
             channel_name=self.channel_display,
             live_id=self.live_id,
             live_title=self.title,
-            started_at=self.created_at,
+            live_started_at=self.created_at,
         )
 
 
@@ -41,31 +43,20 @@ class TwitchFetcher:
         self.access_token_params = dict(access_token_param or [])
         self.access_token_params.setdefault("playerType", "embed")
 
-    def call(self, data, /, *, headers=None, schema, **kwargs):
-        return self.session.http.post(
-            "https://gql.twitch.tv/gql",
-            json=data,
-            headers={
-                **self.headers,
-                **(headers or {}),
-            },
-            schema=validate.Schema(
-                validate.parse_json(),
-                schema,
-            ),
-            **kwargs,
-        )
-
-    def call_raw(self, data, /, *, headers=None, **kwargs):
-        return self.session.http.post(
-            "https://gql.twitch.tv/gql",
-            json=data,
-            headers={
-                **self.headers,
-                **(headers or {}),
-            },
-            **kwargs,
-        )
+    async def call(self, data, /, *, headers=None) -> Any:
+        async with aiohttp.ClientSession() as session:
+            url = "https://gql.twitch.tv/gql"
+            async with session.post(
+                url=url,
+                json=data,
+                headers={
+                    **self.headers,
+                    **(headers or {}),
+                },
+            ) as res:
+                if res.status >= 400:
+                    raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
+                return await res.json()
 
     @staticmethod
     def _gql_persisted_query(operationname: str, sha256hash: str, **variables):
@@ -95,64 +86,70 @@ class TwitchFetcher:
             ),
         ]
 
-    def metadata_channel_raw(self, channel_display):
-        return self.call_raw(self.metadata_channel_queries(channel_display))
+    async def metadata_channel_raw(self, channel_display) -> Any:
+        return await self.call(self.metadata_channel_queries(channel_display))
 
-    def metadata_channel(self, channel_display: str):
-        schema = validate.all(
-            validate.list(
-                validate.all(
-                    {
-                        "data": {
-                            "userOrError": {
-                                "login": str,
-                                "displayName": str,
-                            },
-                        },
-                    },
-                ),
-                validate.all(
-                    {
-                        "data": {
-                            "user": {
-                                "id": str,
-                                "lastBroadcast": {
-                                    "title": str,
-                                },
-                                "stream": {
-                                    "id": str,
-                                    "createdAt": str,
-                                    "viewersCount": int,
-                                    "game": {
-                                        "name": str,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                ),
-            ),
-            validate.union_get(
-                (1, "data", "user", "stream", "id"),
-                (0, "data", "userOrError", "displayName"),
-                (1, "data", "user", "stream", "game", "name"),
-                (1, "data", "user", "lastBroadcast", "title"),
-                (0, "data", "userOrError", "login"),
-                (1, "data", "user", "id"),
-                (1, "data", "user", "stream", "createdAt"),
-                (1, "data", "user", "stream", "viewersCount"),
-            ),
+    async def metadata_channel(self, channel_display) -> LiveInfo | None:
+        data = await self.call(self.metadata_channel_queries(channel_display))
+        if not isinstance(data, list) or len(data) != 2:
+            raise ValueError("Invalid response format")
+
+        userOrError = TwitchUserOrErrorResponse(**data[0]).data.userOrError
+        user = TwitchUserResponse(**data[1]).data.user
+        if user.stream is None:
+            return None
+        return LiveInfo(
+            platform=PlatformType.TWITCH,
+            channel_id=userOrError.login,
+            channel_name=userOrError.displayName,
+            live_id=user.stream.id,
+            live_title=user.lastBroadcast.title,
+            live_started_at=user.stream.createdAt,
         )
 
-        data = self.call(self.metadata_channel_queries(channel_display), schema=schema)
-        live_id, channel_display, category, title, channel_login, channel_id, created_at, viewers_count = data
-        return TwitchLiveInfo(
-            live_id=live_id,
-            channel_id=channel_id,
-            channel_login=channel_login,
-            channel_display=channel_display,
-            category=category,
-            title=title,
-            created_at=created_at,
-            viewers_count=viewers_count,
-        )
+
+# userOrError
+class TwitchUserOrError(BaseModel):
+    id: str
+    login: str
+    displayName: str
+
+
+class TwitchUserOrErrorData(BaseModel):
+    userOrError: TwitchUserOrError
+
+
+class TwitchUserOrErrorResponse(BaseModel):
+    data: TwitchUserOrErrorData
+
+
+# user
+class TwitchUserStreamGame(BaseModel):
+    id: str
+    name: str
+
+
+class TwitchUserStream(BaseModel):
+    id: str
+    createdAt: datetime
+    viewersCount: int
+    game: TwitchUserStreamGame
+
+
+class TwitchUserLastBroadcast(BaseModel):
+    id: str
+    title: str
+
+
+class TwitchUserUser(BaseModel):
+    id: str
+    lastBroadcast: TwitchUserLastBroadcast
+    stream: TwitchUserStream | None
+
+
+class TwitchUserData(BaseModel):
+    user: TwitchUserUser
+
+
+class TwitchUserResponse(BaseModel):
+    data: TwitchUserData

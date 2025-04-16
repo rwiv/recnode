@@ -1,11 +1,13 @@
 from datetime import datetime
 from typing import MutableMapping
 
+import aiohttp
 import requests
 from pydantic import BaseModel
 
 from .fetcher import LiveInfo
 from ..common.spec import PlatformType
+from ..utils.errors import HttpRequestError
 
 
 class SoopStation(BaseModel):
@@ -26,21 +28,24 @@ class SoopStationResponse(BaseModel):
     station: SoopStation
     broad: SoopBroad | None
 
-    def to_info(self) -> LiveInfo:
+    def to_info(self) -> LiveInfo | None:
         if self.broad is None:
-            raise ValueError("No live info available")
+            return None
         return LiveInfo(
             platform=PlatformType.SOOP,
             channel_id=self.station.user_id,
             channel_name=self.station.user_nick,
             live_id=str(self.broad.broad_no),
             live_title=self.broad.broad_title,
-            started_at=self.station.broad_start,
+            live_started_at=self.station.broad_start,
         )
 
 
 class SoopFetcher:
-    def fetch_live_info(self, user_id: str, headers: MutableMapping):
+    async def fetch_live_info(self, user_id: str, headers: MutableMapping) -> LiveInfo | None:
         url = f"https://chapi.sooplive.co.kr/api/{user_id}/station"
-        res = requests.get(url, headers=headers)
-        return SoopStationResponse(**res.json())
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url=url, headers=headers) as res:
+                if res.status >= 400:
+                    raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
+                return SoopStationResponse(**await res.json()).to_info()

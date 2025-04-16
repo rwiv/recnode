@@ -14,7 +14,7 @@ class PlatformFetcher:
         self.__soop = SoopFetcher()
         self.__twitch = TwitchFetcher()
 
-    def fetch_live_info(self, live_url: str) -> LiveInfo:
+    async def fetch_live_info(self, live_url: str) -> LiveInfo | None:
         if "chzzk" in live_url:
             session = Streamlink()
             regex = re.compile(r"https?://chzzk\.naver\.com/live/(?P<channel_id>[^/?]+)")
@@ -22,7 +22,7 @@ class PlatformFetcher:
             if not match:
                 raise ValueError("Invalid Chzzk URL")
             channel_id = match.group("channel_id")
-            return self.__chzzk.fetch_live_info(channel_id, session.http.headers).to_info()
+            return await self.__chzzk.fetch_live_info(channel_id, session.http.headers)
         elif "soop" in live_url or "afreeca" in live_url:
             session = Streamlink()
             regex = re.compile(
@@ -32,7 +32,7 @@ class PlatformFetcher:
             if not match:
                 raise ValueError("Invalid SOOP or Afreeca URL")
             channel_id = match.group("channel")
-            return self.__soop.fetch_live_info(channel_id, session.http.headers).to_info()
+            return await self.__soop.fetch_live_info(channel_id, session.http.headers)
         elif "twitch" in live_url:
             regex = re.compile(
                 r"https?://(?:(?!clips\.)[\w-]+\.)?twitch\.tv/(?P<channel>(?!v(?:ideos?)?/|clip/)[^/?]+)/?(?:\?|$)"
@@ -41,6 +41,6 @@ class PlatformFetcher:
             if not match:
                 raise ValueError("Invalid Twitch URL")
             channel_login = match.group("channel")
-            return self.__twitch.metadata_channel(channel_login).to_info()
+            return await self.__twitch.metadata_channel(channel_login)
         else:
             raise ValueError("Unsupported platform")
