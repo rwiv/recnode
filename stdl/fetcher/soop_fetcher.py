@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import MutableMapping
 
 import aiohttp
-import requests
 from pydantic import BaseModel
 
 from .fetcher import LiveInfo

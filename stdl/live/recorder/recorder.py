@@ -3,7 +3,6 @@ import os
 import signal
 import threading
 import time
-from datetime import datetime
 from pathlib import Path
 
 from pyutils import log, path_join, error_dict
@@ -102,10 +101,8 @@ class LiveRecorder:
                 return
 
             # Start recording
-            self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # self.stream.record(streams, self.vid_name)
             live = asyncio.run(self.stream.record(streams))
-            self.stream.check_segments(live)
+            self.vid_name = live.live_id
 
             # Wait for recording to finish
             log.info("End Recording", {"latest_state": self.stream.status.name})
