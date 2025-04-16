@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 import pytest
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
-from streamlink.stream.hls.m3u8 import M3U8Parser
+from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
 
 from stdl.utils import fetch_text, fetch_bytes
@@ -25,8 +25,7 @@ async def test_streamlink_1():
         headers[k] = v
 
     text = await fetch_text(stream_url, headers)
-
-    playlist = M3U8Parser().parse(text)
+    playlist: M3U8 = M3U8Parser().parse(text)
     if playlist.is_master:
         raise ValueError("Expected a media playlist, got a master playlist")
 
@@ -46,3 +45,7 @@ async def test_streamlink_1():
     # res = session.http.get("/".join([base_url, segments[0].uri]))
     # res = session.http.get(segments[0].uri)
     print(len(b) / 1024 / 1024)
+
+
+def test_b():
+    print()

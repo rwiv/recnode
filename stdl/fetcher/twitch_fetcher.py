@@ -4,15 +4,29 @@ from pydantic import BaseModel
 from streamlink.session.session import Streamlink
 from streamlink.plugin.api import validate
 
+from .fetcher import LiveInfo
+from ..common.spec import PlatformType
+
 
 class TwitchLiveInfo(BaseModel):
     live_id: str
     channel_id: str
+    channel_login: str
     channel_display: str
     category: str
     title: str
     created_at: datetime
     viewers_count: int
+
+    def to_info(self) -> LiveInfo:
+        return LiveInfo(
+            platform=PlatformType.TWITCH,
+            channel_id=self.channel_login,
+            channel_name=self.channel_display,
+            live_id=self.live_id,
+            live_title=self.title,
+            started_at=self.created_at,
+        )
 
 
 class TwitchFetcher:
@@ -91,6 +105,7 @@ class TwitchFetcher:
                     {
                         "data": {
                             "userOrError": {
+                                "login": str,
                                 "displayName": str,
                             },
                         },
@@ -122,6 +137,7 @@ class TwitchFetcher:
                 (0, "data", "userOrError", "displayName"),
                 (1, "data", "user", "stream", "game", "name"),
                 (1, "data", "user", "lastBroadcast", "title"),
+                (0, "data", "userOrError", "login"),
                 (1, "data", "user", "id"),
                 (1, "data", "user", "stream", "createdAt"),
                 (1, "data", "user", "stream", "viewersCount"),
@@ -129,10 +145,11 @@ class TwitchFetcher:
         )
 
         data = self.call(self.metadata_channel_queries(channel_display), schema=schema)
-        live_id, channel_display, category, title, channel_id, created_at, viewers_count = data
+        live_id, channel_display, category, title, channel_login, channel_id, created_at, viewers_count = data
         return TwitchLiveInfo(
             live_id=live_id,
             channel_id=channel_id,
+            channel_login=channel_login,
             channel_display=channel_display,
             category=category,
             title=title,

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import signal
 import threading
@@ -8,7 +9,7 @@ from pathlib import Path
 from pyutils import log, path_join, error_dict
 
 from .stream_listener import EXIT_QUEUE_PREFIX
-from .stream_manager import StreamManager
+from .stream_manager_seg import SegmentedStreamManager
 from ..spec.done_message import DoneStatus, DoneMessage
 from ..spec.recording_arguments import StreamArgs, RecordingArgs
 from ..spec.recording_constants import DONE_QUEUE_NAME
@@ -41,7 +42,7 @@ class LiveRecorder:
         self.dir_clear_timeout_sec = 180
         self.dir_clear_wait_delay_sec = 1
 
-        self.stream = StreamManager(
+        self.stream = SegmentedStreamManager(
             args=stream_args,
             incomplete_dir_path=self.incomplete_dir_path,
             writer=writer,
@@ -102,7 +103,9 @@ class LiveRecorder:
 
             # Start recording
             self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.stream.record(streams, self.vid_name)
+            # self.stream.record(streams, self.vid_name)
+            live = asyncio.run(self.stream.record(streams))
+            self.stream.check_segments(live)
 
             # Wait for recording to finish
             log.info("End Recording", {"latest_state": self.stream.status.name})

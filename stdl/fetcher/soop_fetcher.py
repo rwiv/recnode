@@ -4,6 +4,9 @@ from typing import MutableMapping
 import requests
 from pydantic import BaseModel
 
+from .fetcher import LiveInfo
+from ..common.spec import PlatformType
+
 
 class SoopStation(BaseModel):
     user_id: str
@@ -22,6 +25,18 @@ class SoopBroad(BaseModel):
 class SoopStationResponse(BaseModel):
     station: SoopStation
     broad: SoopBroad | None
+
+    def to_info(self) -> LiveInfo:
+        if self.broad is None:
+            raise ValueError("No live info available")
+        return LiveInfo(
+            platform=PlatformType.SOOP,
+            channel_id=self.station.user_id,
+            channel_name=self.station.user_nick,
+            live_id=str(self.broad.broad_no),
+            live_title=self.broad.broad_title,
+            started_at=self.station.broad_start,
+        )
 
 
 class SoopFetcher:

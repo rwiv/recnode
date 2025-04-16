@@ -1,9 +1,11 @@
 import os
 import sys
 
+from .fetcher import LiveInfo
 from .chzzk_fetcher import ChzzkFetcher
 from .soop_fetcher import SoopFetcher
 from .twitch_fetcher import TwitchFetcher
+from .platform_fetcher import PlatformFetcher
 
 targets = [
     "chzzk_fetcher",
