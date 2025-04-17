@@ -3,7 +3,7 @@ from pydantic import BaseModel, constr
 
 from ..common.request import AppRequest
 from ..common.spec import PlatformType
-from ..live import RecordingScheduler
+from ..recorder import RecordingScheduler
 
 
 class CancelRequest(BaseModel):
