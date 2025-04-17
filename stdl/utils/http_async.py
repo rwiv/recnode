@@ -36,7 +36,9 @@ class AsyncHttpClient:
 
         for retry_cnt in range(self.retry_limit + 1):
             try:
-                return await request(method=method, url=url, headers=req_headers, text=text, json=json, raw=raw)
+                return await request(
+                    method=method, url=url, headers=req_headers, text=text, json=json, raw=raw
+                )
             except Exception as ex:
                 err = error_dict(ex)
                 err["url"] = url

@@ -1,16 +1,7 @@
 import os
 import sys
 
-from .request_types import (
-    RequestType,
-    ChzzkVideoRequest,
-    ChzzkLiveRequest,
-    SoopLiveRequest,
-    SoopVideoRequest,
-    TwitchLiveRequest,
-    YtdlVideoRequest,
-    HlsM3u8Request,
-)
+from .request_types import RequestType, ChzzkLiveRequest, SoopLiveRequest, TwitchLiveRequest
 from .request import AppRequest, read_request_by_env, read_request_by_file
 
 targets = [

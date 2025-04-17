@@ -130,7 +130,7 @@ class SegmentedStreamManager:
         headers = {}
         for k, v in stream.session.http.headers.items():
             headers[k] = v
-        
+
         self.http.set_headers(headers)
         self.fetcher.set_headers(headers)
 
@@ -231,7 +231,7 @@ class SegmentedStreamManager:
         if playlist.is_endlist:
             self.done_flag = True
             return
-    
+
         # To prevent segment requests from being concentrated on a specific node
         await asyncio.sleep(random.uniform(self.min_delay_sec, self.max_delay_sec))
 

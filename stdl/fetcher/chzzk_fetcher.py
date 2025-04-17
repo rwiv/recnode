@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from .fetcher import LiveInfo
 from ..common.spec import PlatformType
-from ..utils.errors import HttpRequestError
+from ..utils import HttpRequestError
 
 
 class ChzzkChannel(BaseModel):

@@ -4,28 +4,15 @@ import os
 import yaml
 from pydantic import BaseModel, Field
 
-from .request_types import (
-    RequestType,
-    ChzzkLiveRequest,
-    ChzzkVideoRequest,
-    SoopLiveRequest,
-    TwitchLiveRequest,
-    YtdlVideoRequest,
-    HlsM3u8Request,
-    SoopVideoRequest,
-)
+from .request_types import RequestType, ChzzkLiveRequest, SoopLiveRequest, TwitchLiveRequest
 from ..env import Env
 
 
 class AppRequest(BaseModel):
     req_type: RequestType = Field(alias="reqType")
     chzzk_live: ChzzkLiveRequest | None = Field(alias="chzzkLive", default=None)
-    chzzk_video: ChzzkVideoRequest | None = Field(alias="chzzkVideo", default=None)
     soop_live: SoopLiveRequest | None = Field(alias="soopLive", default=None)
-    soop_video: SoopVideoRequest | None = Field(alias="soopVideo", default=None)
     twitch_live: TwitchLiveRequest | None = Field(alias="twitchLive", default=None)
-    youtube_video: YtdlVideoRequest | None = Field(alias="youtubeVideo", default=None)
-    hls_m3u8: HlsM3u8Request | None = Field(alias="hlsM3u8", default=None)
 
 
 def read_request_by_file(config_path: str) -> AppRequest:

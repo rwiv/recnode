@@ -14,11 +14,11 @@ class PlatformFetcher:
         self.__soop = SoopFetcher()
         self.__twitch = TwitchFetcher()
         self.headers = {}
- 
+
     def set_headers(self, headers: dict):
         for k, v in headers.items():
             self.headers[k] = v
- 
+
     def set_streamlink_headers(self):
         session = Streamlink()
         for k, v in session.http.cookies.items():
