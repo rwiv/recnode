@@ -5,7 +5,7 @@ from pyutils import log, error_dict
 
 from .live_recorder import LiveRecorder
 from ..platform.recorder_resolver import RecorderResolver
-from ..spec.recording_constants import SCHEDULER_CHECK_DELAY_SEC
+from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
 from ...common.fs import create_fs_writer
 from ...common.request import AppRequest

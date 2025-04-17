@@ -5,8 +5,8 @@ from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
 
-from ..spec.recording_arguments import StreamLinkSessionArgs
-from ..spec.recording_constants import DEFAULT_STREAM_TIMEOUT_SEC
+from ..schema.recording_arguments import StreamLinkSessionArgs
+from ..schema.recording_constants import DEFAULT_STREAM_TIMEOUT_SEC
 
 
 def get_session(args: StreamLinkSessionArgs) -> Streamlink:

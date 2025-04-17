@@ -9,10 +9,10 @@ from pyutils import log, path_join, error_dict
 
 from ..stream.stream_listener import EXIT_QUEUE_PREFIX
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
-from ..spec.done_message import DoneStatus, DoneMessage
-from ..spec.recording_arguments import StreamArgs, RecordingArgs
-from ..spec.recording_constants import DONE_QUEUE_NAME
-from ..spec.recording_schema import RecorderStatusInfo
+from ..schema.done_message import DoneStatus, DoneMessage
+from ..schema.recording_arguments import StreamArgs, RecordingArgs
+from ..schema.recording_constants import DONE_QUEUE_NAME
+from ..schema.recording_schema import RecorderStatusInfo
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
 from ...common.fs import ObjectWriter

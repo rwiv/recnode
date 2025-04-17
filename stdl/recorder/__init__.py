@@ -1,18 +1,18 @@
 import os
 import sys
 
+from .manager.recording_scheduler import RecordingScheduler
 from .platform.recorder_resolver import RecorderResolver
-from .recorder.recording_scheduler import RecordingScheduler
-from .spec.recording_constants import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME
-from .spec.exit_message import ExitMessage, ExitCommand
-from .spec.done_message import DoneMessage, DoneStatus
+from .schema.recording_constants import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME
+from .schema.exit_message import ExitMessage, ExitCommand
+from .schema.done_message import DoneMessage, DoneStatus
 from .stream.streamlink_utils import disable_streamlink_log
 
 targets = [
-    "platform",
     "recorder",
-    "spec",
-    "utils",
+    "platform",
+    "schema",
+    "stream",
 ]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):

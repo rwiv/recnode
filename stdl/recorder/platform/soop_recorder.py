@@ -1,6 +1,6 @@
-from ..recorder.live_recorder import LiveRecorder
-from ..spec.recording_arguments import StreamArgs, RecordingArgs, StreamLinkSessionArgs
-from ..spec.recording_schema import StreamInfo
+from ..manager.live_recorder import LiveRecorder
+from ..schema.recording_arguments import StreamArgs, RecordingArgs, StreamLinkSessionArgs
+from ..schema.recording_schema import StreamInfo
 from ...common.amqp import create_amqp
 from ...common.env import Env
 from ...common.fs import ObjectWriter

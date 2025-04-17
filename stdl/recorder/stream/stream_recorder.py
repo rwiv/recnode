@@ -7,9 +7,9 @@ from pyutils import log, path_join, filename, error_dict
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from .stream_listener import StreamListener
-from ..spec.recording_arguments import StreamArgs
-from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
-from ..spec.recording_schema import RecordingState, RecordingStatus
+from ..schema.recording_arguments import StreamArgs
+from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
+from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.streamlink_utils import get_streams
 from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter

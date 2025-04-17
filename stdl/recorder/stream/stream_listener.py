@@ -4,9 +4,9 @@ from pika.adapters.blocking_connection import BlockingChannel, BlockingConnectio
 from pika.spec import Basic, BasicProperties
 from pyutils import log, error_dict
 
-from ..spec.exit_message import ExitMessage, ExitCommand
-from ..spec.recording_constants import EXIT_QUEUE_PREFIX
-from ..spec.recording_schema import RecordingState, StreamInfo
+from ..schema.exit_message import ExitMessage, ExitCommand
+from ..schema.recording_constants import EXIT_QUEUE_PREFIX
+from ..schema.recording_schema import RecordingState, StreamInfo
 from ...common.amqp import AmqpHelper
 
 
