@@ -212,7 +212,7 @@ class SegmentedStreamManager:
         for result in results:
             if isinstance(result, BaseException):
                 log.error("Error processing segment", {"error": str(result)})
-                # TODO: implement handle error (using rabbitmq) and remove raise
+                # TODO: implement handling error (using rabbitmq) and remove `raise`
                 raise result
 
         if playlist.is_endlist:
@@ -227,7 +227,7 @@ class SegmentedStreamManager:
             thread.start()
 
         self.idx = segments[-1].num
-        # to prevent segment requests from concentrating on a specific node
+        # To prevent segment requests from being concentrated on a specific node
         await asyncio.sleep(random.uniform(self.min_delay_sec, self.max_delay_sec))
 
     async def __process_segment(self, segment: HLSSegment):
@@ -235,6 +235,11 @@ class SegmentedStreamManager:
 
         if segment.num in self.processed_nums:
             return
+
+        # This is used to check the logic implemented inside `SoopHLSStreamWriter`.
+        # If this log is not printed for a long time, this code will be removed.
+        if "preloading" in segment.uri:
+            log.debug("Preloading Segment", self.ctx.to_dict())
 
         seg_filename = f"{segment.num}.ts"
         seg_path = path_join(self.ctx.tmp_dir_path, seg_filename)

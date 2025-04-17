@@ -16,6 +16,14 @@ services:
       - "OPENVPN_USER=${OPENVPN_USER}"
       - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
       - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
+    labels:
+      app: gluetun
+      host: ${HOSTNAME}
+    logging:
+      driver: json-file
+      options:
+        labels: app,host
+        tag: "container_image={{.ImageName}},container_name={{.Name}}"
   stdl-vpn2:
     image: harbor.rwiv.xyz/private/stdl:0.5.1
     container_name: stdl-vpn2
@@ -44,3 +52,11 @@ services:
       gluetun2:
         condition: service_healthy
     network_mode: container:gluetun2
+    labels:
+      app: stdl
+      host: ${HOSTNAME}
+    logging:
+      driver: json-file
+      options:
+        labels: app,host
+        tag: "container_image={{.ImageName}},container_name={{.Name}}"
