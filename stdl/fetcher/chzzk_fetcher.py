@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import MutableMapping
 
 import aiohttp
 from pydantic import BaseModel, Field
@@ -34,7 +33,7 @@ class ChzzkLive(BaseModel):
 
 
 class ChzzkFetcher:
-    async def fetch_live_info(self, channel_id: str, headers: MutableMapping) -> LiveInfo | None:
+    async def fetch_live_info(self, channel_id: str, headers: dict) -> LiveInfo | None:
         url = f"https://api.chzzk.naver.com/service/v2/channels/{channel_id}/live-detail"
         async with aiohttp.ClientSession() as session:
             async with session.get(url=url, headers=headers) as res:

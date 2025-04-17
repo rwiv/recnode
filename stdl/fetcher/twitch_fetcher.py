@@ -86,11 +86,11 @@ class TwitchFetcher:
             ),
         ]
 
-    async def metadata_channel_raw(self, channel_display) -> Any:
-        return await self.call(self.metadata_channel_queries(channel_display))
+    async def metadata_channel_raw(self, channel_display, headers: dict) -> Any:
+        return await self.call(self.metadata_channel_queries(channel_display), headers=headers)
 
-    async def metadata_channel(self, channel_display) -> LiveInfo | None:
-        data = await self.call(self.metadata_channel_queries(channel_display))
+    async def metadata_channel(self, channel_display, headers: dict) -> LiveInfo | None:
+        data = await self.call(self.metadata_channel_queries(channel_display), headers=headers)
         if not isinstance(data, list) or len(data) != 2:
             raise ValueError("Invalid response format")
 

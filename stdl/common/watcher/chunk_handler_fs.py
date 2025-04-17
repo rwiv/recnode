@@ -22,10 +22,11 @@ class FsChunkHandler(ChunkHandler):
 
         chunks = split_path(file_path)
         file_name = chunks[-1]
-        video_name = chunks[-2]
-        uid = chunks[-3]
+        live_id = chunks[-2]
+        chanel_id = chunks[-3]
+        platform_name = chunks[-4]
 
-        out_file_path = path_join("incomplete", uid, video_name, file_name)
+        out_file_path = path_join("incomplete", platform_name, chanel_id, live_id, file_name)
         self.__write_segment(file_path, out_file_path)
         log.debug(f"Write Segment: {out_file_path}")
         os.remove(file_path)

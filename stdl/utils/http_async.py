@@ -12,6 +12,11 @@ class AsyncHttpClient:
         self.retry_limit = retry_limit
         self.retry_delay_sec = retry_delay_sec
         self.use_backoff = use_backoff
+        self.headers = {}
+
+    def set_headers(self, headers: dict):
+        for k, v in headers.items():
+            self.headers[k] = v
 
     async def get_text(self, url: str, headers: dict) -> str:
         return await self.fetch(method="GET", url=url, headers=headers, text=True)
@@ -25,9 +30,13 @@ class AsyncHttpClient:
     async def fetch(
         self, method: str, url: str, headers: dict, text: bool = False, json: bool = False, raw: bool = False
     ) -> Any:
+        req_headers = self.headers.copy()
+        for key, value in headers.items():
+            req_headers[key] = value
+
         for retry_cnt in range(self.retry_limit + 1):
             try:
-                return await request(method=method, url=url, headers=headers, text=text, json=json, raw=raw)
+                return await request(method=method, url=url, headers=req_headers, text=text, json=json, raw=raw)
             except Exception as ex:
                 err = error_dict(ex)
                 err["url"] = url

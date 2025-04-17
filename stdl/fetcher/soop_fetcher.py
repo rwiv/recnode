@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import MutableMapping
 
 import aiohttp
 from pydantic import BaseModel
@@ -41,7 +40,7 @@ class SoopStationResponse(BaseModel):
 
 
 class SoopFetcher:
-    async def fetch_live_info(self, user_id: str, headers: MutableMapping) -> LiveInfo | None:
+    async def fetch_live_info(self, user_id: str, headers: dict) -> LiveInfo | None:
         url = f"https://chapi.sooplive.co.kr/api/{user_id}/station"
         async with aiohttp.ClientSession() as session:
             async with session.get(url=url, headers=headers) as res:

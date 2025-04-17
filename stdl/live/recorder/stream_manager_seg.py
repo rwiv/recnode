@@ -64,8 +64,6 @@ class SegmentedStreamManager:
         writer: ObjectWriter,
         amqp_helper: AmqpHelper,
     ):
-        self.__fetcher = PlatformFetcher()
-
         self.url = args.info.url
         self.platform = args.info.platform
 
@@ -89,6 +87,7 @@ class SegmentedStreamManager:
         self.ctx: RequestContext | None = None
 
         self.http = AsyncHttpClient(retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
+        self.fetcher = PlatformFetcher()
         self.writer = writer
         self.listener = StreamListener(args.info, self.state, amqp_helper)
         self.amqp_thread: threading.Thread | None = None
@@ -121,28 +120,27 @@ class SegmentedStreamManager:
             retry_cnt += 1
 
     async def record(self, streams: dict[str, HLSStream]):
-        live = await self.__fetcher.fetch_live_info(self.url)
-        if live is None:
-            raise ValueError("Channel not live")
-
-        # Start AMQP consumer thread
-        self.amqp_thread = threading.Thread(target=self.listener.consume)
-        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{live.channel_id}"
-        self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
-        self.amqp_thread.start()
-
-        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, live.live_id)
-        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, live.live_id)
-        os.makedirs(tmp_dir_path, exist_ok=True)
-
+        # Get hls stream
         stream: HLSStream | None = streams.get("best")
         if stream is None:
             raise ValueError("Failed to get best stream")
 
+        # Set http session context
         stream_url = stream.url
         headers = {}
         for k, v in stream.session.http.headers.items():
             headers[k] = v
+        
+        self.http.set_headers(headers)
+        self.fetcher.set_headers(headers)
+
+        live = await self.fetcher.fetch_live_info(self.url)
+        if live is None:
+            raise ValueError("Channel not live")
+
+        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, live.live_id)
+        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, live.live_id)
+        os.makedirs(tmp_dir_path, exist_ok=True)
 
         self.ctx = RequestContext(
             stream_url=stream_url,
@@ -155,6 +153,13 @@ class SegmentedStreamManager:
         if live.platform == PlatformType.TWITCH:
             self.ctx.stream_base_url = None
 
+        # Start AMQP consumer thread
+        self.amqp_thread = threading.Thread(target=self.listener.consume)
+        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{live.channel_id}"
+        self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
+        self.amqp_thread.start()
+
+        # Start recording
         log.info("Start Recording", self.ctx.to_dict())
         self.status = RecordingStatus.RECORDING
 
@@ -181,8 +186,7 @@ class SegmentedStreamManager:
 
     async def __interval(self, is_init: bool = False):
         assert self.ctx is not None
-        if self.ctx is None:
-            raise ValueError("Context is None")
+
         try:
             text = await self.http.get_text(self.ctx.stream_url, self.ctx.headers)
         except Exception as e:
@@ -215,10 +219,6 @@ class SegmentedStreamManager:
                 # TODO: implement handling error (using rabbitmq) and remove `raise`
                 raise result
 
-        if playlist.is_endlist:
-            self.done_flag = True
-            return
-
         target_segments = await self.__check_segments()
         if target_segments is not None:
             tar_path = _archive(target_segments, self.ctx.tmp_dir_path)
@@ -227,6 +227,11 @@ class SegmentedStreamManager:
             thread.start()
 
         self.idx = segments[-1].num
+
+        if playlist.is_endlist:
+            self.done_flag = True
+            return
+    
         # To prevent segment requests from being concentrated on a specific node
         await asyncio.sleep(random.uniform(self.min_delay_sec, self.max_delay_sec))
 
@@ -255,6 +260,7 @@ class SegmentedStreamManager:
 
     async def __check_segments(self):
         assert self.ctx is not None
+
         segment_names = [
             file_name
             for file_name in await aioos.listdir(self.ctx.tmp_dir_path)
@@ -288,6 +294,7 @@ class SegmentedStreamManager:
 
     def check_tmp_dir(self):
         assert self.ctx is not None
+
         # Wait for existing threads to finish
         pending_write_threads = [
             th
@@ -316,6 +323,7 @@ class SegmentedStreamManager:
 
     def __write_segment(self, tmp_file_path: str):
         assert self.ctx is not None
+
         if not Path(tmp_file_path).exists():
             return
 

@@ -13,18 +13,29 @@ class PlatformFetcher:
         self.__chzzk = ChzzkFetcher()
         self.__soop = SoopFetcher()
         self.__twitch = TwitchFetcher()
+        self.headers = {}
+ 
+    def set_headers(self, headers: dict):
+        for k, v in headers.items():
+            self.headers[k] = v
+ 
+    def set_streamlink_headers(self):
+        session = Streamlink()
+        for k, v in session.http.cookies.items():
+            self.headers[k] = v
 
     async def fetch_live_info(self, live_url: str) -> LiveInfo | None:
+        if len(self.headers) == 0:
+            self.set_streamlink_headers()
+
         if "chzzk" in live_url:
-            session = Streamlink()
             regex = re.compile(r"https?://chzzk\.naver\.com/live/(?P<channel_id>[^/?]+)")
             match = regex.match(live_url)
             if not match:
                 raise ValueError("Invalid Chzzk URL")
             channel_id = match.group("channel_id")
-            return await self.__chzzk.fetch_live_info(channel_id, session.http.headers)
+            return await self.__chzzk.fetch_live_info(channel_id, self.headers)
         elif "soop" in live_url or "afreeca" in live_url:
-            session = Streamlink()
             regex = re.compile(
                 r"https?://play\.(sooplive\.co\.kr|afreecatv\.com)/(?P<channel>\w+)(?:/(?P<bno>\d+))?"
             )
@@ -32,7 +43,7 @@ class PlatformFetcher:
             if not match:
                 raise ValueError("Invalid SOOP or Afreeca URL")
             channel_id = match.group("channel")
-            return await self.__soop.fetch_live_info(channel_id, session.http.headers)
+            return await self.__soop.fetch_live_info(channel_id, self.headers)
         elif "twitch" in live_url:
             regex = re.compile(
                 r"https?://(?:(?!clips\.)[\w-]+\.)?twitch\.tv/(?P<channel>(?!v(?:ideos?)?/|clip/)[^/?]+)/?(?:\?|$)"
@@ -41,6 +52,6 @@ class PlatformFetcher:
             if not match:
                 raise ValueError("Invalid Twitch URL")
             channel_login = match.group("channel")
-            return await self.__twitch.metadata_channel(channel_login)
+            return await self.__twitch.metadata_channel(channel_login, self.headers)
         else:
             raise ValueError("Unsupported platform")
