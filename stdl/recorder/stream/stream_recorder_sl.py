@@ -17,7 +17,7 @@ from ...common.fs import ObjectWriter
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
 
-class StreamRecorder:
+class StreamlinkStreamRecorder:
     def __init__(
         self,
         args: StreamArgs,
@@ -26,7 +26,7 @@ class StreamRecorder:
         amqp_helper: AmqpHelper,
     ):
         self.url = args.info.url
-        self.uid = args.info.uid
+        self.channel_id = args.info.uid
         self.platform = args.info.platform
 
         self.incomplete_dir_path = incomplete_dir_path
@@ -78,16 +78,16 @@ class StreamRecorder:
             time.sleep(self.wait_delay_sec)
             retry_cnt += 1
 
-    def record(self, streams: dict[str, HLSStream], vid_name: str) -> str:
+    def record(self, streams: dict[str, HLSStream], video_name: str) -> str:
         # Start AMQP consumer thread
         self.amqp_thread = threading.Thread(target=self.listener.consume)
-        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{self.uid}"
+        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{self.channel_id}"
         self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
         self.amqp_thread.start()
 
-        self.video_name = vid_name
-        out_dir_path = path_join(self.incomplete_dir_path, self.uid, vid_name)
-        tmp_dir_path = path_join(self.tmp_base_path, self.uid, vid_name)
+        self.video_name = video_name
+        out_dir_path = path_join(self.incomplete_dir_path, self.platform.value, self.channel_id, video_name)
+        tmp_dir_path = path_join(self.tmp_base_path, self.platform.value, self.channel_id, video_name)
         os.makedirs(tmp_dir_path, exist_ok=True)
 
         input_stream: HLSStreamReader = streams["best"].open()
@@ -139,7 +139,7 @@ class StreamRecorder:
                 f.write(data)
             if Path(tmp_file_path).stat().st_size > self.seg_size:
                 thread = threading.Thread(target=self.__write_segment, args=(tmp_file_path, out_dir_path))
-                thread.name = f"{WRITE_SEGMENT_THREAD_NAME}:{self.uid}:{vid_name}:{self.idx}"
+                thread.name = f"{WRITE_SEGMENT_THREAD_NAME}:{self.platform.value}:{self.channel_id}:{video_name}:{self.idx}"
                 thread.start()
                 self.idx += 1
 
@@ -168,7 +168,8 @@ class StreamRecorder:
 
     def __error_info(self, ex: Exception) -> dict:
         err_info = error_dict(ex)
-        err_info["uid"] = self.uid
+        err_info["platform"] = self.platform.value
+        err_info["channel_id"] = self.channel_id
         err_info["url"] = self.url
         return err_info
 
@@ -176,14 +177,20 @@ class StreamRecorder:
         if self.video_name is None:
             return
 
-        out_chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.video_name)
-        tmp_chunks_dir_path = path_join(self.tmp_base_path, self.uid, self.video_name)
+        out_chunks_dir_path = path_join(
+            self.incomplete_dir_path, self.platform.value, self.channel_id, self.video_name
+        )
+        tmp_chunks_dir_path = path_join(
+            self.tmp_base_path, self.platform.value, self.channel_id, self.video_name
+        )
 
         # Wait for existing threads to finish
         pending_write_threads = [
             th
             for th in threading.enumerate()
-            if th.name.startswith(f"{WRITE_SEGMENT_THREAD_NAME}:{self.uid}:{self.video_name}")
+            if th.name.startswith(
+                f"{WRITE_SEGMENT_THREAD_NAME}:{self.platform.value}:{self.channel_id}:{self.video_name}"
+            )
         ]
         for th in pending_write_threads:
             log.info("Wait For Thread", {"thread_name": th.name})
@@ -197,9 +204,12 @@ class StreamRecorder:
         # Clear tmp dir
         if len(os.listdir(tmp_chunks_dir_path)) == 0:
             os.rmdir(tmp_chunks_dir_path)
-        tmp_channel_dir_path = path_join(self.tmp_base_path, self.uid)
+        tmp_platform_dir_path = path_join(self.tmp_base_path, self.platform.value)
+        tmp_channel_dir_path = path_join(tmp_platform_dir_path, self.channel_id)
         if len(os.listdir(tmp_channel_dir_path)) == 0:
             os.rmdir(tmp_channel_dir_path)
+        if len(os.listdir(tmp_platform_dir_path)) == 0:
+            os.rmdir(tmp_platform_dir_path)
 
     def __write_segment(self, tmp_file_path: str, out_dir_path: str):
         if not Path(tmp_file_path).exists():

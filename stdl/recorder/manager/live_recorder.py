@@ -3,16 +3,17 @@ import os
 import signal
 import threading
 import time
+from datetime import datetime
 from pathlib import Path
 
 from pyutils import log, path_join, error_dict
 
-from ..stream.stream_listener import EXIT_QUEUE_PREFIX
-from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ..schema.done_message import DoneStatus, DoneMessage
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..schema.recording_constants import DONE_QUEUE_NAME
 from ..schema.recording_schema import RecorderStatusInfo
+from ..stream.stream_listener import EXIT_QUEUE_PREFIX
+from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
 from ...common.fs import ObjectWriter
@@ -28,7 +29,7 @@ class LiveRecorder:
         amqp_helper: AmqpHelper,
     ):
         self.env = env
-        self.uid = stream_args.info.uid
+        self.channel_id = stream_args.info.uid
         self.url = stream_args.info.url
         self.platform = stream_args.info.platform
         self.use_credentials = recording_args.use_credentials
@@ -41,6 +42,7 @@ class LiveRecorder:
         self.dir_clear_timeout_sec = 180
         self.dir_clear_wait_delay_sec = 1
 
+        # self.stream = StreamlinkStreamRecorder(
         self.stream = SegmentedStreamRecorder(
             args=stream_args,
             incomplete_dir_path=self.incomplete_dir_path,
@@ -56,7 +58,7 @@ class LiveRecorder:
     def get_state(self):
         return RecorderStatusInfo(
             platform=self.platform,
-            uid=self.uid,
+            channel_id=self.channel_id,
             idx=self.stream.idx,
             streamStatus=self.stream.status,
         )
@@ -71,7 +73,7 @@ class LiveRecorder:
             log.info("Using Credentials")
 
         self.recording_thread = threading.Thread(target=self.__record_stream)
-        self.recording_thread.name = f"Thread-StreamRecorder-{self.platform.value}-{self.uid}"
+        self.recording_thread.name = f"Thread-StreamRecorder-{self.platform.value}-{self.channel_id}"
         self.recording_thread.start()
 
         if block:
@@ -101,8 +103,9 @@ class LiveRecorder:
                 return
 
             # Start recording
-            live = asyncio.run(self.stream.record(streams))
-            self.vid_name = live.live_id
+            self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+            # self.stream.record(streams, video_name=self.vid_name)
+            asyncio.run(self.stream.record(streams, video_name=self.vid_name))
 
             # Wait for recording to finish
             log.info("End Recording", {"latest_state": self.stream.status.name})
@@ -132,7 +135,7 @@ class LiveRecorder:
             self.is_done = True
 
     def __is_already_recording(self):
-        vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform.value}.{self.uid}"
+        vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform.value}.{self.channel_id}"
         conn, chan = self.amqp.connect()
         exists = self.amqp.queue_exists(chan, vid_queue_name)
         self.amqp.close(conn)
@@ -142,7 +145,7 @@ class LiveRecorder:
         msg = DoneMessage(
             status=status,
             platform=self.platform,
-            uid=self.uid,
+            uid=self.channel_id,
             video_name=vid_name,
             fs_name=self.env.fs_name,
         ).model_dump_json(by_alias=True)
@@ -162,12 +165,12 @@ class LiveRecorder:
                 log.error("Timeout waiting for tmp dir to be cleared")
                 return
 
-            if Path(path_join(self.tmp_dir_path, self.uid, self.vid_name)).exists():
+            if Path(path_join(self.tmp_dir_path, self.channel_id, self.vid_name)).exists():
                 log.debug("Waiting for tmp dir to be cleared")
                 time.sleep(self.dir_clear_wait_delay_sec)
                 continue
 
-            chunks_dir_path = path_join(self.incomplete_dir_path, self.uid, self.vid_name)
+            chunks_dir_path = path_join(self.incomplete_dir_path, self.channel_id, self.vid_name)
             if not Path(chunks_dir_path).exists():
                 break
             if len(os.listdir(chunks_dir_path)) == 0:
@@ -177,7 +180,7 @@ class LiveRecorder:
             log.debug("Waiting for chunks dir to be cleared")
             time.sleep(self.dir_clear_wait_delay_sec)
 
-        channel_dir_path = path_join(self.incomplete_dir_path, self.uid)
+        channel_dir_path = path_join(self.incomplete_dir_path, self.channel_id)
         if Path(channel_dir_path).exists() and len(os.listdir(channel_dir_path)) == 0:
             os.rmdir(channel_dir_path)
 

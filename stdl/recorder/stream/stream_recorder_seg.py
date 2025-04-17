@@ -32,6 +32,7 @@ class RequestContext(BaseModel):
     stream_url: str
     stream_base_url: str | None
     headers: dict[str, str]
+    video_name: str
     tmp_dir_path: str
     out_dir_path: str
     live: LiveInfo
@@ -39,6 +40,7 @@ class RequestContext(BaseModel):
     def to_err(self, ex: Exception):
         err = error_dict(ex)
         err["stream_url"] = self.stream_url
+        err["video_name"] = self.stream_base_url
         err["tmp_dir_path"] = self.tmp_dir_path
         self.live.set_dict(err)
         return err
@@ -47,13 +49,14 @@ class RequestContext(BaseModel):
         result = {
             "stream_url": self.stream_url,
             "tmp_dir_path": self.tmp_dir_path,
+            "video_name": self.video_name,
         }
         for key, value in self.live.model_dump(mode="json").items():
             result[key] = value
         return result
 
     def get_thread_path(self):
-        return f"{self.live.platform.value}:{self.live.channel_id}:{self.live.live_id}"
+        return f"{self.live.platform.value}:{self.live.channel_id}:{self.video_name}"
 
 
 class SegmentedStreamRecorder:
@@ -86,7 +89,7 @@ class SegmentedStreamRecorder:
         self.processed_nums: set[int] = set()  # TODO: change using redis
         self.ctx: RequestContext | None = None
 
-        self.http = AsyncHttpClient(retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
+        self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
         self.fetcher = PlatformFetcher()
         self.writer = writer
         self.listener = StreamListener(args.info, self.state, amqp_helper)
@@ -119,7 +122,7 @@ class SegmentedStreamRecorder:
             time.sleep(self.wait_delay_sec)
             retry_cnt += 1
 
-    async def record(self, streams: dict[str, HLSStream]):
+    async def record(self, streams: dict[str, HLSStream], video_name: str):
         # Get hls stream
         stream: HLSStream | None = streams.get("best")
         if stream is None:
@@ -138,13 +141,14 @@ class SegmentedStreamRecorder:
         if live is None:
             raise ValueError("Channel not live")
 
-        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, live.live_id)
-        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, live.live_id)
+        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
+        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, video_name)
         os.makedirs(tmp_dir_path, exist_ok=True)
 
         self.ctx = RequestContext(
             stream_url=stream_url,
             stream_base_url="/".join(stream_url.split("/")[:-1]),
+            video_name=video_name,
             headers=headers,
             tmp_dir_path=tmp_dir_path,
             out_dir_path=out_dir_path,

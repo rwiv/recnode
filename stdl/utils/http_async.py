@@ -2,16 +2,24 @@ import asyncio
 from typing import Any
 
 import aiohttp
+from aiohttp import ClientTimeout
 from pyutils import log, error_dict
 
 from .errors import HttpRequestError
 
 
 class AsyncHttpClient:
-    def __init__(self, retry_limit: int = 0, retry_delay_sec: float = 0, use_backoff: bool = False):
+    def __init__(
+        self,
+        timeout_sec: float = 60,
+        retry_limit: int = 0,
+        retry_delay_sec: float = 0,
+        use_backoff: bool = False,
+    ):
         self.retry_limit = retry_limit
         self.retry_delay_sec = retry_delay_sec
         self.use_backoff = use_backoff
+        self.timeout = aiohttp.ClientTimeout(total=timeout_sec)
         self.headers = {}
 
     def set_headers(self, headers: dict):
@@ -37,7 +45,13 @@ class AsyncHttpClient:
         for retry_cnt in range(self.retry_limit + 1):
             try:
                 return await request(
-                    method=method, url=url, headers=req_headers, text=text, json=json, raw=raw
+                    method=method,
+                    url=url,
+                    headers=req_headers,
+                    text=text,
+                    json=json,
+                    raw=raw,
+                    timeout=self.timeout,
                 )
             except Exception as ex:
                 err = error_dict(ex)
@@ -66,9 +80,15 @@ class AsyncHttpClient:
 
 
 async def request(
-    method: str, url: str, headers: dict, text: bool = False, json: bool = False, raw: bool = False
+    method: str,
+    url: str,
+    headers: dict,
+    text: bool = False,
+    json: bool = False,
+    raw: bool = False,
+    timeout: ClientTimeout = ClientTimeout(total=60),
 ) -> Any:
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=timeout) as session:
         async with session.request(method=method, url=url, headers=headers) as res:
             if res.status >= 400:
                 raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
