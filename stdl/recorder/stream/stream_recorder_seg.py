@@ -18,7 +18,7 @@ from .stream_listener import StreamListener
 from ..spec.recording_arguments import StreamArgs
 from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..spec.recording_schema import RecordingState, RecordingStatus
-from ..utils.streamlink_utils import get_streams
+from ..stream.streamlink_utils import get_streams
 from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
@@ -56,7 +56,7 @@ class RequestContext(BaseModel):
         return f"{self.live.platform.value}:{self.live.channel_id}:{self.live.live_id}"
 
 
-class SegmentedStreamManager:
+class SegmentedStreamRecorder:
     def __init__(
         self,
         args: StreamArgs,

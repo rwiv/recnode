@@ -22,7 +22,7 @@ class MainController:
         self.router.add_api_route("/recordings", self.get_status, methods=["GET"])
 
     def health(self):
-        return "ok"
+        return {"status": "UP"}
 
     def record(self, req: AppRequest):
         self.scheduler.record(req)

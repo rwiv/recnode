@@ -6,7 +6,7 @@ from .recorder.recording_scheduler import RecordingScheduler
 from .spec.recording_constants import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME
 from .spec.exit_message import ExitMessage, ExitCommand
 from .spec.done_message import DoneMessage, DoneStatus
-from .utils.streamlink_utils import disable_streamlink_log
+from .stream.streamlink_utils import disable_streamlink_log
 
 targets = [
     "platform",

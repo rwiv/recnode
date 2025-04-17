@@ -10,14 +10,14 @@ from .stream_listener import StreamListener
 from ..spec.recording_arguments import StreamArgs
 from ..spec.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..spec.recording_schema import RecordingState, RecordingStatus
-from ..utils.streamlink_utils import get_streams
+from ..stream.streamlink_utils import get_streams
 from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
 
-class StreamManager:
+class StreamRecorder:
     def __init__(
         self,
         args: StreamArgs,

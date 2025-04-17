@@ -7,8 +7,8 @@ from pathlib import Path
 
 from pyutils import log, path_join, error_dict
 
-from .stream_listener import EXIT_QUEUE_PREFIX
-from .stream_manager_seg import SegmentedStreamManager
+from ..stream.stream_listener import EXIT_QUEUE_PREFIX
+from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ..spec.done_message import DoneStatus, DoneMessage
 from ..spec.recording_arguments import StreamArgs, RecordingArgs
 from ..spec.recording_constants import DONE_QUEUE_NAME
@@ -41,7 +41,7 @@ class LiveRecorder:
         self.dir_clear_timeout_sec = 180
         self.dir_clear_wait_delay_sec = 1
 
-        self.stream = SegmentedStreamManager(
+        self.stream = SegmentedStreamRecorder(
             args=stream_args,
             incomplete_dir_path=self.incomplete_dir_path,
             writer=writer,

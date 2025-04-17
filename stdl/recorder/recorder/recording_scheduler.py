@@ -3,7 +3,7 @@ from threading import Thread
 
 from pyutils import log, error_dict
 
-from .recorder import LiveRecorder
+from .live_recorder import LiveRecorder
 from ..platform.recorder_resolver import RecorderResolver
 from ..spec.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env

@@ -1,4 +1,4 @@
-from ..recorder.recorder import LiveRecorder
+from ..recorder.live_recorder import LiveRecorder
 from ..spec.recording_arguments import StreamArgs, RecordingArgs, StreamLinkSessionArgs
 from ..spec.recording_schema import StreamInfo
 from ...common.amqp import create_amqp
