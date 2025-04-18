@@ -1,10 +1,50 @@
-server-run: helm-server1-run helm-server2-run
-server-rm: helm-server1-rm helm-server2-rm
-proxy-run: proton-run nordvpn-run
-proxy-rm: proton-rm nordvpn-rm
+prod-run: helm-prod1-run helm-prod2-run
+prod-rm: helm-prod1-rm helm-prod2-rm
+stage-run: helm-stage1-run helm-stage2-run
+stage-rm: helm-stage1-rm helm-stage2-rm
 
 argo-run:
 	kubectl create -f ../kube/argocd/application.yaml
+
+
+helm-prod1-run:
+	helm install stdl-server1 ../kube/server -n media \
+		--set metadata.name=stdl-server1 \
+		--set image.tag=0.5.4 \
+		--set server.service.nodePort=30215
+
+helm-prod1-rm:
+	helm uninstall stdl-server1 -n media
+
+helm-prod2-run:
+	helm install stdl-server2 ../kube/server -n media \
+		--set metadata.name=stdl-server2 \
+		--set image.tag=0.5.4 \
+		--set server.service.nodePort=30216
+
+helm-prod2-rm:
+	helm uninstall stdl-server2 -n media
+
+
+helm-stage1-run:
+	helm install stdl-server1 ../kube/server -n stage \
+		--set metadata.namespace=stage \
+		--set metadata.name=stdl-server1 \
+		--set image.tag=0.5.4 \
+		--set server.service.nodePort=32121
+
+helm-stage1-rm:
+	helm uninstall stdl-server1 -n stage
+
+helm-stage2-run:
+	helm install stdl-server2 ../kube/server -n stage \
+		--set metadata.namespace=stage \
+		--set metadata.name=stdl-server2 \
+		--set image.tag=0.5.4 \
+		--set server.service.nodePort=32122
+
+helm-stage2-rm:
+	helm uninstall stdl-server2 -n stage
 
 
 proton-run:
@@ -22,22 +62,3 @@ nordvpn-run:
 
 nordvpn-rm:
 	helm uninstall stdl-proxy-nordvpn -n media
-
-
-helm-server1-run:
-	helm install stdl-server1 ../kube/server -n media \
-		--set metadata.name=stdl-server1 \
-		--set image.tag=0.5.4 \
-		--set server.service.nodePort=30215
-
-helm-server1-rm:
-	helm uninstall stdl-server1 -n media
-
-helm-server2-run:
-	helm install stdl-server2 ../kube/server -n media \
-		--set metadata.name=stdl-server2 \
-		--set image.tag=0.5.4 \
-		--set server.service.nodePort=30216
-
-helm-server2-rm:
-	helm uninstall stdl-server2 -n media
