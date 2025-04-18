@@ -1,7 +1,6 @@
 import os
 import threading
 import time
-from pathlib import Path
 
 from pyutils import log, path_join
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
@@ -159,9 +158,8 @@ class StreamlinkStreamRecorder:
             target_segments = await self.helper.check_segments(self.ctx)
             if target_segments is not None:
                 tar_path = self.helper.archive(target_segments, self.ctx.tmp_dir_path)
-                thread = threading.Thread(target=self.helper.write_segment, args=(tar_path, self.ctx))
-                thread.name = f"{self.helper.write_segment_thread_name}:{self.ctx.get_thread_path()}:{Path(tar_path).stem}"
-                thread.start()
+                # Coroutines require 'await', so using threads instead of asyncio
+                self.helper.write_segment_thread(tar_path, self.ctx)
 
         self.__close_recording()
         return live

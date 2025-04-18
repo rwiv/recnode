@@ -33,11 +33,9 @@ class StreamHelper:
         self.state = state
         self.status = status
 
-        self.write_segment_thread_name = WRITE_SEGMENT_THREAD_NAME
-
         self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
-        self.write_retry_limit = 2
+        self.write_retry_limit = 4
         self.write_retry_delay_sec = 1
 
         self.writer = writer
@@ -112,6 +110,13 @@ class StreamHelper:
         tmp_channel_dir_path = Path(ctx.tmp_dir_path).parent
         if len(os.listdir(tmp_channel_dir_path)) == 0:
             os.rmdir(tmp_channel_dir_path)
+
+    # Coroutines require 'await', so using threads instead of asyncio
+    def write_segment_thread(self, file_path: str, ctx: RequestContext) -> threading.Thread:
+        thread = threading.Thread(target=self.write_segment, args=(file_path, ctx))
+        thread.name = f"{WRITE_SEGMENT_THREAD_NAME}:{ctx.get_thread_path()}:{Path(file_path).stem}"
+        thread.start()
+        return thread
 
     def write_segment(self, tmp_file_path: str, ctx: RequestContext):
         if not Path(tmp_file_path).exists():

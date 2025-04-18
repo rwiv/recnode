@@ -37,8 +37,8 @@ class RecorderStatusInfo(BaseModel):
     platform: PlatformType
     channel_id: str = Field(serialization_alias="channelId")
     live_id: str = Field(serialization_alias="liveId")
-    fs_name: str = Field(serialization_alias="fsName")
     video_name: str = Field(serialization_alias="videoName")
+    fs_name: str = Field(serialization_alias="fsName")
     num: int
     status: RecordingStatus = Field(serialization_alias="status")
     stream_url: str = Field(serialization_alias="streamUrl")
