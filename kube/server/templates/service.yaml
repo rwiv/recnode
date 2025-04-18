@@ -5,7 +5,8 @@ metadata:
   namespace: {{ .Values.metadata.namespace }}
 spec:
   selector:
-    app: {{ .Values.metadata.name }}
+    app: {{ .Values.metadata.appName }}
+    sub: {{ .Values.metadata.name }}
   type: {{ .Values.server.service.type }}
   ports:
     - port: {{ .Values.server.service.port }}

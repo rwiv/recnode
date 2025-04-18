@@ -7,17 +7,19 @@ spec:
   replicas: {{ .Values.server.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.metadata.name }}
+      app: {{ .Values.metadata.appName }}
+      sub: {{ .Values.metadata.name }}
   template:
     metadata:
       labels:
-        app: {{ .Values.metadata.name }}
+        app: {{ .Values.metadata.appName }}
+        sub: {{ .Values.metadata.name }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
       containers:
-        - name: {{ .Values.metadata.name }}
+        - name: {{ .Values.server.containerName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           workingDir: "/app"
           command: ["python", "-m", "stdl", "server"]

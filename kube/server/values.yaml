@@ -3,6 +3,7 @@ global:
   namespace: media
 metadata:
   name: stdl
+  appName: stdl
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl
@@ -31,6 +32,7 @@ rabbitmq:
   passwordKey: password
 server:
   replicas: 1
+  containerName: stdl-server
   service:
     type: NodePort
     port: 80
