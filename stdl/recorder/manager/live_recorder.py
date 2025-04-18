@@ -104,7 +104,6 @@ class LiveRecorder:
 
             # Start recording
             self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-            # self.stream.record(streams, video_name=self.vid_name)
             asyncio.run(self.stream.record(streams, video_name=self.vid_name))
 
             # Wait for recording to finish
