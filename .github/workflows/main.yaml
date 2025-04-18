@@ -8,7 +8,7 @@ env:
   IMAGE_PREFIX: private
   IMAGE_REGISTRY: harbor.rwiv.xyz
   IMAGE_DOCKERFILE_PATH: docker/Dockerfile
-  CHART_SRC_PATH: kube/chart
+  CHART_SRC_PATH: kube/server
   CHART_OUT_DIRPATH: apps/media/stdl
   CHART_OUT_FILENAME: main.yaml
   GITOPS_REPO: rwiv/gitops-prod

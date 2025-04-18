@@ -1,3 +1,5 @@
+server-run: helm-server1-run helm-server2-run
+server-rm: helm-server1-rm helm-server2-rm
 proxy-run: proton-run nordvpn-run
 proxy-rm: proton-rm nordvpn-rm
 
@@ -20,3 +22,22 @@ nordvpn-run:
 
 nordvpn-rm:
 	helm uninstall stdl-proxy-nordvpn -n media
+
+
+helm-server1-run:
+	helm install stdl-server1 ../kube/server -n media \
+		--set metadata.name=stdl-server1 \
+		--set image.tag=0.5.2 \
+		--set server.service.nodePort=30215
+
+helm-server1-rm:
+	helm uninstall stdl-server1 -n media
+
+helm-server2-run:
+	helm install stdl-server2 ../kube/server -n media \
+		--set metadata.name=stdl-server2 \
+		--set image.tag=0.5.2 \
+		--set server.service.nodePort=30216
+
+helm-server2-rm:
+	helm uninstall stdl-server2 -n media

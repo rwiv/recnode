@@ -60,7 +60,7 @@ class LiveRecorder:
             platform=self.platform,
             channel_id=self.channel_id,
             idx=self.stream.idx,
-            streamStatus=self.stream.status,
+            stream_status=self.stream.status,
         )
 
     def record(self, block: bool = True):
