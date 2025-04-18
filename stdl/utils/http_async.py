@@ -15,12 +15,14 @@ class AsyncHttpClient:
         retry_limit: int = 0,
         retry_delay_sec: float = 0,
         use_backoff: bool = False,
+        print_error: bool = True,
     ):
         self.retry_limit = retry_limit
         self.retry_delay_sec = retry_delay_sec
         self.use_backoff = use_backoff
         self.timeout = aiohttp.ClientTimeout(total=timeout_sec)
         self.headers = {}
+        self.print_error = print_error
 
     def set_headers(self, headers: dict):
         for k, v in headers.items():
@@ -62,15 +64,13 @@ class AsyncHttpClient:
                     err["method"] = ex.method
                     err["reason"] = ex.reason
 
-                if self.retry_limit == 0:
-                    log.error("Failed to request", err)
+                if self.retry_limit == 0 or retry_cnt == self.retry_limit:
+                    if self.print_error:
+                        log.error("Failed to request", err)
                     raise
 
-                if retry_cnt == self.retry_limit:
-                    log.error("Retry Limit Exceeded", err)
-                    raise
-
-                log.error(f"Retry request", err)
+                if self.print_error:
+                    log.warn(f"Retry request", err)
 
                 if self.retry_delay_sec >= 0:
                     if self.use_backoff:

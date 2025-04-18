@@ -11,7 +11,6 @@ from pyutils import log, path_join, error_dict
 from ..schema.done_message import DoneStatus, DoneMessage
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..schema.recording_constants import DONE_QUEUE_NAME
-from ..schema.recording_schema import RecorderStatusInfo
 from ..stream.stream_listener import EXIT_QUEUE_PREFIX
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common.amqp import AmqpHelper
@@ -56,12 +55,7 @@ class LiveRecorder:
         self.recording_thread: threading.Thread | None = None
 
     def get_state(self):
-        return RecorderStatusInfo(
-            platform=self.platform,
-            channel_id=self.channel_id,
-            idx=self.stream.idx,
-            stream_status=self.stream.status,
-        )
+        return self.stream.get_status()
 
     def record(self, block: bool = True):
         if block:
