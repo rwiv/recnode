@@ -10,8 +10,9 @@ from ...common.s3 import create_client
 
 
 class ObjectWriter(ABC):
-    def __init__(self, fs_type: FsType):
+    def __init__(self, fs_type: FsType, fs_name: str):
         self.fs_type = fs_type
+        self.fs_name = fs_name
 
     @abstractmethod
     def normalize_base_path(self, base_path: str) -> str:
@@ -23,8 +24,8 @@ class ObjectWriter(ABC):
 
 
 class LocalObjectWriter(ObjectWriter):
-    def __init__(self, chunk_size: int = 4096):
-        super().__init__(FsType.LOCAL)
+    def __init__(self, fs_name: str, chunk_size: int = 4096):
+        super().__init__(FsType.LOCAL, fs_name)
         self.chunk_size = chunk_size
 
     def normalize_base_path(self, base_path: str) -> str:
@@ -38,8 +39,8 @@ class LocalObjectWriter(ObjectWriter):
 
 
 class S3ObjectWriter(ObjectWriter):
-    def __init__(self, conf: S3Config):
-        super().__init__(FsType.S3)
+    def __init__(self, fs_name: str, conf: S3Config):
+        super().__init__(FsType.S3, fs_name)
         self.conf = conf
         self.bucket_name = conf.bucket_name
         self.__s3 = create_client(self.conf)

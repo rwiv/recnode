@@ -15,5 +15,5 @@ for conf in fs_configs:
 def test_object_writer():
     if fs_conf is None or fs_conf.s3 is None:
         raise ValueError("Cannot find S3 configuration")
-    writer = S3ObjectWriter(fs_conf.s3)
+    writer = S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3)
     writer.write("test.txt", b"Hello, World!")

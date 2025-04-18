@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from pyutils import error_dict
 
+from ..schema.recording_schema import RecorderStatusInfo, RecordingStatus
 from ...fetcher import LiveInfo
 
 
@@ -33,3 +34,15 @@ class RequestContext(BaseModel):
 
     def get_thread_path(self):
         return f"{self.live.platform.value}:{self.live.channel_id}:{self.video_name}"
+
+    def to_status(self, fs_name: str, num: int, status: RecordingStatus) -> RecorderStatusInfo:
+        return RecorderStatusInfo(
+            platform=self.live.platform,
+            channel_id=self.live.channel_id,
+            live_id=self.live.live_id,
+            fs_name=fs_name,
+            video_name=self.video_name,
+            num=num,
+            status=status,
+            stream_url=self.stream_url,
+        )

@@ -62,12 +62,10 @@ class SegmentedStreamRecorder:
 
     def get_status(self) -> RecorderStatusInfo:
         assert self.ctx is not None
-        return RecorderStatusInfo(
-            platform=self.ctx.live.platform,
-            channel_id=self.ctx.live.channel_id,
-            live_id=self.ctx.live.live_id,
+        return self.ctx.to_status(
+            fs_name=self.writer.fs_name,
             num=self.idx,
-            stream_status=self.status,
+            status=self.status,
         )
 
     async def record(self, streams: dict[str, HLSStream], video_name: str):

@@ -25,7 +25,7 @@ services:
         labels: app,host
         tag: "container_image={{.ImageName}},container_name={{.Name}}"
   stdl-vpn1:
-    image: harbor.rwiv.xyz/private/stdl:0.5.3
+    image: harbor.rwiv.xyz/private/stdl:0.5.4
     container_name: stdl-vpn1
     environment:
       PY_ENV: prod
