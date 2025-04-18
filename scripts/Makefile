@@ -27,7 +27,7 @@ nordvpn-rm:
 helm-server1-run:
 	helm install stdl-server1 ../kube/server -n media \
 		--set metadata.name=stdl-server1 \
-		--set image.tag=0.5.2 \
+		--set image.tag=0.5.3 \
 		--set server.service.nodePort=30215
 
 helm-server1-rm:
@@ -36,7 +36,7 @@ helm-server1-rm:
 helm-server2-run:
 	helm install stdl-server2 ../kube/server -n media \
 		--set metadata.name=stdl-server2 \
-		--set image.tag=0.5.2 \
+		--set image.tag=0.5.3 \
 		--set server.service.nodePort=30216
 
 helm-server2-rm:

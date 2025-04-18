@@ -32,8 +32,6 @@ spec:
               value: "{{ .Values.server.service.targetPort }}"
             - name: SEG_SIZE_MB
               value: "{{ .Values.server.segSizeMb }}"
-            - name: STREAM_TIMEOUT_SEC
-              value: "{{ .Values.server.streamTimeoutSec }}"
             - name: OUT_DIR_PATH
               value: /app/out
             - name: TMP_DIR_PATH

@@ -38,5 +38,4 @@ server:
     port: 80
     targetPort: 9083
     nodePort: 30215
-  segSizeMb: 20
-  streamTimeoutSec: 20
+  segSizeMb: 17

@@ -62,7 +62,7 @@ class AsyncHttpClient:
                     err["method"] = ex.method
                     err["reason"] = ex.reason
 
-                if retry_cnt == 0:
+                if self.retry_limit == 0:
                     log.error("Failed to request", err)
                     raise
 

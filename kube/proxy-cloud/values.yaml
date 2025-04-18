@@ -4,7 +4,7 @@ global:
   suffix: proton
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.5.2
+  tag: 0.5.3
   pullSecret: image-pull-secret
 vault:
   mount: kube

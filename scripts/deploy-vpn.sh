@@ -16,8 +16,8 @@ sudo docker compose -f ./docker/docker-compose-server-vpn2.yml --env-file ./secr
 
 git pull
 
-sudo docker rmi harbor.rwiv.xyz/private/stdl:0.5.1
-sudo docker pull harbor.rwiv.xyz/private/stdl:0.5.2
+sudo docker rmi harbor.rwiv.xyz/private/stdl:0.5.2
+sudo docker pull harbor.rwiv.xyz/private/stdl:0.5.3
 
 sudo docker compose -f ./docker/docker-compose-watcher.yml --env-file ./secret/.env up -d
 sudo docker compose -f ./docker/docker-compose-server.yml --env-file ./secret/.env up -d
