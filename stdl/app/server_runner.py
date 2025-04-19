@@ -1,5 +1,8 @@
+import logging
+
 import uvicorn
 from fastapi import FastAPI
+from pyutils import log
 
 from .server_main_router import MainController
 from ..common.env import get_env
@@ -7,6 +10,7 @@ from ..recorder import RecordingScheduler, disable_streamlink_log
 
 
 def run_server():
+    log.set_level(logging.DEBUG)
     disable_streamlink_log()
 
     env = get_env()

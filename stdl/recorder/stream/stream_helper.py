@@ -1,5 +1,4 @@
 import os
-import os
 import tarfile
 import threading
 import time
@@ -29,14 +28,15 @@ class StreamHelper:
         writer: ObjectWriter,
     ):
         self.url = args.info.url
+        self.stream_info = args.info
         self.session_args = args.session_args
         self.state = state
         self.status = status
 
         self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
-        self.write_retry_limit = 4
-        self.write_retry_delay_sec = 1
+        self.write_retry_limit = 8
+        self.write_retry_delay_sec = 0.5
 
         self.writer = writer
 
@@ -46,12 +46,16 @@ class StreamHelper:
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         retry_cnt = 0
         start_time = time.time()
+        info = {
+            "platform": self.stream_info.platform,
+            "channel_id": self.stream_info.uid,
+        }
         while True:
             if time.time() - start_time > self.wait_timeout_sec:
-                log.info("Wait Timeout")
-                return None
+                log.error("Wait Timeout", info)
+                raise
             if self.state.abort_flag:
-                log.info("Abort Wait")
+                log.debug("Abort Wait", info)
                 return None
 
             try:
@@ -59,10 +63,13 @@ class StreamHelper:
                 if streams is not None:
                     return streams
             except Exception as e:
-                log.error("Failed to get streams", error_dict(e))
+                err = error_dict(e)
+                err["platform"] = self.stream_info.platform
+                err["channel_id"] = self.stream_info.uid
+                log.error("Failed to get streams", err)
 
             if retry_cnt == 0:
-                log.info("Wait For Live")
+                log.info("Wait For Live", info)
             self.status = RecordingStatus.WAIT
             time.sleep(self.wait_delay_sec)
             retry_cnt += 1
@@ -92,7 +99,7 @@ class StreamHelper:
             if th.name.startswith(f"{WRITE_SEGMENT_THREAD_NAME}:{ctx.get_thread_path()}")
         ]
         for th in pending_write_threads:
-            log.info("Wait For Thread", {"thread_name": th.name})
+            log.debug("Wait For Thread", {"thread_name": th.name})
             th.join()
 
         # Write remaining segments
@@ -101,7 +108,9 @@ class StreamHelper:
         ]
         if len(target_segments) > 0:
             tar_path = self.archive(target_segments, ctx.tmp_dir_path)
-            log.info("Detect And Write Segment", {"file_name": tar_path})
+            ctx_info = ctx.to_dict()
+            ctx_info["file_name"] = tar_path
+            log.debug("Detect And Write Segment", ctx_info)
             self.write_segment(tar_path, ctx)
 
         # Clear tmp dir
@@ -126,13 +135,13 @@ class StreamHelper:
             try:
                 with open(tmp_file_path, "rb") as f:
                     self.writer.write(path_join(ctx.out_dir_path, filename(tmp_file_path)), f.read())
-                log.debug("Write Segment", {"idx": filename(tmp_file_path)})
                 break
             except Exception as e:
+                err = ctx.to_err(e, with_stream_url=False)
                 if retry_cnt == self.write_retry_limit:
-                    log.error("Retry Limit Exceeded: Failed to write segment", ctx.to_err(e))
+                    log.error("Retry Limit Exceeded: Failed to write segment", err)
                     break
-                log.warn(f"retry write segment: cnt={retry_cnt}", ctx.to_err(e))
+                log.debug(f"retry write segment: cnt={retry_cnt}", err)
                 time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
 
         if Path(tmp_file_path).exists():

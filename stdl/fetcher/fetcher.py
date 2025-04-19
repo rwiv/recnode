@@ -14,13 +14,15 @@ class LiveInfo(BaseModel):
     live_title: str
     live_started_at: datetime
 
-    def set_dict(self, dct: dict):
+    def set_dict(self, dct: dict, with_live_title: bool = False, with_live_started_at: bool = False):
         dct["platform"] = self.platform.value
         dct["channel_id"] = self.channel_id
         dct["channel_name"] = self.channel_name
         dct["live_id"] = self.live_id
-        dct["live_title"] = self.live_title
-        dct["live_started_at"] = self.live_started_at.isoformat()
+        if with_live_title:
+            dct["live_title"] = self.live_title
+        if with_live_started_at:
+            dct["live_started_at"] = self.live_started_at.isoformat()
 
 
 class AbstractFetcher(ABC):

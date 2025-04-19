@@ -14,20 +14,20 @@ class RequestContext(BaseModel):
     out_dir_path: str
     live: LiveInfo
 
-    def to_err(self, ex: Exception):
+    def to_err(self, ex: Exception, with_stream_url: bool = True) -> dict[str, str]:
         err = error_dict(ex)
-        err["stream_url"] = self.stream_url
+        if with_stream_url:
+            err["stream_url"] = self.stream_url
         err["video_name"] = self.video_name
-        err["tmp_dir_path"] = self.tmp_dir_path
         self.live.set_dict(err)
         return err
 
-    def to_dict(self):
+    def to_dict(self, with_stream_url: bool = False) -> dict[str, str]:
         result = {
-            "stream_url": self.stream_url,
             "video_name": self.video_name,
-            "tmp_dir_path": self.tmp_dir_path,
         }
+        if with_stream_url:
+            result["stream_url"] = self.stream_url
         self.live.set_dict(result)
         return result
 

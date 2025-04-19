@@ -83,7 +83,7 @@ class AsyncHttpClient:
                     raise
 
                 if print_error:
-                    log.warn(f"Retry request", err)
+                    log.debug(f"Retry request", err)
 
                 if self.retry_delay_sec >= 0:
                     if self.use_backoff:

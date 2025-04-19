@@ -96,8 +96,11 @@ class SegmentedStreamRecorder:
         if live.platform == PlatformType.TWITCH:
             self.ctx.stream_base_url = None
 
+        if self.ctx.headers["Cookie"] is not None:
+            log.debug("Using Credentials", self.ctx.to_dict())
+
         # Start recording
-        log.info("Start Recording", self.ctx.to_dict())
+        log.info("Start Recording", self.ctx.to_dict(with_stream_url=True))
         self.status = RecordingStatus.RECORDING
 
         try:
@@ -106,11 +109,11 @@ class SegmentedStreamRecorder:
             while True:
                 if self.done_flag:
                     self.status = RecordingStatus.DONE
-                    log.info("Finish Stream")
+                    log.debug("Finish Stream", self.ctx.to_dict())
                     break
                 if self.state.abort_flag:
                     self.status = RecordingStatus.DONE
-                    log.info("Abort Stream")
+                    log.debug("Abort Stream", self.ctx.to_dict())
                     break
 
                 await self.__interval()

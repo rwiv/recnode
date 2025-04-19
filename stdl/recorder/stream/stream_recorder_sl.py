@@ -95,21 +95,22 @@ class StreamlinkStreamRecorder:
         if live.platform == PlatformType.TWITCH:
             self.ctx.stream_base_url = None
 
+        if self.ctx.headers["Cookie"] is not None:
+            log.debug("Using Credentials", self.ctx.to_dict())
+
         # Start recording
         input_stream: HLSStreamReader = stream.open()
-        log.info("Start Recording", self.ctx.to_dict())
+        log.info("Start Recording", self.ctx.to_dict(with_stream_url=True))
         self.status = RecordingStatus.RECORDING
-
         self.idx = 0
 
-        log.info("Start Recording")
         while True:
             if self.state.abort_flag:
-                log.info("Abort Stream")
+                log.debug("Abort Stream", self.ctx.to_dict())
                 break
 
             if input_stream.closed:
-                log.info("Stream Closed")
+                log.debug("Stream Closed", self.ctx.to_dict())
                 break
 
             data: bytes = b""
@@ -150,6 +151,7 @@ class StreamlinkStreamRecorder:
                 self.helper.write_segment_thread(tar_path, self.ctx)
 
         self.__close_recording()
+        log.info("Finish Recording", self.ctx.to_dict())
         return live
 
     def __close_recording(self, stream: HLSStreamReader | None = None):

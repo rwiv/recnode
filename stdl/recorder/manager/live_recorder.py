@@ -57,10 +57,6 @@ class LiveRecorder:
             signal.signal(signal.SIGINT, self.__handle_signal)
             signal.signal(signal.SIGTERM, self.__handle_signal)
 
-        log.info(f"Start Record: {self.url}")
-        if self.use_credentials:
-            log.info("Using Credentials")
-
         self.recording_thread = threading.Thread(target=self.__record_stream)
         self.recording_thread.name = f"Thread-StreamRecorder-{self.platform.value}-{self.channel_id}"
         self.recording_thread.start()
@@ -76,7 +72,6 @@ class LiveRecorder:
                     self.recording_thread.join()
                     break
                 time.sleep(1)
-            log.info("Done")
 
     def __record_stream(self):
         try:
@@ -89,9 +84,6 @@ class LiveRecorder:
             # Start recording
             self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
             asyncio.run(self.stream.record(streams, video_name=self.vid_name))
-
-            # Wait for recording to finish
-            log.info("End Recording", {"latest_state": self.stream.status.name})
         except Exception as e:
             log.error("Recording failed", error_dict(e))
         finally:
@@ -101,9 +93,9 @@ class LiveRecorder:
         try:
             # Wait for tmp dir to be cleared
             if self.env.watcher.enabled:
-                log.info("Waiting for dir to be cleared")
+                log.debug("Waiting for dir to be cleared")
                 self.__wait_for_clear_dir()
-                log.info("Dir cleared")
+                log.debug("Dir cleared")
         except Exception as e:
             log.error("Failed to close", error_dict(e))
         finally:

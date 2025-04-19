@@ -28,7 +28,6 @@ class FsChunkHandler(ChunkHandler):
 
         out_file_path = path_join("incomplete", platform_name, chanel_id, video_name, file_name)
         self.__write_segment(file_path, out_file_path)
-        log.debug(f"Write Segment: {out_file_path}")
         os.remove(file_path)
 
     def __write_segment(self, tmp_file_path: str, out_file_path: str):

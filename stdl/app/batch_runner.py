@@ -1,3 +1,7 @@
+import logging
+
+from pyutils import log
+
 from ..common.env import get_env
 from ..common.fs import create_fs_writer
 from ..common.request import read_request_by_env, RequestType
@@ -12,6 +16,7 @@ class BatchRunner:
         self.recorder_resolver = RecorderResolver(self.env, self.conf, self.writer)
 
     def run(self):
+        log.set_level(logging.DEBUG)
         if self.conf.req_type in {RequestType.CHZZK_LIVE, RequestType.SOOP_LIVE, RequestType.TWITCH_LIVE}:
             return self.__record_live()
         raise ValueError("Invalid Request Type")
