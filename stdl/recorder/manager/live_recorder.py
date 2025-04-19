@@ -8,10 +8,7 @@ from pathlib import Path
 
 from pyutils import log, path_join, error_dict
 
-from ..schema.done_message import DoneStatus, DoneMessage
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
-from ..schema.recording_constants import DONE_QUEUE_NAME
-from ..stream.stream_listener import EXIT_QUEUE_PREFIX
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common.amqp import AmqpHelper
 from ...common.env import Env
@@ -46,9 +43,7 @@ class LiveRecorder:
             args=stream_args,
             incomplete_dir_path=self.incomplete_dir_path,
             writer=writer,
-            amqp_helper=amqp_helper,
         )
-        self.amqp = amqp_helper
 
         self.vid_name: str | None = None
         self.is_done = False
@@ -91,11 +86,6 @@ class LiveRecorder:
                 log.error("Failed to get live streams")
                 return
 
-            # Check if recording is already in progress
-            if self.__is_already_recording():
-                log.info("Recording is already in progress, skipping recording")
-                return
-
             # Start recording
             self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
             asyncio.run(self.stream.record(streams, video_name=self.vid_name))
@@ -114,39 +104,11 @@ class LiveRecorder:
                 log.info("Waiting for dir to be cleared")
                 self.__wait_for_clear_dir()
                 log.info("Dir cleared")
-
-            # Publish Done Message
-            if self.vid_name is not None:
-                if self.stream.state.cancel_flag:
-                    self.__publish_done_message(DoneStatus.CANCELED, self.vid_name)
-                else:
-                    self.__publish_done_message(DoneStatus.COMPLETE, self.vid_name)
         except Exception as e:
             log.error("Failed to close", error_dict(e))
         finally:
             # Set done flag
             self.is_done = True
-
-    def __is_already_recording(self):
-        vid_queue_name = f"{EXIT_QUEUE_PREFIX}.{self.platform.value}.{self.channel_id}"
-        conn, chan = self.amqp.connect()
-        exists = self.amqp.queue_exists(chan, vid_queue_name)
-        self.amqp.close(conn)
-        return exists
-
-    def __publish_done_message(self, status: DoneStatus, vid_name: str):
-        msg = DoneMessage(
-            status=status,
-            platform=self.platform,
-            uid=self.channel_id,
-            video_name=vid_name,
-            fs_name=self.env.fs_name,
-        ).model_dump_json(by_alias=True)
-        conn, chan = self.amqp.connect()
-        self.amqp.ensure_queue(chan, DONE_QUEUE_NAME, auto_delete=False)
-        self.amqp.publish(chan, DONE_QUEUE_NAME, msg.encode("utf-8"))
-        self.amqp.close(conn)
-        log.info("Published Done Message")
 
     def __wait_for_clear_dir(self):
         if self.vid_name is None:

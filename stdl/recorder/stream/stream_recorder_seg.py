@@ -1,7 +1,6 @@
 import asyncio
 import os
 import random
-import threading
 
 import aiofiles
 from pyutils import log, path_join
@@ -10,15 +9,13 @@ from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
 
 from .stream_helper import StreamHelper
-from .stream_listener import StreamListener
 from .stream_types import RequestContext
 from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
-from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
 from ...fetcher import PlatformFetcher
-from ...utils import AsyncHttpClient
+from ...utils import AsyncHttpClient, HttpRequestError
 
 
 class SegmentedStreamRecorder:
@@ -27,7 +24,6 @@ class SegmentedStreamRecorder:
         args: StreamArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
-        amqp_helper: AmqpHelper,
     ):
         self.url = args.info.url
         self.platform = args.info.platform
@@ -48,8 +44,6 @@ class SegmentedStreamRecorder:
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
         self.fetcher = PlatformFetcher()
         self.writer = writer
-        self.listener = StreamListener(args.info, self.state, amqp_helper)
-        self.amqp_thread: threading.Thread | None = None
         self.helper = StreamHelper(args, self.state, self.status, writer)
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
@@ -102,12 +96,6 @@ class SegmentedStreamRecorder:
         if live.platform == PlatformType.TWITCH:
             self.ctx.stream_base_url = None
 
-        # Start AMQP consumer thread
-        self.amqp_thread = threading.Thread(target=self.listener.consume)
-        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{live.channel_id}"
-        self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
-        self.amqp_thread.start()
-
         # Start recording
         log.info("Start Recording", self.ctx.to_dict())
         self.status = RecordingStatus.RECORDING
@@ -131,13 +119,21 @@ class SegmentedStreamRecorder:
             self.status = RecordingStatus.FAILED
 
         self.__close_recording()
+        log.info("Finish Recording", self.ctx.to_dict())
         return live
 
     async def __interval(self, is_init: bool = False):
         assert self.ctx is not None
 
         try:
-            text = await self.http.get_text(self.ctx.stream_url, self.ctx.headers)
+            text = await self.http.get_text(self.ctx.stream_url, self.ctx.headers, print_error=False)
+        except HttpRequestError as e:
+            if self.ctx.live.platform == PlatformType.SOOP:
+                self.done_flag = True
+                return
+            else:
+                log.error("Failed to get playlist", self.ctx.to_err(e))
+                raise
         except Exception as e:
             log.error("Failed to get playlist", self.ctx.to_err(e))
             raise
@@ -208,15 +204,4 @@ class SegmentedStreamRecorder:
 
     def __close_recording(self):
         assert self.ctx is not None
-
-        conn = self.listener.conn
-        if conn is not None:
-
-            def close_conn():
-                self.listener.amqp.close(conn)
-
-            conn.add_callback_threadsafe(close_conn)
-        if self.amqp_thread is not None:
-            self.amqp_thread.join()
-
         self.helper.check_tmp_dir(self.ctx)

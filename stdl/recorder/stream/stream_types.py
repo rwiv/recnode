@@ -17,7 +17,7 @@ class RequestContext(BaseModel):
     def to_err(self, ex: Exception):
         err = error_dict(ex)
         err["stream_url"] = self.stream_url
-        err["video_name"] = self.stream_base_url
+        err["video_name"] = self.video_name
         err["tmp_dir_path"] = self.tmp_dir_path
         self.live.set_dict(err)
         return err
@@ -25,11 +25,10 @@ class RequestContext(BaseModel):
     def to_dict(self):
         result = {
             "stream_url": self.stream_url,
-            "tmp_dir_path": self.tmp_dir_path,
             "video_name": self.video_name,
+            "tmp_dir_path": self.tmp_dir_path,
         }
-        for key, value in self.live.model_dump(mode="json").items():
-            result[key] = value
+        self.live.set_dict(result)
         return result
 
     def get_thread_path(self):

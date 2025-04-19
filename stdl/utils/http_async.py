@@ -28,17 +28,30 @@ class AsyncHttpClient:
         for k, v in headers.items():
             self.headers[k] = v
 
-    async def get_text(self, url: str, headers: dict) -> str:
-        return await self.fetch(method="GET", url=url, headers=headers, text=True)
+    async def get_text(self, url: str, headers: dict, print_error: bool | None = None) -> str:
+        if print_error is None:
+            print_error = self.print_error
+        return await self.fetch(method="GET", url=url, headers=headers, text=True, print_error=print_error)
 
-    async def get_json(self, url: str, headers: dict) -> Any:
-        return await self.fetch(method="GET", url=url, headers=headers, json=True)
+    async def get_json(self, url: str, headers: dict, print_error: bool | None = None) -> Any:
+        if print_error is None:
+            print_error = self.print_error
+        return await self.fetch(method="GET", url=url, headers=headers, json=True, print_error=print_error)
 
-    async def get_bytes(self, url: str, headers: dict) -> bytes:
-        return await self.fetch(method="GET", url=url, headers=headers, raw=True)
+    async def get_bytes(self, url: str, headers: dict, print_error: bool | None = None) -> bytes:
+        if print_error is None:
+            print_error = self.print_error
+        return await self.fetch(method="GET", url=url, headers=headers, raw=True, print_error=print_error)
 
     async def fetch(
-        self, method: str, url: str, headers: dict, text: bool = False, json: bool = False, raw: bool = False
+        self,
+        method: str,
+        url: str,
+        headers: dict,
+        text: bool = False,
+        json: bool = False,
+        raw: bool = False,
+        print_error: bool = True,
     ) -> Any:
         req_headers = self.headers.copy()
         for key, value in headers.items():
@@ -65,11 +78,11 @@ class AsyncHttpClient:
                     err["reason"] = ex.reason
 
                 if self.retry_limit == 0 or retry_cnt == self.retry_limit:
-                    if self.print_error:
-                        log.error("Failed to request", err)
+                    if print_error:
+                        log.error("Failed to request: Retry Limit Exceeded", err)
                     raise
 
-                if self.print_error:
+                if print_error:
                     log.warn(f"Retry request", err)
 
                 if self.retry_delay_sec >= 0:

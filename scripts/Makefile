@@ -30,7 +30,8 @@ helm-stage1-run:
 	helm install stdl-server1 ../kube/server -n stage \
 		--set metadata.namespace=stage \
 		--set metadata.name=stdl-server1 \
-		--set image.tag=0.5.4 \
+		--set image.repository=harbor.rwiv.xyz/test/stdl \
+		--set image.tag=latest \
 		--set server.service.nodePort=32121
 
 helm-stage1-rm:
@@ -40,7 +41,8 @@ helm-stage2-run:
 	helm install stdl-server2 ../kube/server -n stage \
 		--set metadata.namespace=stage \
 		--set metadata.name=stdl-server2 \
-		--set image.tag=0.5.4 \
+		--set image.repository=harbor.rwiv.xyz/test/stdl \
+		--set image.tag=latest \
 		--set server.service.nodePort=32122
 
 helm-stage2-rm:

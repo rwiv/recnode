@@ -1,16 +1,13 @@
 import os
-import threading
 import time
 
 from pyutils import log, path_join
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from .stream_helper import StreamHelper
-from .stream_listener import StreamListener
 from .stream_types import RequestContext
 from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
-from ...common.amqp import AmqpHelper
 from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
 from ...fetcher import PlatformFetcher
@@ -23,7 +20,6 @@ class StreamlinkStreamRecorder:
         args: StreamArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
-        amqp_helper: AmqpHelper,
     ):
         self.url = args.info.url
         self.platform = args.info.platform
@@ -47,8 +43,6 @@ class StreamlinkStreamRecorder:
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
         self.fetcher = PlatformFetcher()
         self.writer = writer
-        self.listener = StreamListener(args.info, self.state, amqp_helper)
-        self.amqp_thread: threading.Thread | None = None
         self.helper = StreamHelper(args, self.state, self.status, writer)
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
@@ -100,12 +94,6 @@ class StreamlinkStreamRecorder:
         )
         if live.platform == PlatformType.TWITCH:
             self.ctx.stream_base_url = None
-
-        # Start AMQP consumer thread
-        self.amqp_thread = threading.Thread(target=self.listener.consume)
-        self.amqp_thread.name = f"Thread-RecorderListener-{self.platform.value}-{live.channel_id}"
-        self.amqp_thread.daemon = True  # AMQP connection should be released on abnormal termination
-        self.amqp_thread.start()
 
         # Start recording
         input_stream: HLSStreamReader = stream.open()
@@ -166,16 +154,6 @@ class StreamlinkStreamRecorder:
 
     def __close_recording(self, stream: HLSStreamReader | None = None):
         assert self.ctx is not None
-
-        conn = self.listener.conn
-        if conn is not None:
-
-            def close_conn():
-                self.listener.amqp.close(conn)
-
-            conn.add_callback_threadsafe(close_conn)
-        if self.amqp_thread is not None:
-            self.amqp_thread.join()
 
         # Close stream
         if stream is not None:
