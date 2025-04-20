@@ -96,7 +96,7 @@ class SegmentedStreamRecorder:
         if live.platform == PlatformType.TWITCH:
             self.ctx.stream_base_url = None
 
-        if self.ctx.headers["Cookie"] is not None:
+        if self.ctx.headers.get("Cookie") is not None:
             log.debug("Using Credentials", self.ctx.to_dict())
 
         # Start recording
