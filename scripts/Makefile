@@ -7,6 +7,25 @@ argo-run:
 	kubectl create -f ../kube/argocd/application.yaml
 
 
+helm-redis-dep:
+	@helm dependency update ./redis
+
+helm-redis-run:
+	helm install stdl-redis ../kube/redis -n media \
+	  -f ../dev/redis-values.yaml \
+
+helm-redis-rm:
+	helm uninstall stdl-redis -n media
+
+delete-redis-pvc:
+	kubectl delete pvc redis-data-stdl-redis-master-0 -n media
+
+print-redis-tls:
+	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['ca\.crt']}" | base64 --decode && echo
+	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['tls\.crt']}" | base64 --decode && echo
+	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['tls\.key']}" | base64 --decode && echo
+
+
 helm-prod1-run:
 	helm install stdl-server1 ../kube/server -n media \
 		--set metadata.name=stdl-server1 \

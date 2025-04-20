@@ -4,6 +4,7 @@ from pydantic import BaseModel, constr
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
+from .env_redis import RedisConfig, read_redis_config
 from .env_stream import StreamConfig, read_stream_config
 from .env_watcher import read_watcher_config, WatcherConfig
 from ..spec import LOCAL_FS_NAME
@@ -17,6 +18,7 @@ class Env(BaseModel):
     tmp_dir_path: constr(min_length=1)
     config_path: constr(min_length=1) | None
     stream: StreamConfig
+    redis: RedisConfig
     amqp: AmqpConfig
     watcher: WatcherConfig
 
@@ -40,6 +42,7 @@ def get_env() -> Env:
         tmp_dir_path=os.getenv("TMP_DIR_PATH"),
         config_path=os.getenv("CONFIG_PATH") or None,
         stream=read_stream_config(),
+        redis=read_redis_config(),
         amqp=read_amqp_config(),
         watcher=read_watcher_config(),
     )

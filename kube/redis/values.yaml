@@ -1,0 +1,33 @@
+metadata:
+  name: stdl-redis
+  namespace: media
+vault:
+  mount: kube
+  path: media/stdl/redis
+  version: 1
+  secretName: stdl-redis-auth
+  refreshAfter: 30s
+domainName: "stdl-redis.rwiv.xyz"
+tls:
+  secretName: stdl-redis-tls
+
+redis:
+  global:
+    storageClass: rook-ceph-block
+  auth:
+    existingSecret: stdl-redis-auth
+    existingSecretPasswordKey: password
+  master:
+    count: 1
+    service:
+      type: NodePort
+      nodePorts:
+        redis: 30211
+  replica:
+    replicaCount: 0
+  tls:
+    enabled: true
+    existingSecret: stdl-redis-tls
+    certCAFilename: ca.crt
+    certFilename: tls.crt
+    certKeyFilename: tls.key
