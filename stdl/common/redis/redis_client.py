@@ -11,8 +11,6 @@ class RedisClient:
             password=conf.password,
             ssl=True,
             ssl_ca_certs=conf.ca_path,
-            ssl_certfile=conf.cert_path,
-            ssl_keyfile=conf.key_path,
             db=0,
         )
 

@@ -27,6 +27,7 @@ redis:
     replicaCount: 0
   tls:
     enabled: true
+    authClients: false
     existingSecret: stdl-redis-tls
     certCAFilename: ca.crt
     certFilename: tls.crt

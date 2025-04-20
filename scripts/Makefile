@@ -20,10 +20,8 @@ helm-redis-rm:
 delete-redis-pvc:
 	kubectl delete pvc redis-data-stdl-redis-master-0 -n media
 
-print-redis-tls:
+print-redis-ca:
 	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['ca\.crt']}" | base64 --decode && echo
-	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['tls\.crt']}" | base64 --decode && echo
-	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['tls\.key']}" | base64 --decode && echo
 
 
 helm-prod1-run:
