@@ -13,7 +13,7 @@ class Env(BaseModel):
     env: constr(min_length=1)
     fs_name: constr(min_length=1)
     fs_config_path: constr(min_length=1) | None
-    out_dir_path: constr(min_length=1)
+    out_dir_path: constr(min_length=1) | None
     tmp_dir_path: constr(min_length=1)
     config_path: constr(min_length=1) | None
     stream: StreamConfig
@@ -36,7 +36,7 @@ def get_env() -> Env:
         env=env,
         fs_name=fs_name,
         fs_config_path=os.getenv("FS_CONFIG_PATH") or None,
-        out_dir_path=os.getenv("OUT_DIR_PATH"),
+        out_dir_path=os.getenv("OUT_DIR_PATH") or None,
         tmp_dir_path=os.getenv("TMP_DIR_PATH"),
         config_path=os.getenv("CONFIG_PATH") or None,
         stream=read_stream_config(),

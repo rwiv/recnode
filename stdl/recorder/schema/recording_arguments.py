@@ -4,7 +4,7 @@ from .recording_schema import StreamInfo
 
 
 class RecordingArgs(BaseModel):
-    out_dir_path: constr(min_length=1)
+    out_dir_path: constr(min_length=1) | None
     use_credentials: bool
 
 

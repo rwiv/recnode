@@ -36,7 +36,6 @@ services:
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
 
-      OUT_DIR_PATH: /app/out
       TMP_DIR_PATH: /app/tmp
 
       AMQP_HOST: "${AMQP_HOST}"
@@ -46,8 +45,6 @@ services:
     entrypoint: python -m stdl server
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
-      - "${OUT_DIR_PATH}:/app/out"
-      - "${TMP_DIR_PATH}:/app/tmp"
     depends_on:
       gluetun1:
         condition: service_healthy

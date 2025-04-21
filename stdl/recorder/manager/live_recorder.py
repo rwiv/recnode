@@ -29,9 +29,7 @@ class LiveRecorder:
         self.use_credentials = recording_args.use_credentials
 
         self.tmp_dir_path = stream_args.tmp_dir_path
-        self.incomplete_dir_path = writer.normalize_base_path(
-            path_join(recording_args.out_dir_path, "incomplete")
-        )
+        self.incomplete_dir_path = path_join(recording_args.out_dir_path, "incomplete")
 
         self.dir_clear_timeout_sec = 180
         self.dir_clear_wait_delay_sec = 1

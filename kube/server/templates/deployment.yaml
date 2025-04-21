@@ -32,8 +32,6 @@ spec:
               value: "{{ .Values.server.service.targetPort }}"
             - name: SEG_SIZE_MB
               value: "{{ .Values.server.segSizeMb }}"
-            - name: OUT_DIR_PATH
-              value: /app/out
             - name: TMP_DIR_PATH
               value: /app/tmp
             - name: FS_NAME
@@ -43,26 +41,15 @@ spec:
                   key: {{ .Values.vault.fs.fsNameKey }}
             - name: FS_CONFIG_PATH
               value: /mnt/fs-configs/fs_conf.yaml
-{{/*            - name: REDIS_HOST*/}}
-{{/*              value: {{ .Values.redis.host }}*/}}
-{{/*            - name: REDIS_PORT*/}}
-{{/*              value: "{{ .Values.redis.port }}"*/}}
-{{/*            - name: REDIS_PASSWORD*/}}
-{{/*              valueFrom:*/}}
-{{/*                secretKeyRef:*/}}
-{{/*                  name: {{ .Values.redis.secretName }}*/}}
-{{/*                  key: {{ .Values.redis.passwordKey }}*/}}
-            - name: AMQP_HOST
-              value: {{ .Values.rabbitmq.host }}
-            - name: AMQP_PORT
-              value: "{{ .Values.rabbitmq.port }}"
-            - name: AMQP_USERNAME
-              value: {{ .Values.rabbitmq.username }}
-            - name: AMQP_PASSWORD
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host }}
+            - name: REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.rabbitmq.secretName }}
-                  key: {{ .Values.rabbitmq.passwordKey }}
+                  name: {{ .Values.redis.secretName }}
+                  key: {{ .Values.redis.passwordKey }}
           volumeMounts:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml

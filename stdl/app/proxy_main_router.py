@@ -27,7 +27,7 @@ class ProxyMainController:
         if file_path is None:
             raise ValueError("Filename is None")
         if self.writer.fs_type == FsType.LOCAL:
-            raise ValueError("FsChunkHandler only supports S3")
+            raise ValueError("Local file system is not supported")
 
         self.__write_file(file_path, data)
 

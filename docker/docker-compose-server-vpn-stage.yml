@@ -30,7 +30,6 @@ services:
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
 
-      OUT_DIR_PATH: /app/out
       TMP_DIR_PATH: /app/tmp
 
       REDIS_HOST: "${REDIS_HOST}"

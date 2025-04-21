@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 import requests
-from pyutils import filename, dirpath
+from pyutils import dirpath
 
 from .fs_config import S3Config
 from .fs_types import FsType
@@ -18,10 +18,6 @@ class ObjectWriter(ABC):
         self.fs_name = fs_name
 
     @abstractmethod
-    def normalize_base_path(self, base_path: str) -> str:
-        pass
-
-    @abstractmethod
     def write(self, path: str, data: bytes) -> None:
         pass
 
@@ -29,9 +25,6 @@ class ObjectWriter(ABC):
 class LocalObjectWriter(ObjectWriter):
     def __init__(self):
         super().__init__(FsType.LOCAL, LOCAL_FS_NAME)
-
-    def normalize_base_path(self, base_path: str) -> str:
-        return base_path
 
     def write(self, path: str, data: bytes) -> None:
         if not Path(dirpath(path)).exists():
@@ -47,9 +40,6 @@ class S3ObjectWriter(ObjectWriter):
         self.bucket_name = conf.bucket_name
         self.__s3 = create_client(self.conf)
 
-    def normalize_base_path(self, base_path: str) -> str:
-        return filename(base_path)
-
     def write(self, path: str, data: bytes):
         self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)
 
@@ -58,9 +48,6 @@ class ProxyObjectWriter(ObjectWriter):
     def __init__(self, endpoint: str, fs_name: str):
         super().__init__(FsType.PROXY, fs_name)
         self.__endpoint = endpoint
-
-    def normalize_base_path(self, base_path: str) -> str:
-        return filename(base_path)
 
     def write(self, path: str, data: bytes) -> None:
         url = f"{self.__endpoint}/api/upload"
