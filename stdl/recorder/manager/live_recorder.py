@@ -75,15 +75,8 @@ class LiveRecorder:
 
     def __record_stream(self):
         try:
-            # Wait until the live streams is obtained
-            streams = self.stream.wait_for_live()
-            if streams is None:
-                log.error("Failed to get live streams")
-                return
-
-            # Start recording
             self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-            asyncio.run(self.stream.record(streams, video_name=self.vid_name))
+            asyncio.run(self.stream.record(video_name=self.vid_name))
         except Exception as e:
             log.error("Recording failed", error_dict(e))
         finally:

@@ -21,12 +21,6 @@ class StreamlinkStreamRecorder:
         incomplete_dir_path: str,
         writer: ObjectWriter,
     ):
-        self.url = args.info.url
-        self.platform = args.info.platform
-
-        self.incomplete_dir_path = incomplete_dir_path
-        self.tmp_base_path = args.tmp_dir_path
-
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
         self.read_buf_size = 4 * 1024 * 1024
@@ -41,9 +35,10 @@ class StreamlinkStreamRecorder:
         self.ctx: RequestContext | None = None
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
-        self.fetcher = PlatformFetcher()
         self.writer = writer
-        self.helper = StreamHelper(args, self.state, self.status, writer)
+        self.helper = StreamHelper(
+            args, self.state, self.status, writer, incomplete_dir_path=incomplete_dir_path
+        )
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         return self.helper.wait_for_live()
@@ -60,45 +55,20 @@ class StreamlinkStreamRecorder:
             status=self.status,
         )
 
-    async def record(self, streams: dict[str, HLSStream], video_name: str):
-        # Get hls stream
+    async def record(self, video_name: str):
+        self.ctx = await self.helper.get_ctx(video_name=video_name)
+        self.http.set_headers(self.ctx.headers)
+
+        # Start recording
+        streams = self.helper.wait_for_live()
+        if streams is None:
+            log.error("Failed to get live streams")
+            raise ValueError("Failed to get live streams")
+
         stream: HLSStream | None = streams.get("best")
         if stream is None:
             raise ValueError("Failed to get best stream")
 
-        # Set http session context
-        stream_url = stream.url
-        headers = {}
-        for k, v in stream.session.http.headers.items():
-            headers[k] = v
-
-        self.http.set_headers(headers)
-        self.fetcher.set_headers(headers)
-
-        live = await self.fetcher.fetch_live_info(self.url)
-        if live is None:
-            raise ValueError("Channel not live")
-
-        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
-        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, video_name)
-        os.makedirs(tmp_dir_path, exist_ok=True)
-
-        self.ctx = RequestContext(
-            stream_url=stream_url,
-            stream_base_url="/".join(stream_url.split("/")[:-1]),
-            video_name=video_name,
-            headers=headers,
-            tmp_dir_path=tmp_dir_path,
-            out_dir_path=out_dir_path,
-            live=live,
-        )
-        if live.platform == PlatformType.TWITCH:
-            self.ctx.stream_base_url = None
-
-        if self.ctx.headers.get("Cookie") is not None:
-            log.debug("Using Credentials", self.ctx.to_dict())
-
-        # Start recording
         input_stream: HLSStreamReader = stream.open()
         log.info("Start Recording", self.ctx.to_dict(with_stream_url=True))
         self.status = RecordingStatus.RECORDING
@@ -139,7 +109,7 @@ class StreamlinkStreamRecorder:
                 log.info("The length of the read data is 0")
                 continue
 
-            tmp_file_path = path_join(tmp_dir_path, f"{self.idx}.ts")
+            tmp_file_path = path_join(self.ctx.tmp_dir_path, f"{self.idx}.ts")
             with open(tmp_file_path, "ab") as f:
                 f.write(data)
             self.idx += 1
@@ -152,7 +122,7 @@ class StreamlinkStreamRecorder:
 
         self.__close_recording()
         log.info("Finish Recording", self.ctx.to_dict())
-        return live
+        return self.ctx.live
 
     def __close_recording(self, stream: HLSStreamReader | None = None):
         assert self.ctx is not None

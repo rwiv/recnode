@@ -1,5 +1,4 @@
 import asyncio
-import os
 import random
 
 import aiofiles
@@ -14,7 +13,6 @@ from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
 from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
-from ...fetcher import PlatformFetcher
 from ...utils import AsyncHttpClient, HttpRequestError
 
 
@@ -25,12 +23,6 @@ class SegmentedStreamRecorder:
         incomplete_dir_path: str,
         writer: ObjectWriter,
     ):
-        self.url = args.info.url
-        self.platform = args.info.platform
-
-        self.incomplete_dir_path = incomplete_dir_path
-        self.tmp_base_path = args.tmp_dir_path
-
         self.min_delay_sec = 0.7
         self.max_delay_sec = 1.2
 
@@ -42,9 +34,10 @@ class SegmentedStreamRecorder:
         self.ctx: RequestContext | None = None
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
-        self.fetcher = PlatformFetcher()
         self.writer = writer
-        self.helper = StreamHelper(args, self.state, self.status, writer)
+        self.helper = StreamHelper(
+            args, self.state, self.status, writer, incomplete_dir_path=incomplete_dir_path
+        )
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         return self.helper.wait_for_live()
@@ -61,43 +54,9 @@ class SegmentedStreamRecorder:
             status=self.status,
         )
 
-    async def record(self, streams: dict[str, HLSStream], video_name: str):
-        # Get hls stream
-        stream: HLSStream | None = streams.get("best")
-        if stream is None:
-            raise ValueError("Failed to get best stream")
-
-        # Set http session context
-        stream_url = stream.url
-        headers = {}
-        for k, v in stream.session.http.headers.items():
-            headers[k] = v
-
-        self.http.set_headers(headers)
-        self.fetcher.set_headers(headers)
-
-        live = await self.fetcher.fetch_live_info(self.url)
-        if live is None:
-            raise ValueError("Channel not live")
-
-        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
-        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, video_name)
-        os.makedirs(tmp_dir_path, exist_ok=True)
-
-        self.ctx = RequestContext(
-            stream_url=stream_url,
-            stream_base_url="/".join(stream_url.split("/")[:-1]),
-            video_name=video_name,
-            headers=headers,
-            tmp_dir_path=tmp_dir_path,
-            out_dir_path=out_dir_path,
-            live=live,
-        )
-        if live.platform == PlatformType.TWITCH:
-            self.ctx.stream_base_url = None
-
-        if self.ctx.headers.get("Cookie") is not None:
-            log.debug("Using Credentials", self.ctx.to_dict())
+    async def record(self, video_name: str):
+        self.ctx = await self.helper.get_ctx(video_name=video_name)
+        self.http.set_headers(self.ctx.headers)
 
         # Start recording
         log.info("Start Recording", self.ctx.to_dict(with_stream_url=True))
@@ -123,7 +82,7 @@ class SegmentedStreamRecorder:
 
         self.__close_recording()
         log.info("Finish Recording", self.ctx.to_dict())
-        return live
+        return self.ctx.live
 
     async def __interval(self, is_init: bool = False):
         assert self.ctx is not None

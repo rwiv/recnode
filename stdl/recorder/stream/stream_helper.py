@@ -14,6 +14,8 @@ from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.streamlink_utils import get_streams
 from ...common.fs import ObjectWriter
+from ...common.spec import PlatformType
+from ...fetcher import PlatformFetcher
 from ...utils import random_string
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
@@ -26,6 +28,7 @@ class StreamHelper:
         state: RecordingState,
         status: RecordingStatus,
         writer: ObjectWriter,
+        incomplete_dir_path: str,
     ):
         self.url = args.info.url
         self.stream_info = args.info
@@ -33,15 +36,63 @@ class StreamHelper:
         self.state = state
         self.status = status
 
+        self.incomplete_dir_path = incomplete_dir_path
+        self.tmp_base_path = args.tmp_dir_path
+
         self.wait_timeout_sec = 30
         self.wait_delay_sec = 1
         self.write_retry_limit = 8
         self.write_retry_delay_sec = 0.5
 
         self.writer = writer
+        self.fetcher = PlatformFetcher()
 
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
+
+    async def get_ctx(self, video_name: str) -> RequestContext:
+        # Wait until the live streams is obtained
+        streams = self.wait_for_live()
+        if streams is None:
+            log.error("Failed to get live streams")
+            raise ValueError("Failed to get live streams")
+
+        stream: HLSStream | None = streams.get("best")
+        if stream is None:
+            raise ValueError("Failed to get best stream")
+
+        # Set http session context
+        stream_url = stream.url
+        headers = {}
+        for k, v in stream.session.http.headers.items():
+            headers[k] = v
+
+        self.fetcher.set_headers(headers)
+
+        live = await self.fetcher.fetch_live_info(self.url)
+        if live is None:
+            raise ValueError("Channel not live")
+
+        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
+        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, video_name)
+        os.makedirs(tmp_dir_path, exist_ok=True)
+
+        ctx = RequestContext(
+            stream_url=stream_url,
+            stream_base_url="/".join(stream_url.split("/")[:-1]),
+            video_name=video_name,
+            headers=headers,
+            tmp_dir_path=tmp_dir_path,
+            out_dir_path=out_dir_path,
+            live=live,
+        )
+        if live.platform == PlatformType.TWITCH:
+            ctx.stream_base_url = None
+
+        if headers.get("Cookie") is not None:
+            log.debug("Using Credentials", ctx.to_dict())
+
+        return ctx
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         retry_cnt = 0
