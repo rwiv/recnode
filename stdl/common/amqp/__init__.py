@@ -2,7 +2,6 @@ import os
 import sys
 
 from .amqp import AmqpHelper, AmqpHelperBlocking, AmqpHelperMock
-from .amqp_utils import create_amqp
 
 targets = ["amqp", "amqp_utils"]
 if os.getenv("PY_ENV") != "prod":

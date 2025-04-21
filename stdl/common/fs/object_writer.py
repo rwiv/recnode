@@ -7,7 +7,7 @@ from pyutils import filename, dirpath
 
 from .fs_config import S3Config
 from .fs_types import FsType
-from ..spec import LOCAL_FS_NAME, PROXY_FS_NAME
+from ..spec import LOCAL_FS_NAME
 from ...common.s3 import create_client
 from ...utils import HttpRequestError
 
@@ -55,8 +55,8 @@ class S3ObjectWriter(ObjectWriter):
 
 
 class ProxyObjectWriter(ObjectWriter):
-    def __init__(self, endpoint: str):
-        super().__init__(FsType.PROXY, PROXY_FS_NAME)
+    def __init__(self, endpoint: str, fs_name: str):
+        super().__init__(FsType.PROXY, fs_name)
         self.__endpoint = endpoint
 
     def normalize_base_path(self, base_path: str) -> str:
@@ -64,8 +64,7 @@ class ProxyObjectWriter(ObjectWriter):
 
     def write(self, path: str, data: bytes) -> None:
         url = f"{self.__endpoint}/api/upload"
-        with open(path, "rb") as f:
-            files = {"file": (filename(path), f)}
-            res = requests.post(url, files=files)
-            if res.status_code >= 400:
-                raise HttpRequestError.from_response("Failed to upload file", res=res)
+        files = {"file": (filename(path), data)}
+        res = requests.post(url, files=files)
+        if res.status_code >= 400:
+            raise HttpRequestError.from_response("Failed to upload file", res=res)

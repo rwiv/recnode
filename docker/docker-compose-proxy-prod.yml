@@ -1,0 +1,21 @@
+services:
+  stdl-proxy:
+    image: harbor.rwiv.xyz/private/stdl:0.5.4
+    container_name: stdl-proxy
+    environment:
+      PY_ENV: prod
+      PROXY_ENABLED: "true"
+
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+    entrypoint: python -m stdl proxy
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+    labels:
+      app: stdl
+      host: ${HOSTNAME}
+    logging:
+      driver: json-file
+      options:
+        labels: app,host
+        tag: "container_image={{.ImageName}},container_name={{.Name}}"

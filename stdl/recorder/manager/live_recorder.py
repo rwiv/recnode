@@ -10,7 +10,6 @@ from pyutils import log, path_join, error_dict
 
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
-from ...common.amqp import AmqpHelper
 from ...common.env import Env
 from ...common.fs import ObjectWriter
 
@@ -22,7 +21,6 @@ class LiveRecorder:
         stream_args: StreamArgs,
         recording_args: RecordingArgs,
         writer: ObjectWriter,
-        amqp_helper: AmqpHelper,
     ):
         self.env = env
         self.channel_id = stream_args.info.uid

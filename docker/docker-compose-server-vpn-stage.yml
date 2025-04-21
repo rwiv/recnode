@@ -7,7 +7,7 @@ services:
     devices:
       - /dev/net/tun:/dev/net/tun
     ports:
-      - "${SERVER_PORT_VPN2}:9083"
+      - "9083:9083"
     volumes:
       - "${OPENVPN_CONFIG_PATH}:/ovpn/client.ovpn"
     environment:
@@ -16,44 +16,46 @@ services:
       - "OPENVPN_USER=${OPENVPN_USER}"
       - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
       - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
+      - DNS_KEEP_NAMESERVER=true
   stdl-vpn:
-    image: harbor.rwiv.xyz/test/stdl:latest
-    container_name: stdl-vpn2
+    image: stdl:latest
+    container_name: stdl-vpn
     environment:
       PY_ENV: prod
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
       STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC}"
       PROXY_ENABLED: "true"
+      PROXY_ENDPOINT: "http://stdl-proxy:9083"
 
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
 
       OUT_DIR_PATH: /app/out
       TMP_DIR_PATH: /app/tmp
+
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_CA_PATH: /app/ca.crt
     entrypoint: python -m stdl server
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
       - "${TMP_DIR_PATH}:/app/tmp"
+      - "${REDIS_CA_PATH}:/app/ca.crt"
     depends_on:
       gluetun:
         condition: service_healthy
     network_mode: container:gluetun
   stdl-proxy:
-    image: harbor.rwiv.xyz/test/stdl:latest
+    image: stdl:latest
     container_name: stdl-proxy
     environment:
       PY_ENV: prod
       PROXY_ENABLED: "true"
-      PROXY_ENDPOINT: "http://stdl-proxy:9083"
 
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
-      OUT_DIR_PATH: /app/out
-      TMP_DIR_PATH: /app/tmp
-      SEG_SIZE_MB: "${SEG_SIZE_MB}"
-    entrypoint: python -m stdl watcher
+    entrypoint: python -m stdl proxy
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
-      - "${OUT_DIR_PATH}:/app/out"
-      - "${TMP_DIR_PATH}:/app/tmp"

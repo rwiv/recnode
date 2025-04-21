@@ -5,15 +5,15 @@ from fastapi import FastAPI
 from pyutils import log
 
 from .proxy_main_router import ProxyMainController
-from ..common.env import get_env
-from ..common.fs import create_fs_writer
+from ..common.env import get_proxy_env
+from ..common.fs import create_proxy_fs_writer
 
 
 def run_proxy():
     log.set_level(logging.DEBUG)
 
-    env = get_env()
-    writer = create_fs_writer(env)
+    env = get_proxy_env()
+    writer = create_proxy_fs_writer(env)
     main_controller = ProxyMainController(writer)
 
     app = FastAPI()

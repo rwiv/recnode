@@ -4,24 +4,17 @@ from pydantic import BaseModel, constr
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_proxy import ProxyConfig, read_proxy_config
-from .env_redis import RedisConfig, read_redis_config
-from .env_stream import StreamConfig, read_stream_config
 from ..spec import LOCAL_FS_NAME
 
 
-class Env(BaseModel):
+class ProxyEnv(BaseModel):
     env: constr(min_length=1)
     fs_name: constr(min_length=1)
     fs_config_path: constr(min_length=1) | None
-    out_dir_path: constr(min_length=1)
-    tmp_dir_path: constr(min_length=1)
-    config_path: constr(min_length=1) | None
-    stream: StreamConfig
-    redis: RedisConfig
     proxy: ProxyConfig
 
 
-def get_env() -> Env:
+def get_proxy_env() -> ProxyEnv:
     env = os.getenv("PY_ENV") or None
     if env is None:
         env = "dev"
@@ -32,14 +25,9 @@ def get_env() -> Env:
     if fs_name is None:
         fs_name = LOCAL_FS_NAME
 
-    return Env(
+    return ProxyEnv(
         env=env,
         fs_name=fs_name,
         fs_config_path=os.getenv("FS_CONFIG_PATH") or None,
-        out_dir_path=os.getenv("OUT_DIR_PATH"),
-        tmp_dir_path=os.getenv("TMP_DIR_PATH"),
-        config_path=os.getenv("CONFIG_PATH") or None,
-        stream=read_stream_config(),
-        redis=read_redis_config(),
         proxy=read_proxy_config(),
     )

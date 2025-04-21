@@ -16,10 +16,10 @@ if __name__ == "__main__":
         from .app import run_server
 
         run_server()
-    elif mode == "watcher":
-        from .app import WatcherRunner
+    elif mode == "proxy":
+        from .app import run_proxy
 
-        WatcherRunner().run()
+        run_proxy()
     else:
         print(f"Unknown mode: {mode}")
         sys.exit(1)

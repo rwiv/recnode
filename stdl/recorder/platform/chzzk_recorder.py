@@ -1,7 +1,6 @@
 from ..manager.live_recorder import LiveRecorder
 from ..schema.recording_arguments import StreamArgs, RecordingArgs, StreamLinkSessionArgs
 from ..schema.recording_schema import StreamInfo
-from ...common.amqp import create_amqp
 from ...common.env import Env
 from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
@@ -32,5 +31,4 @@ class ChzzkLiveRecorder(LiveRecorder):
                 use_credentials=cookies is not None,
             ),
             writer=writer,
-            amqp_helper=create_amqp(env),
         )
