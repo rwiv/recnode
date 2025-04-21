@@ -2,11 +2,14 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+import requests
 from pyutils import filename, dirpath
 
 from .fs_config import S3Config
 from .fs_types import FsType
+from ..spec import LOCAL_FS_NAME, PROXY_FS_NAME
 from ...common.s3 import create_client
+from ...utils import HttpRequestError
 
 
 class ObjectWriter(ABC):
@@ -24,9 +27,8 @@ class ObjectWriter(ABC):
 
 
 class LocalObjectWriter(ObjectWriter):
-    def __init__(self, fs_name: str, chunk_size: int = 4096):
-        super().__init__(FsType.LOCAL, fs_name)
-        self.chunk_size = chunk_size
+    def __init__(self):
+        super().__init__(FsType.LOCAL, LOCAL_FS_NAME)
 
     def normalize_base_path(self, base_path: str) -> str:
         return base_path
@@ -50,3 +52,20 @@ class S3ObjectWriter(ObjectWriter):
 
     def write(self, path: str, data: bytes):
         self.__s3.put_object(Bucket=self.bucket_name, Key=path, Body=data)
+
+
+class ProxyObjectWriter(ObjectWriter):
+    def __init__(self, endpoint: str):
+        super().__init__(FsType.PROXY, PROXY_FS_NAME)
+        self.__endpoint = endpoint
+
+    def normalize_base_path(self, base_path: str) -> str:
+        return base_path
+
+    def write(self, path: str, data: bytes) -> None:
+        url = f"{self.__endpoint}/api/upload"
+        with open(path, "rb") as f:
+            files = {"file": (filename(path), f)}
+            res = requests.post(url, files=files)
+            if res.status_code >= 400:
+                raise HttpRequestError.from_response("Failed to upload file", res=res)

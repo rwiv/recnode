@@ -4,6 +4,7 @@ from pydantic import BaseModel, constr
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_amqp import AmqpConfig, read_amqp_config
+from .env_proxy import ProxyConfig, read_proxy_config
 from .env_redis import RedisConfig, read_redis_config
 from .env_stream import StreamConfig, read_stream_config
 from .env_watcher import read_watcher_config, WatcherConfig
@@ -21,6 +22,7 @@ class Env(BaseModel):
     redis: RedisConfig
     amqp: AmqpConfig
     watcher: WatcherConfig
+    proxy: ProxyConfig
 
 
 def get_env() -> Env:
@@ -45,4 +47,5 @@ def get_env() -> Env:
         redis=read_redis_config(),
         amqp=read_amqp_config(),
         watcher=read_watcher_config(),
+        proxy=read_proxy_config(),
     )

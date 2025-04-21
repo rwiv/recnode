@@ -83,17 +83,7 @@ class LiveRecorder:
             self.__close()
 
     def __close(self):
-        try:
-            # Wait for tmp dir to be cleared
-            if self.env.watcher.enabled:
-                log.debug("Waiting for dir to be cleared")
-                self.__wait_for_clear_dir()
-                log.debug("Dir cleared")
-        except Exception as e:
-            log.error("Failed to close", error_dict(e))
-        finally:
-            # Set done flag
-            self.is_done = True
+        self.is_done = True
 
     def __wait_for_clear_dir(self):
         if self.vid_name is None:

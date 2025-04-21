@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .common_constants import LOCAL_FS_NAME
+from .common_constants import LOCAL_FS_NAME, PROXY_FS_NAME
 from .common_types import PlatformType
 
 targets = [

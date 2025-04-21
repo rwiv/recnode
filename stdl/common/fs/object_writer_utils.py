@@ -2,24 +2,22 @@ from pathlib import Path
 
 from .fs_config import read_fs_config_by_file
 from .fs_types import FsType
-from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter
+from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter, ProxyObjectWriter
 from ..env import Env
-from ..spec import LOCAL_FS_NAME
 from ...common.s3 import disable_warning_log
 
 
 def create_fs_writer(env: Env, is_watcher: bool = False) -> ObjectWriter:
-    if env.watcher.enabled:
-        if env.fs_name == LOCAL_FS_NAME:
-            raise ValueError("WatcherRunner not supported for local fs")
-        if not is_watcher:
-            return LocalObjectWriter(LOCAL_FS_NAME)
+    if env.proxy.enabled and not is_watcher:
+        if env.proxy.endpoint is None:
+            raise ValueError("Proxy endpoint is not set")
+        return ProxyObjectWriter(env.proxy.endpoint)
 
     fs_name = env.fs_name
     fs_conf_path = env.fs_config_path
 
     if fs_conf_path is None or not Path(fs_conf_path).exists():
-        return LocalObjectWriter(LOCAL_FS_NAME)
+        return LocalObjectWriter()
     fs_conf = None
     for conf in read_fs_config_by_file(fs_conf_path):
         if conf.name == fs_name:
@@ -35,4 +33,4 @@ def create_fs_writer(env: Env, is_watcher: bool = False) -> ObjectWriter:
             disable_warning_log()
         return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3)
     else:
-        return LocalObjectWriter(LOCAL_FS_NAME)
+        return LocalObjectWriter()
