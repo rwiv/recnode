@@ -28,7 +28,6 @@ class ChzzkLive(BaseModel):
             channel_name=self.channel.channel_name,
             live_id=str(self.live_id),
             live_title=self.live_title,
-            live_started_at=self.open_date,
         )
 
 

@@ -35,7 +35,6 @@ class SoopStationResponse(BaseModel):
             channel_name=self.station.user_nick,
             live_id=str(self.broad.broad_no),
             live_title=self.broad.broad_title,
-            live_started_at=self.station.broad_start,
         )
 
 

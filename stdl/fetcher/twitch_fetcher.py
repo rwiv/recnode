@@ -27,7 +27,6 @@ class TwitchLiveInfo(BaseModel):
             channel_name=self.channel_display,
             live_id=self.live_id,
             live_title=self.title,
-            live_started_at=self.created_at,
         )
 
 
@@ -104,7 +103,6 @@ class TwitchFetcher:
             channel_name=userOrError.displayName,
             live_id=user.stream.id,
             live_title=user.lastBroadcast.title,
-            live_started_at=user.stream.createdAt,
         )
 
 

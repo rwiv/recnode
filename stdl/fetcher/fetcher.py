@@ -12,7 +12,6 @@ class LiveInfo(BaseModel):
     channel_name: str
     live_id: str
     live_title: str
-    live_started_at: datetime
 
     def set_dict(self, dct: dict, with_live_title: bool = False, with_live_started_at: bool = False):
         dct["platform"] = self.platform.value
@@ -21,8 +20,6 @@ class LiveInfo(BaseModel):
         dct["live_id"] = self.live_id
         if with_live_title:
             dct["live_title"] = self.live_title
-        if with_live_started_at:
-            dct["live_started_at"] = self.live_started_at.isoformat()
 
 
 class AbstractFetcher(ABC):
