@@ -40,7 +40,6 @@ services:
     entrypoint: python -m stdl server
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
-      - "${OUT_DIR_PATH}:/app/out"
       - "${TMP_DIR_PATH}:/app/tmp"
       - "${REDIS_CA_PATH}:/app/ca.crt"
     depends_on:

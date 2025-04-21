@@ -60,11 +60,11 @@ class ProxyObjectWriter(ObjectWriter):
         self.__endpoint = endpoint
 
     def normalize_base_path(self, base_path: str) -> str:
-        return base_path
+        return filename(base_path)
 
     def write(self, path: str, data: bytes) -> None:
         url = f"{self.__endpoint}/api/upload"
-        files = {"file": (filename(path), data)}
+        files = {"file": (path, data)}
         res = requests.post(url, files=files)
         if res.status_code >= 400:
             raise HttpRequestError.from_response("Failed to upload file", res=res)

@@ -1,7 +1,7 @@
 import time
 
 from fastapi import APIRouter, UploadFile, File
-from pyutils import log, error_dict, split_path, path_join
+from pyutils import log, error_dict
 
 from ..common.fs import ObjectWriter, FsType
 
@@ -29,16 +29,9 @@ class ProxyMainController:
         if self.writer.fs_type == FsType.LOCAL:
             raise ValueError("FsChunkHandler only supports S3")
 
-        chunks = split_path(file_path)
-        file_name = chunks[-1]
-        video_name = chunks[-2]
-        chanel_id = chunks[-3]
-        platform_name = chunks[-4]
+        self.__write_file(file_path, data)
 
-        out_file_path = path_join("incomplete", platform_name, chanel_id, video_name, file_name)
-        self.__write_file(data, out_file_path)
-
-    def __write_file(self, data: bytes, out_file_path: str):
+    def __write_file(self, out_file_path: str, data: bytes):
         for retry_cnt in range(self.write_retry_limit + 1):
             try:
                 self.writer.write(out_file_path, data)

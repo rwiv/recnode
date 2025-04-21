@@ -98,7 +98,7 @@ class StreamHelper:
         retry_cnt = 0
         start_time = time.time()
         info = {
-            "platform": self.stream_info.platform,
+            "platform": self.stream_info.platform.value,
             "channel_id": self.stream_info.uid,
         }
         while True:
