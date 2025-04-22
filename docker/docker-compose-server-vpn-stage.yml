@@ -23,7 +23,6 @@ services:
     environment:
       PY_ENV: prod
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
-      STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC}"
       PROXY_ENABLED: "true"
       PROXY_ENDPOINT: "http://stdl-proxy:9083"
 

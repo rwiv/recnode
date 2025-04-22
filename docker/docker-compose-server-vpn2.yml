@@ -30,7 +30,6 @@ services:
     environment:
       PY_ENV: prod
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
-      STREAM_TIMEOUT_SEC: "${STREAM_TIMEOUT_SEC}"
       WATCHER_ENABLED: "true"
 
       FS_NAME: "${FS_NAME}"
