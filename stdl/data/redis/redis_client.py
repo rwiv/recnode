@@ -1,6 +1,6 @@
 from redis import Redis
 
-from ..env import RedisConfig
+from ...common.env import RedisConfig
 
 
 class RedisClient:

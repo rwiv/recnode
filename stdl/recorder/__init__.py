@@ -2,7 +2,7 @@ import os
 import sys
 
 from .manager.recording_scheduler import RecordingScheduler
-from .platform.recorder_resolver import RecorderResolver
+from .manager.recorder_resolver import RecorderResolver
 from .schema.recording_constants import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME
 from .schema.exit_message import ExitMessage, ExitCommand
 from .schema.done_message import DoneMessage, DoneStatus

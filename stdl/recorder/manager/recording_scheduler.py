@@ -4,7 +4,7 @@ from threading import Thread
 from pyutils import log, error_dict
 
 from .live_recorder import LiveRecorder
-from ..platform.recorder_resolver import RecorderResolver
+from ..manager.recorder_resolver import RecorderResolver
 from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
 from ...common.fs import create_fs_writer

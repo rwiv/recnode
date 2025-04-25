@@ -20,9 +20,10 @@ delete-prod-redis-pvc:
 	kubectl delete pvc redis-data-stdl-redis-master-0 -n media
 
 helm-stage-redis-run:
-	helm install stdl-redis ../kube/redis -n stage \
+	helm install stdl-redis ../kube/redis -n stage -f ../dev/redis-values-stage.yaml \
 		--set metadata.namespace=stage \
-		--set redis.master.service.nodePorts.redis=32125
+		--set domainName="stdl-redis-stage.rwiv.xyz" \
+		--set redis.master.service.nodePorts.redis=32133
 
 helm-stage-redis-rm:
 	helm uninstall stdl-redis -n stage
