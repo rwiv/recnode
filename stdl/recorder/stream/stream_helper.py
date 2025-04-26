@@ -13,9 +13,9 @@ from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.streamlink_utils import get_streams
-from ...common.fs import ObjectWriter
 from ...common.spec import PlatformType
 from ...fetcher import PlatformFetcher
+from ...file import ObjectWriter
 from ...utils import random_string
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"

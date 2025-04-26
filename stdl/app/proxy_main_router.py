@@ -3,7 +3,7 @@ import time
 from fastapi import APIRouter, UploadFile, File
 from pyutils import log, error_dict
 
-from ..common.fs import ObjectWriter, FsType
+from ..file import ObjectWriter, FsType
 
 
 class ProxyMainController:

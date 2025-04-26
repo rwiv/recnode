@@ -11,7 +11,7 @@ from pyutils import log, path_join, error_dict
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common.env import Env
-from ...common.fs import ObjectWriter
+from ...file import ObjectWriter
 
 
 class LiveRecorder:

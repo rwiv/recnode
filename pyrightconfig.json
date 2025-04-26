@@ -1,5 +1,5 @@
 {
-  "include": ["stdl"],
+  "include": ["stdl", "tests"],
   "exclude": ["**/node_modules", "**/__pycache__"],
   "ignore": [],
   "venvPath": ".",

@@ -2,7 +2,7 @@ import boto3
 import urllib3
 from mypy_boto3_s3 import S3Client
 
-from ..fs import S3Config
+from ..fs.fs_config import S3Config
 
 
 def create_client(conf: S3Config) -> S3Client:

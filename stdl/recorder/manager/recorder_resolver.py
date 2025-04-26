@@ -2,9 +2,9 @@ from .live_recorder import LiveRecorder
 from ..schema.recording_arguments import StreamArgs, StreamLinkSessionArgs, RecordingArgs
 from ..schema.recording_schema import StreamInfo
 from ...common.env import Env
-from ...common.fs import ObjectWriter
 from ...common.request import RequestType, AppRequest
 from ...common.spec import PlatformType
+from ...file import ObjectWriter
 
 
 class RecorderResolver:

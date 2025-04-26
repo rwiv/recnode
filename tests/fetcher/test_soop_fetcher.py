@@ -11,5 +11,8 @@ channel_id = ""
 async def test_soop_fetcher():
     print()
     fetcher = SoopFetcher()
-    info = await fetcher.fetch_live_info(channel_id, Streamlink().http.headers)
+    headers = {}
+    for k, v in Streamlink().http.headers:
+        headers[k] = v
+    info = await fetcher.fetch_live_info(channel_id, headers=headers)
     print(info)

@@ -3,8 +3,8 @@ import logging
 from pyutils import log
 
 from ..common.env import get_env
-from ..common.fs import create_fs_writer
 from ..common.request import read_request_by_env, RequestType
+from ..file import create_fs_writer
 from ..recorder import RecorderResolver, disable_streamlink_log
 
 

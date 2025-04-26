@@ -7,9 +7,9 @@ from .live_recorder import LiveRecorder
 from ..manager.recorder_resolver import RecorderResolver
 from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
-from ...common.fs import create_fs_writer
 from ...common.request import AppRequest
 from ...common.spec import PlatformType
+from ...file import create_fs_writer
 
 
 class RecordingScheduler:

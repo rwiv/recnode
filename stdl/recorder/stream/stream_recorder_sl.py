@@ -8,9 +8,7 @@ from .stream_helper import StreamHelper
 from .stream_types import RequestContext
 from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
-from ...common.fs import ObjectWriter
-from ...common.spec import PlatformType
-from ...fetcher import PlatformFetcher
+from ...file import ObjectWriter
 from ...utils import AsyncHttpClient
 
 

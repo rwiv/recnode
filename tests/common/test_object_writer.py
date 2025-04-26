@@ -1,7 +1,6 @@
 from pyutils import path_join, find_project_root
 
-from stdl.common.fs import read_fs_config_by_file, S3ObjectWriter
-from stdl.common.fs.fs_config import FsConfig
+from stdl.file import read_fs_config_by_file, S3ObjectWriter, FsConfig
 
 fs_name = "minio"
 fs_configs = read_fs_config_by_file(path_join(find_project_root(), "dev", "fs_conf_test.yaml"))

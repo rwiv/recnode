@@ -7,7 +7,7 @@ from pyutils import log, error_dict
 from ..schema.exit_message import ExitMessage, ExitCommand
 from ..schema.recording_constants import EXIT_QUEUE_PREFIX
 from ..schema.recording_schema import RecordingState, StreamInfo
-from ...common.amqp import AmqpHelper
+from ...utils.amqp import AmqpHelper
 
 
 class StreamListener:
