@@ -20,4 +20,4 @@ def run_server():
     app = FastAPI()
     app.include_router(main_controller.router)
 
-    uvicorn.run(app, port=9083, host="0.0.0.0")
+    uvicorn.run(app, port=env.port, host="0.0.0.0", access_log=False)

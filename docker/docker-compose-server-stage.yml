@@ -1,0 +1,24 @@
+services:
+  stdl-server1:
+    image: stdl:latest
+    container_name: stdl-server1
+    environment:
+      PY_ENV: prod
+      SERVER_PORT: "${SERVER_PORT}"
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
+
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+
+      TMP_DIR_PATH: /app/tmp
+
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_CA_PATH: /app/ca.crt
+    entrypoint: python -m stdl server
+    ports:
+      - "13201:${SERVER_PORT}"
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "../stdl:/app/stdl"

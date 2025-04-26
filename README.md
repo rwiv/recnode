@@ -4,6 +4,8 @@ live **st**ream **d**own**l**oader
 
 ## modules
 
+### module list
+
 - entry point
     - `app`
 - main modules
@@ -16,7 +18,7 @@ live **st**ream **d**own**l**oader
     - `utils`: 아무 모듈도 의존하지 않는 범용 모듈
     - `common`: `utils` 모듈만을 의존하는 범용 모듈
 
-### dependency
+### module dependency
 
 ```mermaid
 graph TD
