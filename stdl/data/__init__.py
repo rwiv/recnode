@@ -1,7 +1,8 @@
 import os
 import sys
 
-from .redis.redis_client import RedisClient
+from .redis.redis_map import RedisMap
+from .redis.redis_utils import create_redis_client
 
 targets = [
     "redis",

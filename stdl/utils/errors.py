@@ -1,9 +1,16 @@
 import requests
 
 
-class HttpRequestError(Exception):
-    def __init__(self, message: str, status: int, url: str, method: str | None, reason: str | None = None):
+class HttpError(Exception):
+    def __init__(self, status: int, message: str):
         super().__init__(message)
+        self.status = status
+        self.message = message
+
+
+class HttpRequestError(HttpError):
+    def __init__(self, message: str, status: int, url: str, method: str | None, reason: str | None = None):
+        super().__init__(status, message)
         self.message = message
         self.status = status
         self.url = url
