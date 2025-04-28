@@ -42,7 +42,7 @@ class BatchRunner:
 
         state = get_state(conf)
         recorder = self.recorder_resolver.create_recorder(state=state)
-        recorder.record(state=None, block=True)
+        recorder.record(state=state, block=True)
 
 
 def get_state(conf: BatchConfig):
@@ -62,7 +62,7 @@ def get_state(conf: BatchConfig):
         headers[k] = v
 
     fetcher = PlatformFetcher()
-    if len(fetcher.headers) > 0:
+    if len(fetcher.headers) == 0:
         fetcher.set_headers(headers)
 
     live = asyncio.run(fetcher.fetch_live_info(conf.url))

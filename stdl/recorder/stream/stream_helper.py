@@ -2,7 +2,6 @@ import os
 import tarfile
 import threading
 import time
-from datetime import datetime
 from pathlib import Path
 
 from aiofiles import os as aioos
@@ -53,14 +52,11 @@ class StreamHelper:
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
 
-    async def get_ctx(self, state: LiveState | None) -> RequestContext:
-        if state is None:
-            return await self.get_ctx_with_fetch()
-
+    async def get_ctx(self, state: LiveState) -> RequestContext:
         headers = {"User-Agent": FIREFOX_USER_AGENT}
         if state.cookie is not None:
             headers["Cookie"] = state.cookie
-        if len(self.fetcher.headers) > 0:
+        if len(self.fetcher.headers) == 0:
             self.fetcher.set_headers(headers)
 
         live = LiveInfo(
@@ -85,54 +81,6 @@ class StreamHelper:
             stream_url=state.stream_url,
             stream_base_url=stream_base_url,
             video_name=state.video_name,
-            headers=headers,
-            tmp_dir_path=tmp_dir_path,
-            out_dir_path=out_dir_path,
-            live=live,
-        )
-
-        if headers.get("Cookie") is not None:
-            log.debug("Using Credentials", ctx.to_dict())
-
-        return await self.get_ctx_with_fetch()
-
-    async def get_ctx_with_fetch(self) -> RequestContext:
-        # Wait until the live streams is obtained
-        streams = self.wait_for_live()
-        if streams is None:
-            log.error("Failed to get live streams")
-            raise ValueError("Failed to get live streams")
-
-        stream: HLSStream | None = streams.get("best")
-        if stream is None:
-            raise ValueError("Failed to get best stream")
-
-        # Set http session context
-        stream_url = stream.url
-        headers = {}
-        for k, v in stream.session.http.headers.items():
-            headers[k] = v
-
-        if len(self.fetcher.headers) > 0:
-            self.fetcher.set_headers(headers)
-
-        live = await self.fetcher.fetch_live_info(self.url)
-        if live is None:
-            raise ValueError("Channel not live")
-
-        video_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, video_name)
-        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
-        os.makedirs(tmp_dir_path, exist_ok=True)
-
-        stream_base_url = None
-        if live.platform != PlatformType.TWITCH:
-            stream_base_url = "/".join(stream_url.split("/")[:-1])
-        ctx = RequestContext(
-            live_url=self.url,
-            stream_url=stream_url,
-            stream_base_url=stream_base_url,
-            video_name=video_name,
             headers=headers,
             tmp_dir_path=tmp_dir_path,
             out_dir_path=out_dir_path,

@@ -46,7 +46,7 @@ class LiveRecorder:
     def get_state(self):
         return self.stream.get_status()
 
-    def record(self, state: LiveState | None, block: bool = True):
+    def record(self, state: LiveState, block: bool = True):
         if self.env.env == "prod" and state is None:
             raise ValueError("State is None in prod env")
 
@@ -70,7 +70,7 @@ class LiveRecorder:
                     break
                 time.sleep(1)
 
-    def __record_stream(self, state: LiveState | None):
+    def __record_stream(self, state: LiveState):
         try:
             asyncio.run(self.stream.record(state))
         except Exception as e:

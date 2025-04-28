@@ -55,7 +55,7 @@ class StreamlinkStreamRecorder:
             status=self.status,
         )
 
-    async def record(self, state: LiveState | None):
+    async def record(self, state: LiveState):
         self.ctx = await self.helper.get_ctx(state)
         self.http.set_headers(self.ctx.headers)
 

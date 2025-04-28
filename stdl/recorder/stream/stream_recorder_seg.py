@@ -3,7 +3,6 @@ import random
 
 import aiofiles
 from pyutils import log, path_join
-from streamlink.stream.hls.hls import HLSStream
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
 
@@ -53,7 +52,7 @@ class SegmentedStreamRecorder:
             status=self.status,
         )
 
-    async def record(self, state: LiveState | None):
+    async def record(self, state: LiveState):
         self.ctx = await self.helper.get_ctx(state)
         self.http.set_headers(self.ctx.headers)
 
