@@ -1,3 +1,4 @@
+import requests
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, constr
 
@@ -18,12 +19,16 @@ class MainController:
 
         self.router = APIRouter(prefix="/api")
         self.router.add_api_route("/health", self.health, methods=["GET"])
+        self.router.add_api_route("/my-ip", self.my_ip, methods=["GET"])
         self.router.add_api_route("/recordings/{record_id}", self.record, methods=["POST"])
         self.router.add_api_route("/recordings/{record_id}", self.cancel, methods=["DELETE"])
         self.router.add_api_route("/recordings", self.get_status, methods=["GET"])
 
     def health(self):
         return {"status": "UP"}
+
+    def my_ip(self):
+        return requests.get("https://api.ipify.org").text
 
     def record(self, record_id: str):
         state = self.__live_state_service.get(record_id)

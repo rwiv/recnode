@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.vpn.name }}
+  namespace: {{ .Values.metadata.namespace }}
+spec:
+  selector:
+    app: {{ .Values.metadata.appName }}
+    sub: {{ .Values.vpn.name }}
+    {{ if .Values.nodeName }}
+    node: {{ .Values.nodeName }}
+    {{ end }}
+  type: {{ .Values.server.service.type }}
+  ports:
+    - port: {{ .Values.server.service.port }}
+      targetPort: {{ .Values.server.service.targetPort }}
+      {{ if .Values.vpn.service.nodePort }}
+      nodePort: {{ .Values.vpn.service.nodePort }}
+      {{ end }}

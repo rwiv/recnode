@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Values.global.name }}-{{ .Values.global.suffix }}
-  namespace: {{ .Values.global.namespace }}
-data:
-  client.ovpn: |
-{{ .Files.Get .Values.ovpn.confFilePath | indent 4 }}

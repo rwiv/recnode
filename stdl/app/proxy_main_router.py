@@ -1,5 +1,6 @@
 import time
 
+import requests
 from fastapi import APIRouter, UploadFile, File
 from pyutils import log, error_dict
 
@@ -15,10 +16,14 @@ class ProxyMainController:
 
         self.router = APIRouter(prefix="/api")
         self.router.add_api_route("/health", self.health, methods=["GET"])
+        self.router.add_api_route("/my-ip", self.my_ip, methods=["GET"])
         self.router.add_api_route("/upload", self.upload, methods=["POST"])
 
     def health(self):
         return {"status": "UP"}
+
+    def my_ip(self):
+        return requests.get("https://api.ipify.org").text
 
     async def upload(self, file: UploadFile = File(...)):
         data = await file.read()

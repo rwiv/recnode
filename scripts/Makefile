@@ -18,10 +18,17 @@ create-prod-secrets:
 	-@kubectl create secret generic stdl-fs -n media \
 	  --from-file=fs-name=../dev/secrets/fs/fs-name.txt \
 	  --from-file=fs_conf.yaml=../dev/secrets/fs/fs_conf.yaml
+	-@kubectl create secret generic nordvpn-credentials -n media \
+	  --from-file=username=../dev/secrets/nordvpn-credentials/username.txt \
+	  --from-file=password=../dev/secrets/nordvpn-credentials/password.txt
+	-@kubectl create secret generic nordvpn-vpn -n media \
+	  --from-file=client.ovpn=../dev/secrets/nordvpn-vpn/client.ovpn
 
 delete-prod-secrets:
 	-@kubectl delete secret stdl-redis-auth -n media
 	-@kubectl delete secret stdl-fs -n media
+	-@kubectl delete secret nordvpn-credentials -n media
+	-@kubectl delete secret nordvpn-vpn -n media
 
 create-stage-secrets:
 	-@kubectl create secret generic stdl-redis-auth -n stage \
@@ -29,10 +36,17 @@ create-stage-secrets:
 	-@kubectl create secret generic stdl-fs -n stage \
 	  --from-file=fs-name=../dev/secrets/fs/fs-name.txt \
 	  --from-file=fs_conf.yaml=../dev/secrets/fs/fs_conf.yaml
+	-@kubectl create secret generic nordvpn-credentials -n stage \
+	  --from-file=username=../dev/secrets/nordvpn-credentials/username.txt \
+	  --from-file=password=../dev/secrets/nordvpn-credentials/password.txt
+	-@kubectl create secret generic nordvpn-vpn -n stage \
+	  --from-file=client.ovpn=../dev/secrets/nordvpn-vpn/client.ovpn
 
 delete-stage-secrets:
 	-@kubectl delete secret stdl-redis-auth -n stage
 	-@kubectl delete secret stdl-fs -n stage
+	-@kubectl delete secret nordvpn-credentials -n stage
+	-@kubectl delete secret nordvpn-vpn -n stage
 
 ## redis
 helm-redis-dep:
@@ -105,3 +119,17 @@ helm-stage-server2-run:
 
 helm-stage-server2-rm:
 	helm uninstall stdl-server2 -n stage
+
+
+# server-vpn
+helm-stage-proxy-run:
+	helm install stdl-proxy ../kube/proxy -n stage \
+		--set metadata.namespace=stage \
+		--set metadata.name=stdl-proxy52 \
+		--set image.repository=harbor.rwiv.xyz/test/stdl \
+		--set image.tag=latest \
+		--set server.service.nodePort=32124 \
+		--set nodeName=vm-52
+
+helm-stage-proxy-rm:
+	helm uninstall stdl-proxy -n stage

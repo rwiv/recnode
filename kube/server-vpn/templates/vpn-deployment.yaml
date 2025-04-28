@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.vpn.name }}
+  namespace: {{ .Values.metadata.namespace }}
+spec:
+  replicas: {{ .Values.server.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.metadata.appName }}
+      sub: {{ .Values.vpn.name }}
+      {{ if .Values.nodeName }}
+      node: {{ .Values.nodeName }}
+      {{ end }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.metadata.appName }}
+        sub: {{ .Values.vpn.name }}
+        {{ if .Values.nodeName }}
+        node: {{ .Values.nodeName }}
+        {{ end }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{ if .Values.nodeName }}
+      nodeName: {{ .Values.nodeName }}
+      {{ end }}
+      containers:
+        - name: gluetun
+          image: {{ .Values.gluetun.repository }}:{{ .Values.gluetun.tag }}
+          ports:
+            - containerPort: {{ .Values.server.service.targetPort }}
+          securityContext:
+            capabilities:
+              add: [ "NET_ADMIN" ]
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              value: "custom"
+            - name: VPN_TYPE
+              value: "openvpn"
+            - name: OPENVPN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.nordvpn.credentials.name }}
+                  key: {{ .Values.secret.nordvpn.credentials.keys.username }}
+            - name: OPENVPN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.secret.nordvpn.credentials.name }}
+                  key: {{ .Values.secret.nordvpn.credentials.keys.password }}
+            - name: OPENVPN_CUSTOM_CONFIG
+              value: "/ovpn/{{ .Values.secret.nordvpn.vpn.keys.filename }}"
+            - name: DNS_KEEP_NAMESERVER
+              value: "on"
+            - name: FIREWALL_OUTBOUND_SUBNETS
+              value: "10.0.0.0/8"
+            - name: FIREWALL_INPUT_PORTS
+              value: "{{ .Values.server.service.targetPort }}"
+          volumeMounts:
+            - name: ovpn-conf
+              mountPath: "/ovpn/{{ .Values.secret.nordvpn.vpn.keys.filename }}"
+              subPath: {{ .Values.secret.nordvpn.vpn.keys.filename }}
+              readOnly: true
+        - name: {{ .Values.server.containerName }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          workingDir: "/app"
+          command: ["python", "-m", "stdl", "server"]
+          env:
+            - name: PY_ENV
+              value: prod
+            - name: SERVER_PORT
+              value: "{{ .Values.server.service.targetPort }}"
+            - name: PROXY_ENABLED
+              value: "true"
+            - name: PROXY_ENDPOINT
+              value: {{ .Values.server.proxyEndpoint }}
+            - name: SEG_SIZE_MB
+              value: "{{ .Values.server.segSizeMb }}"
+            - name: TMP_DIR_PATH
+              value: /app/tmp
+            - name: FS_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.server.secrets.fs.name }}
+                  key: {{ .Values.server.secrets.fs.fsNameKey }}
+            - name: FS_CONFIG_PATH
+              value: /mnt/fs-configs/fs_conf.yaml
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host }}
+            - name: REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.auth.secretName }}
+                  key: {{ .Values.redis.auth.passwordKey }}
+            - name: REDIS_CA_PATH
+              value: /mnt/redis-tls/ca.crt
+          volumeMounts:
+            - name: fs-configs
+              mountPath: /mnt/fs-configs/fs_conf.yaml
+              subPath: fs_conf.yaml
+            - name: redis-tls
+              mountPath: /mnt/redis-tls/ca.crt
+              subPath: ca.crt
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecret }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: fs-configs
+          secret:
+            secretName: {{ .Values.server.secrets.fs.name }}
+        - name: redis-tls
+          secret:
+            secretName: {{ .Values.redis.tls.secretName }}
+        - name: ovpn-conf
+          secret:
+            secretName: {{ .Values.secret.nordvpn.vpn.name }}

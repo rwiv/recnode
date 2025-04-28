@@ -1,0 +1,56 @@
+metadata:
+  name: stdl
+  appName: stdl
+  namespace: media
+vpn:
+  name: stdl-vpn
+  service:
+    nodePort: 30216
+
+image:
+  repository: harbor.rwiv.xyz/private/stdl
+  tag: 0.0.0
+  pullSecret: image-pull-secret
+gluetun:
+  repository: qmcgaw/gluetun
+  tag: v3.40
+
+affinity: {}
+podLabels: {}
+nodeName: ~
+
+secret:
+  nordvpn:
+    credentials:
+      name: nordvpn-credentials
+      keys:
+        username: username
+        password: password
+    vpn:
+      name: nordvpn-vpn
+      keys:
+        filename: client.ovpn
+
+redis:
+  host: stdl-redis.rwiv.xyz
+  port: 30211
+  auth:
+    secretName: stdl-redis-auth
+    passwordKey: password
+  tls:
+    secretName: stdl-redis-tls
+
+server:
+  replicas: 1
+  containerName: stdl-server
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 9083
+    nodePort: 30215
+  segSizeMb: 17
+  proxyEndpoint: stdl-proxy.media.svc.cluster.local
+  secrets:
+    fs:
+      name: stdl-fs
+      fsNameKey: fs-name

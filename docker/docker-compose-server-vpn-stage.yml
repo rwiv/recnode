@@ -24,7 +24,7 @@ services:
       PY_ENV: prod
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
       PROXY_ENABLED: "true"
-      PROXY_ENDPOINT: "http://stdl-proxy:9083"
+      PROXY_ENDPOINT: "http://stdl-proxy:9084"
 
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
@@ -49,6 +49,7 @@ services:
     container_name: stdl-proxy
     environment:
       PY_ENV: prod
+      SERVER_PORT: "9084"
       PROXY_ENABLED: "true"
 
       FS_NAME: "${FS_NAME}"
