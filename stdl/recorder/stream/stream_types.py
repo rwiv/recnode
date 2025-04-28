@@ -6,6 +6,7 @@ from ...fetcher import LiveInfo
 
 
 class RequestContext(BaseModel):
+    id: str
     live_url: str
     stream_url: str
     stream_base_url: str | None
@@ -37,6 +38,7 @@ class RequestContext(BaseModel):
 
     def to_status(self, fs_name: str, num: int, status: RecordingStatus) -> RecorderStatusInfo:
         return RecorderStatusInfo(
+            id=self.id,
             platform=self.live.platform,
             channel_id=self.live.channel_id,
             live_id=self.live.live_id,

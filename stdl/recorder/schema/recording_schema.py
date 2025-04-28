@@ -34,6 +34,7 @@ class RecordingStatus(Enum):
 
 
 class RecorderStatusInfo(BaseModel):
+    id: str
     platform: PlatformType
     channel_id: str = Field(serialization_alias="channelId")
     live_id: str = Field(serialization_alias="liveId")

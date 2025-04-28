@@ -9,7 +9,6 @@ from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
 from ...data.live import LiveState
 from ...file import create_fs_writer
-from ...utils import HttpError
 
 
 class RecordingScheduler:
@@ -28,9 +27,6 @@ class RecordingScheduler:
     def record(self, state: LiveState):
         writer = create_fs_writer(self.env)
         recorder = RecorderResolver(self.env, writer).create_recorder(state)
-        ctx = recorder.stream.ctx
-        if ctx is None:
-            raise HttpError(404, "recorder ctx is None")
 
         key = create_key(state)
         if self.__recorder_map.get(key):

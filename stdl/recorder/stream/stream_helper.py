@@ -77,6 +77,7 @@ class StreamHelper:
         if live.platform != PlatformType.TWITCH:
             stream_base_url = "/".join(state.stream_url.split("/")[:-1])
         ctx = RequestContext(
+            id=state.id,
             live_url=self.url,
             stream_url=state.stream_url,
             stream_base_url=stream_base_url,
