@@ -3,15 +3,43 @@ prod-rm: helm-prod-server1-rm helm-prod-server2-rm
 stage-run: helm-stage-server1-run helm-stage-server2-run
 stage-rm: helm-stage-server1-rm helm-stage-server2-rm
 
+# infra
+## argo
 argo-run:
 	kubectl create -f ../kube/argocd/application.yaml
 
+## secrets
+print-redis-ca:
+	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['ca\.crt']}" | base64 --decode && echo
 
+create-prod-secrets:
+	-@kubectl create secret generic stdl-redis-auth -n media \
+	  --from-file=password=../dev/secrets/redis/redis_password.txt
+	-@kubectl create secret generic stdl-fs -n media \
+	  --from-file=fs-name=../dev/secrets/fs/fs-name.txt \
+	  --from-file=fs_conf.yaml=../dev/secrets/fs/fs_conf.yaml
+
+delete-prod-secrets:
+	-@kubectl delete secret stdl-redis-auth -n media
+	-@kubectl delete secret stdl-fs -n media
+
+create-stage-secrets:
+	-@kubectl create secret generic stdl-redis-auth -n stage \
+	  --from-file=password=../dev/secrets/redis/redis_password.txt
+	-@kubectl create secret generic stdl-fs -n stage \
+	  --from-file=fs-name=../dev/secrets/fs/fs-name.txt \
+	  --from-file=fs_conf.yaml=../dev/secrets/fs/fs_conf.yaml
+
+delete-stage-secrets:
+	-@kubectl delete secret stdl-redis-auth -n stage
+	-@kubectl delete secret stdl-fs -n stage
+
+## redis
 helm-redis-dep:
 	@helm dependency update ./redis
 
 helm-prod-redis-run:
-	helm install stdl-redis ../kube/redis -n media -f ../dev/redis-values.yaml
+	helm install stdl-redis ../kube/redis -n media
 
 helm-prod-redis-rm:
 	helm uninstall stdl-redis -n media
@@ -22,7 +50,7 @@ delete-prod-redis-pvc:
 helm-stage-redis-run:
 	helm install stdl-redis ../kube/redis -n stage -f ../dev/redis-values-stage.yaml \
 		--set metadata.namespace=stage \
-		--set domainName="stdl-redis-stage.rwiv.xyz" \
+		--set domainName=stdl-redis-stage.rwiv.xyz \
 		--set redis.master.service.nodePorts.redis=32133
 
 helm-stage-redis-rm:
@@ -31,10 +59,8 @@ helm-stage-redis-rm:
 delete-stage-redis-pvc:
 	kubectl delete pvc redis-data-stdl-redis-master-0 -n stage
 
-print-redis-ca:
-	kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['ca\.crt']}" | base64 --decode && echo
 
-
+# server
 helm-prod-server1-run:
 	helm install stdl-server1 ../kube/server -n media \
 		--set metadata.name=stdl-server1 \
@@ -60,7 +86,9 @@ helm-stage-server1-run:
 		--set metadata.name=stdl-server1 \
 		--set image.repository=harbor.rwiv.xyz/test/stdl \
 		--set image.tag=latest \
-		--set server.service.nodePort=32121
+		--set server.service.nodePort=32121 \
+		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.port=6379
 
 helm-stage-server1-rm:
 	helm uninstall stdl-server1 -n stage
@@ -71,24 +99,9 @@ helm-stage-server2-run:
 		--set metadata.name=stdl-server2 \
 		--set image.repository=harbor.rwiv.xyz/test/stdl \
 		--set image.tag=latest \
-		--set server.service.nodePort=32122
+		--set server.service.nodePort=32122 \
+		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.port=6379
 
 helm-stage-server2-rm:
 	helm uninstall stdl-server2 -n stage
-
-
-proton-run:
-	helm install stdl-proxy-proton ../kube/proxy-cloud -n media \
-		--set gluetun.provider=protonvpn \
-		--set gluetun.countries=Korea
-
-proton-rm:
-	helm uninstall stdl-proxy-proton -n media
-
-
-nordvpn-run:
-	helm install stdl-proxy-nordvpn ../kube/proxy-ovpn -n media \
-		--set ovpn.confFilePath=conf/client1_kr102.ovpn
-
-nordvpn-rm:
-	helm uninstall stdl-proxy-nordvpn -n media

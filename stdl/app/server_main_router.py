@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, constr
 
-from ..common.request import AppRequest
 from ..common.spec import PlatformType
+from ..data.live import LiveStateService
 from ..recorder import RecordingScheduler
 
 
@@ -12,25 +12,32 @@ class CancelRequest(BaseModel):
 
 
 class MainController:
-    def __init__(self, scheduler: RecordingScheduler):
-        self.scheduler = scheduler
+    def __init__(self, scheduler: RecordingScheduler, live_state_service: LiveStateService):
+        self.__scheduler = scheduler
+        self.__live_state_service = live_state_service
 
         self.router = APIRouter(prefix="/api")
         self.router.add_api_route("/health", self.health, methods=["GET"])
-        self.router.add_api_route("/recordings", self.record, methods=["POST"])
-        self.router.add_api_route("/recordings", self.cancel, methods=["DELETE"])
+        self.router.add_api_route("/recordings/:record_id", self.record, methods=["POST"])
+        self.router.add_api_route("/recordings/:record_id", self.cancel, methods=["DELETE"])
         self.router.add_api_route("/recordings", self.get_status, methods=["GET"])
 
     def health(self):
         return {"status": "UP"}
 
-    def record(self, req: AppRequest):
-        self.scheduler.record(req)
+    def record(self, record_id: str):
+        state = self.__live_state_service.get(record_id)
+        if state is None:
+            raise HTTPException(status_code=404, detail="live stste not found")
+        self.__scheduler.record(state)
         return "ok"
 
-    def cancel(self, req: CancelRequest):
-        self.scheduler.cancel(req.platform, req.uid)
+    def cancel(self, record_id: str):
+        state = self.__live_state_service.get(record_id)
+        if state is None:
+            raise HTTPException(status_code=404, detail="live state not found")
+        self.__scheduler.cancel(state)
         return "ok"
 
     def get_status(self):
-        return self.scheduler.ger_status()
+        return self.__scheduler.ger_status()

@@ -37,8 +37,8 @@ spec:
             - name: FS_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.vault.fs.secretName }}
-                  key: {{ .Values.vault.fs.fsNameKey }}
+                  name: {{ .Values.server.secrets.fs.name }}
+                  key: {{ .Values.server.secrets.fs.fsNameKey }}
             - name: FS_CONFIG_PATH
               value: /mnt/fs-configs/fs_conf.yaml
             - name: REDIS_HOST
@@ -48,12 +48,17 @@ spec:
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.secretName }}
-                  key: {{ .Values.redis.passwordKey }}
+                  name: {{ .Values.redis.auth.secretName }}
+                  key: {{ .Values.redis.auth.passwordKey }}
+            - name: REDIS_CA_PATH
+              value: /mnt/redis-tls/ca.crt
           volumeMounts:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml
               subPath: fs_conf.yaml
+            - name: redis-tls
+              mountPath: /mnt/redis-tls/ca.crt
+              subPath: ca.crt
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       {{- with .Values.affinity }}
@@ -63,4 +68,7 @@ spec:
       volumes:
         - name: fs-configs
           secret:
-            secretName: {{ .Values.vault.fs.secretName }}
+            secretName: {{ .Values.server.secrets.fs.name }}
+        - name: redis-tls
+          secret:
+            secretName: {{ .Values.redis.tls.secretName }}

@@ -1,4 +1,3 @@
-import os
 import time
 
 from pyutils import log, path_join
@@ -8,6 +7,8 @@ from .stream_helper import StreamHelper
 from .stream_types import RequestContext
 from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
+from ...data.live import LiveState
+from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...utils import AsyncHttpClient
 
@@ -33,9 +34,10 @@ class StreamlinkStreamRecorder:
         self.ctx: RequestContext | None = None
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
+        self.fetcher = PlatformFetcher()
         self.writer = writer
         self.helper = StreamHelper(
-            args, self.state, self.status, writer, incomplete_dir_path=incomplete_dir_path
+            args, self.state, self.status, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path
         )
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
@@ -53,8 +55,8 @@ class StreamlinkStreamRecorder:
             status=self.status,
         )
 
-    async def record(self, video_name: str):
-        self.ctx = await self.helper.get_ctx(video_name=video_name)
+    async def record(self, state: LiveState | None):
+        self.ctx = await self.helper.get_ctx(state)
         self.http.set_headers(self.ctx.headers)
 
         # Start recording

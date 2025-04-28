@@ -3,9 +3,9 @@ from datetime import datetime
 import aiohttp
 from pydantic import BaseModel, Field
 
-from .fetcher import LiveInfo
-from ..common.spec import PlatformType
-from ..utils import HttpRequestError
+from ..fetcher import LiveInfo
+from ...common.spec import PlatformType
+from ...utils import HttpRequestError
 
 
 class ChzzkChannel(BaseModel):

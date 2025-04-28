@@ -6,21 +6,16 @@ image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.0.0
   pullSecret: image-pull-secret
-vault:
-  mount: kube
-  refreshAfter: 30s
-  fs:
-    path: media/stdl/fs
-    version: 1
-    secretName: stdl-fs
-    fsNameKey: fs-name
 affinity: {}
 podLabels: {}
 redis:
-  host: stdl-redis-master.media.svc.cluster.local
-  port: 6379
-  secretName: stdl-redis
-  passwordKey: password
+  host: stdl-redis.rwiv.xyz
+  port: 30211
+  auth:
+    secretName: stdl-redis-auth
+    passwordKey: password
+  tls:
+    secretName: stdl-redis-tls
 server:
   replicas: 1
   containerName: stdl-server
@@ -30,3 +25,7 @@ server:
     targetPort: 9083
     nodePort: 30215
   segSizeMb: 17
+  secrets:
+    fs:
+      name: stdl-fs
+      fsNameKey: fs-name

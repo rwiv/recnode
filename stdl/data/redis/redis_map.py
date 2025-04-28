@@ -9,7 +9,10 @@ class RedisMap:
 
     def set(self, key: str, value: str, nx: bool = False, xx: bool = False, ex: int | None = None):
         result = self.__redis.set(name=key, value=value, nx=nx, xx=xx, ex=ex)
+        if result is None:
+            return
         if not isinstance(result, bool):
+            print(result)
             raise RedisError("Expected boolean data", 500)
         if not result:
             raise RedisError("Failed to set value", 400)

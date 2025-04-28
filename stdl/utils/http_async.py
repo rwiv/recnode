@@ -26,6 +26,8 @@ class AsyncHttpClient:
 
     def set_headers(self, headers: dict):
         for k, v in headers.items():
+            if self.headers.get(k) is not None:
+                raise ValueError(f"Header {k} already set")
             self.headers[k] = v
 
     async def get_text(self, url: str, headers: dict, print_error: bool | None = None) -> str:

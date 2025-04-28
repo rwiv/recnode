@@ -1,13 +1,7 @@
 metadata:
   name: stdl-redis
   namespace: media
-vault:
-  mount: kube
-  path: media/stdl/redis
-  version: 1
-  secretName: stdl-redis-auth
-  refreshAfter: 30s
-domainName: "stdl-redis.rwiv.xyz"
+domainName: stdl-redis.rwiv.xyz
 tls:
   secretName: stdl-redis-tls
 

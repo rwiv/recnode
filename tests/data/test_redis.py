@@ -15,6 +15,7 @@ def test_get_keys():
 
 def test_redis_map():
     print()
+    test_clear()
     redis_map = RedisMap(client)
     key = "test1"
     print(redis_map.get(key))
@@ -27,6 +28,7 @@ def test_redis_map():
 
 def test_redis_queue():
     print()
+    test_clear()
     redis_queue = RedisQueue(client)
     key = "test2"
     print(redis_queue.get(key))
@@ -39,6 +41,7 @@ def test_redis_queue():
 
 def test_redis_sorted_set():
     print()
+    test_clear()
     redis_set = RedisUniqueSortedSet(client)
     key = "test3"
     print(redis_set.get(key, 10))

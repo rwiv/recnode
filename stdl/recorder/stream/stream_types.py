@@ -6,6 +6,7 @@ from ...fetcher import LiveInfo
 
 
 class RequestContext(BaseModel):
+    live_url: str
     stream_url: str
     stream_base_url: str | None
     headers: dict[str, str]

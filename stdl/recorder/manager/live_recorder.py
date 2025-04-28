@@ -1,16 +1,14 @@
 import asyncio
-import os
 import signal
 import threading
 import time
-from datetime import datetime
-from pathlib import Path
 
 from pyutils import log, path_join, error_dict
 
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common.env import Env
+from ...data.live import LiveState
 from ...file import ObjectWriter
 
 
@@ -48,14 +46,17 @@ class LiveRecorder:
     def get_state(self):
         return self.stream.get_status()
 
-    def record(self, block: bool = True):
-        if block:
-            signal.signal(signal.SIGINT, self.__handle_signal)
-            signal.signal(signal.SIGTERM, self.__handle_signal)
+    def record(self, state: LiveState | None, block: bool = True):
+        if self.env.env == "prod" and state is None:
+            raise ValueError("State is None in prod env")
 
-        self.recording_thread = threading.Thread(target=self.__record_stream)
+        self.recording_thread = threading.Thread(target=self.__record_stream, args=(state,))
         self.recording_thread.name = f"Thread-StreamRecorder-{self.platform.value}-{self.channel_id}"
         self.recording_thread.start()
+
+        if self.env.env == "dev" and block:
+            signal.signal(signal.SIGINT, self.__handle_signal)
+            signal.signal(signal.SIGTERM, self.__handle_signal)
 
         if block:
             while True:
@@ -69,10 +70,9 @@ class LiveRecorder:
                     break
                 time.sleep(1)
 
-    def __record_stream(self):
+    def __record_stream(self, state: LiveState | None):
         try:
-            self.vid_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-            asyncio.run(self.stream.record(video_name=self.vid_name))
+            asyncio.run(self.stream.record(state))
         except Exception as e:
             log.error("Recording failed", error_dict(e))
         finally:
@@ -80,35 +80,6 @@ class LiveRecorder:
 
     def __close(self):
         self.is_done = True
-
-    def __wait_for_clear_dir(self):
-        if self.vid_name is None:
-            return
-
-        start_time = time.time()
-        while True:
-            if time.time() - start_time > self.dir_clear_timeout_sec:
-                log.error("Timeout waiting for tmp dir to be cleared")
-                return
-
-            if Path(path_join(self.tmp_dir_path, self.channel_id, self.vid_name)).exists():
-                log.debug("Waiting for tmp dir to be cleared")
-                time.sleep(self.dir_clear_wait_delay_sec)
-                continue
-
-            chunks_dir_path = path_join(self.incomplete_dir_path, self.channel_id, self.vid_name)
-            if not Path(chunks_dir_path).exists():
-                break
-            if len(os.listdir(chunks_dir_path)) == 0:
-                os.rmdir(chunks_dir_path)
-                break
-
-            log.debug("Waiting for chunks dir to be cleared")
-            time.sleep(self.dir_clear_wait_delay_sec)
-
-        channel_dir_path = path_join(self.incomplete_dir_path, self.channel_id)
-        if Path(channel_dir_path).exists() and len(os.listdir(channel_dir_path)) == 0:
-            os.rmdir(channel_dir_path)
 
     def __handle_signal(self, *acrgs):
         self.stream.check_tmp_dir()

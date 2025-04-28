@@ -6,7 +6,8 @@ from .manager.recorder_resolver import RecorderResolver
 from .schema.recording_constants import EXIT_QUEUE_PREFIX, DONE_QUEUE_NAME
 from .schema.exit_message import ExitMessage, ExitCommand
 from .schema.done_message import DoneMessage, DoneStatus
-from .stream.streamlink_utils import disable_streamlink_log
+from .schema.recording_arguments import StreamLinkSessionArgs
+from .stream.streamlink_utils import disable_streamlink_log, get_streams
 
 targets = [
     "recorder",

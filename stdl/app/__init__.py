@@ -4,7 +4,6 @@ import sys
 from .batch_runner import BatchRunner
 from .server_runner import run_server
 from .proxy_runner import run_proxy
-from .server_main_router import CancelRequest
 
 targets = [
     "batch_runner",

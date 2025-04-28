@@ -2,6 +2,7 @@ import os
 import tarfile
 import threading
 import time
+from datetime import datetime
 from pathlib import Path
 
 from aiofiles import os as aioos
@@ -14,9 +15,10 @@ from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.streamlink_utils import get_streams
 from ...common.spec import PlatformType
-from ...fetcher import PlatformFetcher
+from ...data.live import LiveState
+from ...fetcher import PlatformFetcher, LiveInfo
 from ...file import ObjectWriter
-from ...utils import random_string
+from ...utils import random_string, FIREFOX_USER_AGENT
 
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
@@ -28,6 +30,7 @@ class StreamHelper:
         state: RecordingState,
         status: RecordingStatus,
         writer: ObjectWriter,
+        fetcher: PlatformFetcher,
         incomplete_dir_path: str,
     ):
         self.url = args.info.url
@@ -45,12 +48,55 @@ class StreamHelper:
         self.write_retry_delay_sec = 0.5
 
         self.writer = writer
-        self.fetcher = PlatformFetcher()
+        self.fetcher = fetcher
 
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
 
-    async def get_ctx(self, video_name: str) -> RequestContext:
+    async def get_ctx(self, state: LiveState | None) -> RequestContext:
+        if state is None:
+            return await self.get_ctx_with_fetch()
+
+        headers = {"User-Agent": FIREFOX_USER_AGENT}
+        if state.cookie is not None:
+            headers["Cookie"] = state.cookie
+        if len(self.fetcher.headers) > 0:
+            self.fetcher.set_headers(headers)
+
+        live = LiveInfo(
+            platform=state.platform,
+            channel_id=state.channel_id,
+            channel_name=state.channel_name,
+            live_id=state.live_id,
+            live_title=state.live_title,
+        )
+
+        tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, state.video_name)
+        out_dir_path = path_join(
+            self.incomplete_dir_path, live.platform.value, live.channel_id, state.video_name
+        )
+        os.makedirs(tmp_dir_path, exist_ok=True)
+
+        stream_base_url = None
+        if live.platform != PlatformType.TWITCH:
+            stream_base_url = "/".join(state.stream_url.split("/")[:-1])
+        ctx = RequestContext(
+            live_url=self.url,
+            stream_url=state.stream_url,
+            stream_base_url=stream_base_url,
+            video_name=state.video_name,
+            headers=headers,
+            tmp_dir_path=tmp_dir_path,
+            out_dir_path=out_dir_path,
+            live=live,
+        )
+
+        if headers.get("Cookie") is not None:
+            log.debug("Using Credentials", ctx.to_dict())
+
+        return await self.get_ctx_with_fetch()
+
+    async def get_ctx_with_fetch(self) -> RequestContext:
         # Wait until the live streams is obtained
         streams = self.wait_for_live()
         if streams is None:
@@ -67,27 +113,31 @@ class StreamHelper:
         for k, v in stream.session.http.headers.items():
             headers[k] = v
 
-        self.fetcher.set_headers(headers)
+        if len(self.fetcher.headers) > 0:
+            self.fetcher.set_headers(headers)
 
         live = await self.fetcher.fetch_live_info(self.url)
         if live is None:
             raise ValueError("Channel not live")
 
-        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
+        video_name = datetime.now().strftime("%Y%m%d_%H%M%S")
         tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, video_name)
+        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, video_name)
         os.makedirs(tmp_dir_path, exist_ok=True)
 
+        stream_base_url = None
+        if live.platform != PlatformType.TWITCH:
+            stream_base_url = "/".join(stream_url.split("/")[:-1])
         ctx = RequestContext(
+            live_url=self.url,
             stream_url=stream_url,
-            stream_base_url="/".join(stream_url.split("/")[:-1]),
+            stream_base_url=stream_base_url,
             video_name=video_name,
             headers=headers,
             tmp_dir_path=tmp_dir_path,
             out_dir_path=out_dir_path,
             live=live,
         )
-        if live.platform == PlatformType.TWITCH:
-            ctx.stream_base_url = None
 
         if headers.get("Cookie") is not None:
             log.debug("Using Credentials", ctx.to_dict())

@@ -7,9 +7,9 @@ from .live_recorder import LiveRecorder
 from ..manager.recorder_resolver import RecorderResolver
 from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
-from ...common.request import AppRequest
-from ...common.spec import PlatformType
+from ...data.live import LiveState
 from ...file import create_fs_writer
+from ...utils import HttpError
 
 
 class RecordingScheduler:
@@ -25,22 +25,26 @@ class RecordingScheduler:
             "recorders": [recorder.get_state() for recorder in self.__recorder_map.values()],
         }
 
-    def record(self, req: AppRequest):
+    def record(self, state: LiveState):
         writer = create_fs_writer(self.env)
-        recorder = RecorderResolver(self.env, req, writer).create_recorder()
-        key = create_key(recorder.platform, recorder.channel_id)
+        recorder = RecorderResolver(self.env, writer).create_recorder(state)
+        ctx = recorder.stream.ctx
+        if ctx is None:
+            raise HttpError(404, "recorder ctx is None")
+
+        key = create_key(state)
         if self.__recorder_map.get(key):
             log.info("Already Recording")
             return
         self.__recorder_map[key] = recorder
-        recorder.record(block=False)
+        recorder.record(state=state, block=False)
 
-    def cancel(self, platform_type: PlatformType, uid: str):
-        key = create_key(platform_type, uid)
+    def cancel(self, state: LiveState):
+        key = create_key(state)
         if self.__recorder_map.get(key):
             self.__recorder_map[key].stream.state.cancel()
         else:
-            log.info(f"Not found recorder: platform={platform_type}, uid={uid}")
+            log.error(f"Not found recorder", state.model_dump(mode="json"))
 
     def start_monitoring_states(self):
         self.check_thread = Thread(target=self.__monitor_states)
@@ -66,5 +70,5 @@ class RecordingScheduler:
                 time.sleep(SCHEDULER_CHECK_DELAY_SEC)
 
 
-def create_key(platform_type: PlatformType, uid: str) -> str:
-    return f"{platform_type.value}:{uid}"
+def create_key(state: LiveState) -> str:
+    return f"{state.platform.value}:{state.channel_id}:{state.video_name}"

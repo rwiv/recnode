@@ -1,6 +1,6 @@
-import json
 import logging
 
+from pyutils import to_cookie_dict, CookieDict
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
@@ -18,8 +18,8 @@ def get_session(args: StreamLinkSessionArgs) -> Streamlink:
             options.set(key, value)
 
     session = Streamlink(options=options)
-    if args.cookies is not None:
-        data: list[dict] = json.loads(args.cookies)
+    if args.cookie_header is not None:
+        data: list[CookieDict] = to_cookie_dict(args.cookie_header)
         for cookie in data:
             session.http.cookies.set(cookie["name"], cookie["value"])
     return session

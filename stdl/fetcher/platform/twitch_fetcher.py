@@ -5,9 +5,9 @@ import aiohttp
 from pydantic import BaseModel
 from streamlink.session.session import Streamlink
 
-from .fetcher import LiveInfo
-from ..common.spec import PlatformType
-from ..utils import HttpRequestError
+from ..fetcher import LiveInfo
+from ...common.spec import PlatformType
+from ...utils import HttpRequestError
 
 
 class TwitchLiveInfo(BaseModel):

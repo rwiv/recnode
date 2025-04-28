@@ -1,6 +1,7 @@
 import os
 import sys
 
+from .http import FIREFOX_USER_AGENT
 from .http_async import AsyncHttpClient
 from .string import random_string
 from .errors import HttpError, HttpRequestError
