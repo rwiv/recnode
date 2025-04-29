@@ -1,4 +1,6 @@
+import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 import uvicorn
 from fastapi import FastAPI
@@ -13,6 +15,10 @@ def run_proxy():
     log.set_level(logging.DEBUG)
 
     env = get_proxy_env()
+
+    executor = ThreadPoolExecutor(max_workers=50)
+    asyncio.get_event_loop().set_default_executor(executor)
+
     writer = create_proxy_fs_writer(env)
     main_controller = ProxyMainController(writer)
 

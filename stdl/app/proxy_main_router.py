@@ -3,6 +3,7 @@ import time
 import requests
 from fastapi import APIRouter, UploadFile, File
 from pyutils import log, error_dict
+from starlette.concurrency import run_in_threadpool
 
 from ..file import ObjectWriter, FsType
 
@@ -34,7 +35,7 @@ class ProxyMainController:
         if self.writer.fs_type == FsType.LOCAL:
             raise ValueError("Local file system is not supported")
 
-        self.__write_file(file_path, data)
+        await run_in_threadpool(self.__write_file, file_path, data)
 
     def __write_file(self, out_file_path: str, data: bytes):
         for retry_cnt in range(self.write_retry_limit + 1):
