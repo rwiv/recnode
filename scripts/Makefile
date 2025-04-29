@@ -125,23 +125,60 @@ helm-stage-server2-rm:
 
 
 # server-vpn
+helm-prod-vpn71-run:
+	helm install stdl-server71 ../kube/server-vpn -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server71 \
+		--set vpn.name=stdl-server71-vpn \
+		--set server.service.nodePort=32131 \
+		--set vpn.service.nodePort=32141 \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set server.proxyEndpoint=http://stdl-proxy71.media.svc.cluster.local \
+		--set nodeName=host71
+
+helm-prod-vpn71-rm:
+	helm uninstall stdl-server71 -n media
+
+
+helm-prod-vpn72-run:
+	helm install stdl-server72 ../kube/server-vpn -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server72 \
+		--set vpn.name=stdl-server72-vpn \
+		--set server.service.nodePort=32132 \
+		--set vpn.service.nodePort=32142 \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set server.proxyEndpoint=http://stdl-proxy72.media.svc.cluster.local \
+		--set nodeName=host72
+
+helm-prod-vpn72-rm:
+	helm uninstall stdl-server72 -n media
+
 helm-prod-proxy-run:
 	helm install stdl-proxy71 ../kube/proxy -n media \
-		--set metadata.name=stdl-proxy71 \
 		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-proxy71 \
 		--set server.service.nodePort=30221 \
 		--set nodeName=host71
+	helm install stdl-proxy72 ../kube/proxy -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-proxy72 \
+		--set server.service.nodePort=30222 \
+		--set nodeName=host72
 
 helm-prod-proxy-rm:
 	helm uninstall stdl-proxy71 -n media
+	helm uninstall stdl-proxy72 -n media
 
 helm-stage-vpn-run:
 	helm install stdl-server-vpn ../kube/server-vpn -n stage \
+		--set image.repository=harbor.rwiv.xyz/test/stdl \
+		--set image.tag=latest \
 		--set metadata.namespace=stage \
 		--set metadata.name=stdl-server52 \
 		--set vpn.name=stdl-server52-vpn \
-		--set image.repository=harbor.rwiv.xyz/test/stdl \
-		--set image.tag=latest \
 		--set server.service.nodePort=32122 \
 		--set vpn.service.nodePort=32121 \
 		--set redis.host=stdl-redis-stage.rwiv.xyz \
@@ -154,10 +191,10 @@ helm-stage-vpn-rm:
 
 helm-stage-proxy-run:
 	helm install stdl-proxy ../kube/proxy -n stage \
-		--set metadata.namespace=stage \
-		--set metadata.name=stdl-proxy52 \
 		--set image.repository=harbor.rwiv.xyz/test/stdl \
 		--set image.tag=latest \
+		--set metadata.namespace=stage \
+		--set metadata.name=stdl-proxy52 \
 		--set server.service.nodePort=32124 \
 		--set nodeName=vm-52
 
