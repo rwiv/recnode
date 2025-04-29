@@ -1,9 +1,9 @@
 metadata:
-  name: stdl
-  appName: stdl
+  name: stdl-server
+  appName: stdl-server
   namespace: media
 vpn:
-  name: stdl-vpn
+  name: stdl-server-vpn
   service:
     nodePort: 30216
 
@@ -49,7 +49,7 @@ server:
     targetPort: 9083
     nodePort: 30215
   segSizeMb: 17
-  proxyEndpoint: stdl-proxy.media.svc.cluster.local
+  proxyEndpoint: http://stdl-proxy.media.svc.cluster.local
   secrets:
     fs:
       name: stdl-fs

@@ -53,9 +53,9 @@ spec:
             - name: OPENVPN_CUSTOM_CONFIG
               value: "/ovpn/{{ .Values.secret.nordvpn.vpn.keys.filename }}"
             - name: DNS_KEEP_NAMESERVER
-              value: "on"
+              value: "true"
             - name: FIREWALL_OUTBOUND_SUBNETS
-              value: "10.0.0.0/8"
+              value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
             - name: FIREWALL_INPUT_PORTS
               value: "{{ .Values.server.service.targetPort }}"
           volumeMounts:

@@ -1,6 +1,6 @@
 services:
   stdl-proxy:
-    image: harbor.rwiv.xyz/private/stdl:0.5.4
+    image: harbor.rwiv.xyz/private/stdl:0.5.5
     container_name: stdl-proxy
     environment:
       PY_ENV: prod

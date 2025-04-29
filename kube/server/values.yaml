@@ -1,6 +1,6 @@
 metadata:
-  name: stdl
-  appName: stdl
+  name: stdl-server
+  appName: stdl-server
   namespace: media
 image:
   repository: harbor.rwiv.xyz/private/stdl

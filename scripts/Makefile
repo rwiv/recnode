@@ -1,3 +1,5 @@
+APP_VERSION=0.5.5
+
 prod-run: helm-prod-server1-run helm-prod-server2-run
 prod-rm: helm-prod-server1-rm helm-prod-server2-rm
 stage-run: helm-stage-server1-run helm-stage-server2-run
@@ -78,7 +80,7 @@ delete-stage-redis-pvc:
 helm-prod-server1-run:
 	helm install stdl-server1 ../kube/server -n media \
 		--set metadata.name=stdl-server1 \
-		--set image.tag=0.5.4 \
+		--set image.tag=$(APP_VERSION) \
 		--set server.service.nodePort=30215
 
 helm-prod-server1-rm:
@@ -87,7 +89,7 @@ helm-prod-server1-rm:
 helm-prod-server2-run:
 	helm install stdl-server2 ../kube/server -n media \
 		--set metadata.name=stdl-server2 \
-		--set image.tag=0.5.4 \
+		--set image.tag=$(APP_VERSION) \
 		--set server.service.nodePort=30216
 
 helm-prod-server2-rm:
@@ -122,6 +124,23 @@ helm-stage-server2-rm:
 
 
 # server-vpn
+helm-stage-vpn-run:
+	helm install stdl-server-vpn ../kube/server-vpn -n stage \
+		--set metadata.namespace=stage \
+		--set metadata.name=stdl-server52 \
+		--set vpn.name=stdl-server52-vpn \
+		--set image.repository=harbor.rwiv.xyz/test/stdl \
+		--set image.tag=latest \
+		--set server.service.nodePort=32122 \
+		--set vpn.service.nodePort=32121 \
+		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.port=6379 \
+		--set server.proxyEndpoint=http://stdl-proxy52.stage.svc.cluster.local \
+		--set nodeName=vm-52
+
+helm-stage-vpn-rm:
+	helm uninstall stdl-server-vpn -n stage
+
 helm-stage-proxy-run:
 	helm install stdl-proxy ../kube/proxy -n stage \
 		--set metadata.namespace=stage \
