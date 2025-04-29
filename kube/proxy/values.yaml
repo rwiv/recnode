@@ -10,10 +10,10 @@ affinity: {}
 podLabels: {}
 nodeName: ~
 server:
-  replicas: 1
+  replicas: 3
   containerName: stdl-proxy
   service:
-    type: NodePort
+    type: ClusterIP
     port: 80
     targetPort: 9084
     nodePort: 30214

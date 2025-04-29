@@ -139,52 +139,50 @@ helm-stage-server2-rm:
 
 
 # server-vpn
-helm-prod-vpn71-run:
-	-@helm install stdl-server71 ../kube/server-vpn -n media \
+helm-prod-71-run:
+	-@helm install stdl-server-711 ../kube/server-vpn -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server71 \
-		--set vpn.name=stdl-server71-vpn \
-		--set server.service.nodePort=32131 \
-		--set vpn.service.nodePort=32141 \
+		--set metadata.name=stdl-server-plain-711 \
+		--set vpn.name=stdl-server-vpn-711 \
+		--set ingress.hostName.plain=stdl-plain-711.netcup.rwiv.xyz \
+		--set ingress.hostName.vpn=stdl-vpn-711.netcup.rwiv.xyz \
 		--set redis.host=stdl-redis.rwiv.xyz \
 		--set redis.port=30211 \
-		--set server.proxyEndpoint=http://stdl-proxy71.media.svc.cluster.local \
+		--set server.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
 		--set nodeName=host71
 
-helm-prod-vpn71-rm:
-	-@helm uninstall stdl-server71 -n media
+helm-prod-71-rm:
+	-@helm uninstall stdl-server-711 -n media
 
 
-helm-prod-vpn72-run:
-	-@helm install stdl-server72 ../kube/server-vpn -n media \
+helm-prod-72-run:
+	-@helm install stdl-server-721 ../kube/server-vpn -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server72 \
-		--set vpn.name=stdl-server72-vpn \
-		--set server.service.nodePort=32132 \
-		--set vpn.service.nodePort=32142 \
+		--set metadata.name=stdl-server-plain-721 \
+		--set vpn.name=stdl-server-vpn-721 \
+		--set ingress.hostName.plain=stdl-plain-721.netcup.rwiv.xyz \
+		--set ingress.hostName.vpn=stdl-vpn-721.netcup.rwiv.xyz \
 		--set redis.host=stdl-redis.rwiv.xyz \
 		--set redis.port=30211 \
-		--set server.proxyEndpoint=http://stdl-proxy72.media.svc.cluster.local \
+		--set server.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
 		--set nodeName=host72
 
-helm-prod-vpn72-rm:
-	-@helm uninstall stdl-server72 -n media
+helm-prod-72-rm:
+	-@helm uninstall stdl-server-721 -n media
 
 helm-prod-proxy-run:
-	-@helm install stdl-proxy71 ../kube/proxy -n media \
+	-@helm install stdl-proxy-71 ../kube/proxy -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-proxy71 \
-		--set server.service.nodePort=30221 \
+		--set metadata.name=stdl-proxy-71 \
 		--set nodeName=host71
-	-@helm install stdl-proxy72 ../kube/proxy -n media \
+	-@helm install stdl-proxy-72 ../kube/proxy -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-proxy72 \
-		--set server.service.nodePort=30222 \
+		--set metadata.name=stdl-proxy-72 \
 		--set nodeName=host72
 
 helm-prod-proxy-rm:
-	-@helm uninstall stdl-proxy71 -n media
-	-@helm uninstall stdl-proxy72 -n media
+	-@helm uninstall stdl-proxy-71 -n media
+	-@helm uninstall stdl-proxy-72 -n media
 
 helm-stage-vpn-run:
 	-@helm install stdl-server-vpn ../kube/server-vpn -n stage \

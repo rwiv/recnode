@@ -14,6 +14,3 @@ spec:
   ports:
     - port: {{ .Values.server.service.port }}
       targetPort: {{ .Values.server.service.targetPort }}
-      {{ if .Values.vpn.service.nodePort }}
-      nodePort: {{ .Values.vpn.service.nodePort }}
-      {{ end }}

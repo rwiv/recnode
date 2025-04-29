@@ -1,11 +1,15 @@
 metadata:
-  name: stdl-server
+  name: stdl-server-plain
   appName: stdl-server
   namespace: media
 vpn:
   name: stdl-server-vpn
-  service:
-    nodePort: 30216
+
+ingress:
+  gateway: istio-system/external-gateway
+  hostName:
+    plain: stdl-plain.netcup.rwiv.xyz
+    vpn: stdl-vpn.netcup.rwiv.xyz
 
 image:
   repository: harbor.rwiv.xyz/private/stdl
@@ -44,10 +48,9 @@ server:
   replicas: 1
   containerName: stdl-server
   service:
-    type: NodePort
+    type: ClusterIP
     port: 80
     targetPort: 9083
-    nodePort: 30215
   segSizeMb: 17
   proxyEndpoint: http://stdl-proxy.media.svc.cluster.local
   secrets:
