@@ -55,7 +55,8 @@ helm-redis-dep:
 	@helm dependency update ./redis
 
 helm-prod-redis-run:
-	helm install stdl-redis ../kube/redis -n media
+	helm install stdl-redis ../kube/redis -n media \
+	  --set redis.master.persistence.enabled=false
 
 helm-prod-redis-rm:
 	helm uninstall stdl-redis -n media
@@ -124,6 +125,16 @@ helm-stage-server2-rm:
 
 
 # server-vpn
+helm-prod-proxy-run:
+	helm install stdl-proxy71 ../kube/proxy -n media \
+		--set metadata.name=stdl-proxy71 \
+		--set image.tag=$(APP_VERSION) \
+		--set server.service.nodePort=30221 \
+		--set nodeName=host71
+
+helm-prod-proxy-rm:
+	helm uninstall stdl-proxy71 -n media
+
 helm-stage-vpn-run:
 	helm install stdl-server-vpn ../kube/server-vpn -n stage \
 		--set metadata.namespace=stage \

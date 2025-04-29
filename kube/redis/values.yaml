@@ -17,6 +17,8 @@ redis:
       type: NodePort
       nodePorts:
         redis: 30211
+    persistence:
+      enabled: true
   replica:
     replicaCount: 0
   tls:
