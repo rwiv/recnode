@@ -1,12 +1,13 @@
+{{- if .Values.plain.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.metadata.name }}
+  name: {{ .Values.plain.name }}
   namespace: {{ .Values.metadata.namespace }}
 spec:
   selector:
     app: {{ .Values.metadata.appName }}
-    sub: {{ .Values.metadata.name }}
+    sub: {{ .Values.plain.name }}
     {{ if .Values.nodeName }}
     node: {{ .Values.nodeName }}
     {{ end }}
@@ -14,3 +15,4 @@ spec:
   ports:
     - port: {{ .Values.server.service.port }}
       targetPort: {{ .Values.server.service.targetPort }}
+{{- end }}

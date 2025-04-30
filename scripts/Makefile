@@ -1,9 +1,7 @@
 APP_VERSION=0.5.6
 
-prod-run: helm-prod-server1-run helm-prod-server2-run
-prod-rm: helm-prod-server1-rm helm-prod-server2-rm
-stage-run: helm-stage-server1-run helm-stage-server2-run
-stage-rm: helm-stage-server1-rm helm-stage-server2-rm
+stage-run: helm-stage-proxy-run helm-stage-server-run
+stage-rm: helm-stage-server-rm helm-stage-proxy-rm
 
 # infra
 ## argo
@@ -64,6 +62,7 @@ delete-stage-secrets:
 	-@kubectl delete secret nordvpn-credentials -n stage
 	-@kubectl delete secret nordvpn-vpn -n stage
 
+
 ## redis
 helm-redis-dep:
 	-@helm dependency update ./redis
@@ -92,83 +91,66 @@ delete-stage-redis-pvc:
 
 
 # server
-helm-prod-server1-run:
-	-@helm install stdl-server1 ../kube/server -n media \
-		--set metadata.name=stdl-server1 \
-		--set image.tag=$(APP_VERSION) \
-		--set server.service.nodePort=30215
-
-helm-prod-server1-rm:
-	-@helm uninstall stdl-server1 -n media
-
-helm-prod-server2-run:
-	-@helm install stdl-server2 ../kube/server -n media \
-		--set metadata.name=stdl-server2 \
-		--set image.tag=$(APP_VERSION) \
-		--set server.service.nodePort=30216
-
-helm-prod-server2-rm:
-	-@helm uninstall stdl-server2 -n media
-
-
-helm-stage-server1-run:
-	-@helm install stdl-server1 ../kube/server -n stage \
-		--set metadata.namespace=stage \
-		--set metadata.name=stdl-server1 \
-		--set image.repository=harbor.rwiv.xyz/test/stdl \
-		--set image.tag=latest \
-		--set server.service.nodePort=32121 \
-		--set redis.host=stdl-redis-stage.rwiv.xyz \
-		--set redis.port=6379
-
-helm-stage-server1-rm:
-	-@helm uninstall stdl-server1 -n stage
-
-helm-stage-server2-run:
-	-@helm install stdl-server2 ../kube/server -n stage \
-		--set metadata.namespace=stage \
-		--set metadata.name=stdl-server2 \
-		--set image.repository=harbor.rwiv.xyz/test/stdl \
-		--set image.tag=latest \
-		--set server.service.nodePort=32122 \
-		--set redis.host=stdl-redis-stage.rwiv.xyz \
-		--set redis.port=6379
-
-helm-stage-server2-rm:
-	-@helm uninstall stdl-server2 -n stage
-
-
-# server-vpn
 helm-prod-71-run:
-	-@helm install stdl-server-711 ../kube/server-vpn -n media \
+	-@helm install stdl-server-711 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-plain-711 \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-711 \
+		--set plain.hostName=stdl-plain-711.netcup.rwiv.xyz \
+		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-711 \
-		--set ingress.hostName.plain=stdl-plain-711.netcup.rwiv.xyz \
-		--set ingress.hostName.vpn=stdl-vpn-711.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-711.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
 		--set redis.host=stdl-redis.rwiv.xyz \
 		--set redis.port=30211 \
-		--set server.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
+		--set nodeName=host71
+	-@helm install stdl-server-712 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-712 \
+		--set vpn.hostName=stdl-vpn-712.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
 		--set nodeName=host71
 
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
+	-@helm uninstall stdl-server-712 -n media
 
 
 helm-prod-72-run:
-	-@helm install stdl-server-721 ../kube/server-vpn -n media \
+	-@helm install stdl-server-721 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-plain-721 \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-721 \
+		--set plain.hostName=stdl-plain-721.netcup.rwiv.xyz \
+		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-721 \
-		--set ingress.hostName.plain=stdl-plain-721.netcup.rwiv.xyz \
-		--set ingress.hostName.vpn=stdl-vpn-721.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-721.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
 		--set redis.host=stdl-redis.rwiv.xyz \
 		--set redis.port=30211 \
-		--set server.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
+		--set nodeName=host72
+	-@helm install stdl-server-722 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-722 \
+		--set vpn.hostName=stdl-vpn-722.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
 		--set nodeName=host72
 
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
+	-@helm uninstall stdl-server-722 -n media
 
 helm-prod-proxy-run:
 	-@helm install stdl-proxy-71 ../kube/proxy -n media \
@@ -184,31 +166,32 @@ helm-prod-proxy-rm:
 	-@helm uninstall stdl-proxy-71 -n media
 	-@helm uninstall stdl-proxy-72 -n media
 
-helm-stage-vpn-run:
-	-@helm install stdl-server-vpn ../kube/server-vpn -n stage \
+helm-stage-server-run:
+	-@helm install stdl-server-521 ../kube/server -n stage \
+		--set metadata.namespace=stage \
 		--set image.repository=harbor.rwiv.xyz/test/stdl \
 		--set image.tag=latest \
-		--set metadata.namespace=stage \
-		--set metadata.name=stdl-server52 \
-		--set vpn.name=stdl-server52-vpn \
-		--set server.service.nodePort=32121 \
-		--set vpn.service.nodePort=32122 \
-		--set redis.host=stdl-redis-stage.rwiv.xyz \
-		--set redis.port=6379 \
-		--set server.proxyEndpoint=http://stdl-proxy52.stage.svc.cluster.local \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-521 \
+		--set plain.hostName=stdl-plain-711.home.rwiv.xyz \
+		--set vpn.enabled=false \
+		--set vpn.name=stdl-server-vpn-521 \
+		--set vpn.hostName=stdl-vpn-521.home.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-52.stage.svc.cluster.local \
+		--set gateway=istio-system/internal-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
 		--set nodeName=vm-52
 
-helm-stage-vpn-rm:
-	-@helm uninstall stdl-server-vpn -n stage
+helm-stage-server-rm:
+	-@helm uninstall stdl-server-521 -n stage
 
 helm-stage-proxy-run:
-	-@helm install stdl-proxy ../kube/proxy -n stage \
+	-@helm install stdl-proxy ../kube/proxy -n media \
+		--set metadata.namespace=stage \
 		--set image.repository=harbor.rwiv.xyz/test/stdl \
 		--set image.tag=latest \
-		--set metadata.namespace=stage \
-		--set metadata.name=stdl-proxy52 \
-		--set server.service.nodePort=32124 \
-		--set nodeName=vm-52
+		--set server.replicas=1
 
 helm-stage-proxy-rm:
 	-@helm uninstall stdl-proxy -n stage

@@ -1,3 +1,4 @@
+{{- if .Values.vpn.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,15 +44,15 @@ spec:
             - name: OPENVPN_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.nordvpn.credentials.name }}
-                  key: {{ .Values.secret.nordvpn.credentials.keys.username }}
+                  name: {{ .Values.vpn.nordvpn.credentials.name }}
+                  key: {{ .Values.vpn.nordvpn.credentials.keys.username }}
             - name: OPENVPN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.secret.nordvpn.credentials.name }}
-                  key: {{ .Values.secret.nordvpn.credentials.keys.password }}
+                  name: {{ .Values.vpn.nordvpn.credentials.name }}
+                  key: {{ .Values.vpn.nordvpn.credentials.keys.password }}
             - name: OPENVPN_CUSTOM_CONFIG
-              value: "/ovpn/{{ .Values.secret.nordvpn.vpn.keys.filename }}"
+              value: "/ovpn/{{ .Values.vpn.nordvpn.ovpn.keys.filename }}"
             - name: DNS_KEEP_NAMESERVER
               value: "true"
             - name: FIREWALL_OUTBOUND_SUBNETS
@@ -60,8 +61,8 @@ spec:
               value: "{{ .Values.server.service.targetPort }}"
           volumeMounts:
             - name: ovpn-conf
-              mountPath: "/ovpn/{{ .Values.secret.nordvpn.vpn.keys.filename }}"
-              subPath: {{ .Values.secret.nordvpn.vpn.keys.filename }}
+              mountPath: "/ovpn/{{ .Values.vpn.nordvpn.ovpn.keys.filename }}"
+              subPath: {{ .Values.vpn.nordvpn.ovpn.keys.filename }}
               readOnly: true
         - name: {{ .Values.server.containerName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -75,7 +76,7 @@ spec:
             - name: PROXY_ENABLED
               value: "true"
             - name: PROXY_ENDPOINT
-              value: {{ .Values.server.proxyEndpoint }}
+              value: {{ .Values.vpn.proxyEndpoint }}
             - name: SEG_SIZE_MB
               value: "{{ .Values.server.segSizeMb }}"
             - name: TMP_DIR_PATH
@@ -83,8 +84,8 @@ spec:
             - name: FS_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.server.secrets.fs.name }}
-                  key: {{ .Values.server.secrets.fs.fsNameKey }}
+                  name: {{ .Values.server.fs.name }}
+                  key: {{ .Values.server.fs.fsNameKey }}
             - name: FS_CONFIG_PATH
               value: /mnt/fs-configs/fs_conf.yaml
             - name: REDIS_HOST
@@ -114,10 +115,11 @@ spec:
       volumes:
         - name: fs-configs
           secret:
-            secretName: {{ .Values.server.secrets.fs.name }}
+            secretName: {{ .Values.server.fs.name }}
         - name: redis-tls
           secret:
             secretName: {{ .Values.redis.tls.secretName }}
         - name: ovpn-conf
           secret:
-            secretName: {{ .Values.secret.nordvpn.vpn.name }}
+            secretName: {{ .Values.vpn.nordvpn.ovpn.name }}
+{{- end }}

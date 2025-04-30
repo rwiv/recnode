@@ -1,13 +1,40 @@
 metadata:
-  name: stdl-server
   appName: stdl-server
   namespace: media
+plain:
+  enabled: true
+  name: stdl-server-plain
+  hostName: stdl-plain.home.rwiv.xyz
+vpn:
+  enabled: false
+  name: stdl-server-vpn
+  hostName: stdl-vpn.home.rwiv.xyz
+  proxyEndpoint: http://stdl-proxy.media.svc.cluster.local
+  nordvpn:
+    credentials:
+      name: nordvpn-credentials
+      keys:
+        username: username
+        password: password
+    ovpn:
+      name: nordvpn-vpn
+      keys:
+        filename: client.ovpn
+
 image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.0.0
   pullSecret: image-pull-secret
+gluetun:
+  repository: qmcgaw/gluetun
+  tag: v3.40
+
 affinity: {}
 podLabels: {}
+nodeName: ~
+
+gateway: istio-system/internal-gateway
+
 redis:
   host: stdl-redis.rwiv.xyz
   port: 30211
@@ -16,16 +43,15 @@ redis:
     passwordKey: password
   tls:
     secretName: stdl-redis-tls
+
 server:
   replicas: 1
   containerName: stdl-server
   service:
-    type: NodePort
+    type: ClusterIP
     port: 80
     targetPort: 9083
-    nodePort: 30215
+  fs:
+    name: stdl-fs
+    fsNameKey: fs-name
   segSizeMb: 17
-  secrets:
-    fs:
-      name: stdl-fs
-      fsNameKey: fs-name
