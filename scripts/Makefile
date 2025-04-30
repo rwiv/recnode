@@ -1,4 +1,4 @@
-APP_VERSION=0.5.6
+APP_VERSION=0.5.7
 
 stage-run: helm-stage-proxy-run helm-stage-server-run
 stage-rm: helm-stage-server-rm helm-stage-proxy-rm

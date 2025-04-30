@@ -149,6 +149,11 @@ class SegmentedStreamRecorder:
 
         if segment.num in self.processed_nums:
             return
+ 
+        if segment.num == 0:
+            # TODO: implement handling logic for segment 0
+            log.warn("Segment 0 is not processed", self.ctx.to_dict())
+            return
 
         # this is used to check the logic implemented inside `SoopHLSStreamWriter`.
         # if this log is not printed for a long time, this code will be removed.
