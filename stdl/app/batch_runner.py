@@ -60,6 +60,8 @@ def get_state(conf: BatchConfig):
     headers = {}
     for k, v in stream.session.http.headers.items():
         headers[k] = v
+    if conf.cookie is not None:
+        headers["Cookie"] = conf.cookie
 
     fetcher = PlatformFetcher()
     if len(fetcher.headers) == 0:
@@ -77,6 +79,6 @@ def get_state(conf: BatchConfig):
         liveId=live.live_id,
         liveTitle=live.live_title,
         streamUrl=stream_url,
-        cookie=conf.cookie,
+        headers=headers,
         videoName=datetime.now().strftime("%Y%m%d_%H%M%S"),
     )

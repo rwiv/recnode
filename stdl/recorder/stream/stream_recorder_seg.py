@@ -114,7 +114,7 @@ class SegmentedStreamRecorder:
             if self.ctx.stream_base_url is not None:
                 map_url = "/".join([self.ctx.stream_base_url, map_seg.uri])
             b = await self.http.get_bytes(map_url, headers=self.ctx.headers)
-            async with aiofiles.open(path_join(self.ctx.tmp_dir_path, "0.ts"), "wb") as f:
+            async with aiofiles.open(path_join(self.ctx.tmp_dir_path, "-1.ts"), "wb") as f:
                 await f.write(b)
 
         # Process segments
@@ -148,11 +148,6 @@ class SegmentedStreamRecorder:
         assert self.ctx is not None
 
         if segment.num in self.processed_nums:
-            return
- 
-        if segment.num == 0:
-            # TODO: implement handling logic for segment 0
-            log.warn("Segment 0 is not processed", self.ctx.to_dict())
             return
 
         # this is used to check the logic implemented inside `SoopHLSStreamWriter`.

@@ -54,8 +54,9 @@ class StreamHelper:
 
     async def get_ctx(self, state: LiveState) -> RequestContext:
         headers = {"User-Agent": FIREFOX_USER_AGENT}
-        if state.cookie is not None:
-            headers["Cookie"] = state.cookie
+        if state.headers is not None:
+            for k, v in state.headers.items():
+                headers[k] = v
         if len(self.fetcher.headers) == 0:
             self.fetcher.set_headers(headers)
 

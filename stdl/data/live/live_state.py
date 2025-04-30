@@ -11,6 +11,5 @@ class LiveState(BaseModel):
     live_id: str = Field(alias="liveId")
     live_title: str = Field(alias="liveTitle")
     stream_url: str = Field(alias="streamUrl")
-    latest_num: int | None = Field(alias="latestNum", default=None)
-    cookie: str | None = None
+    headers: dict[str, str] | None = None
     video_name: str = Field(alias="videoName")
