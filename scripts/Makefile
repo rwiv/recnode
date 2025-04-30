@@ -1,4 +1,4 @@
-APP_VERSION=0.5.7
+APP_VERSION=0.5.8
 
 stage-run: helm-stage-proxy-run helm-stage-server-run
 stage-rm: helm-stage-server-rm helm-stage-proxy-rm
@@ -173,21 +173,34 @@ helm-stage-server-run:
 		--set image.tag=latest \
 		--set plain.enabled=true \
 		--set plain.name=stdl-server-plain-521 \
-		--set plain.hostName=stdl-plain-711.home.rwiv.xyz \
+		--set plain.hostName=stdl-plain-521.home.rwiv.xyz \
 		--set vpn.enabled=false \
 		--set vpn.name=stdl-server-vpn-521 \
 		--set vpn.hostName=stdl-vpn-521.home.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-52.stage.svc.cluster.local \
 		--set gateway=istio-system/internal-gateway \
-		--set redis.host=stdl-redis.rwiv.xyz \
-		--set redis.port=30211 \
+		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.port=6379 \
+		--set nodeName=vm-52
+	-@helm install stdl-server-522 ../kube/server -n stage \
+		--set metadata.namespace=stage \
+		--set image.repository=harbor.rwiv.xyz/test/stdl \
+		--set image.tag=latest \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-522 \
+		--set plain.hostName=stdl-plain-522.home.rwiv.xyz \
+		--set vpn.enabled=false \
+		--set gateway=istio-system/internal-gateway \
+		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.port=6379 \
 		--set nodeName=vm-52
 
 helm-stage-server-rm:
 	-@helm uninstall stdl-server-521 -n stage
+	-@helm uninstall stdl-server-522 -n stage
 
 helm-stage-proxy-run:
-	-@helm install stdl-proxy ../kube/proxy -n media \
+	-@helm install stdl-proxy ../kube/proxy -n stage \
 		--set metadata.namespace=stage \
 		--set image.repository=harbor.rwiv.xyz/test/stdl \
 		--set image.tag=latest \
