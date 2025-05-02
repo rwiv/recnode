@@ -1,6 +1,6 @@
 import logging
 
-from pyutils import to_cookie_dict, CookieDict
+from pyutils import CookieDict
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
@@ -34,3 +34,12 @@ def get_streams(url: str, args: StreamLinkSessionArgs) -> dict[str, HLSStream] |
 
 def disable_streamlink_log():
     logging.getLogger("streamlink").setLevel(logging.CRITICAL)
+
+
+def to_cookie_dict(cookie_string: str) -> list[CookieDict]:
+    cookies = cookie_string.strip(";").split("; ")
+    result: list[CookieDict] = []
+    for pair in cookies:
+        name, value = pair.split("=", 1)
+        result.append({"name": name, "value": value})
+    return result
