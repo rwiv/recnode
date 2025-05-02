@@ -12,8 +12,14 @@ services:
 
       TMP_DIR_PATH: /app/tmp
       OUT_DIR_PATH: /app/out
+
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_CA_PATH: /app/ca.crt
     entrypoint: python -m stdl batch
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${REDIS_CA_PATH}:/app/ca.crt"
       - "${TMP_DIR_PATH}:/app/tmp"
       - "${OUT_DIR_PATH}:/app/out"
