@@ -1,0 +1,19 @@
+services:
+  stdl-batch:
+    image: harbor.rwiv.xyz/private/stdl:0.5.8
+    container_name: stdl-batch
+    environment:
+      PY_ENV: prod
+      CONFIG_PATH: "${CONFIG_PATH}"
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
+
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+
+      TMP_DIR_PATH: /app/tmp
+      OUT_DIR_PATH: /app/out
+    entrypoint: python -m stdl batch
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${TMP_DIR_PATH}:/app/tmp"
+      - "${OUT_DIR_PATH}:/app/out"

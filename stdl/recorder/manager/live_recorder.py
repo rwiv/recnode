@@ -47,9 +47,6 @@ class LiveRecorder:
         return self.stream.get_status()
 
     def record(self, state: LiveState, block: bool = True):
-        if self.env.env == "prod" and state is None:
-            raise ValueError("State is None in prod env")
-
         self.recording_thread = threading.Thread(target=self.__record_stream, args=(state,))
         self.recording_thread.name = f"Thread-StreamRecorder-{self.platform.value}-{self.channel_id}"
         self.recording_thread.start()
