@@ -1,7 +1,7 @@
 APP_VERSION=0.5.8
 
-stage-run: helm-stage-proxy-run helm-stage-server-run
-stage-rm: helm-stage-server-rm helm-stage-proxy-rm
+stage-run: helm-stage-server-run
+stage-rm: helm-stage-server-rm
 
 # infra
 ## argo
@@ -152,6 +152,36 @@ helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
 	-@helm uninstall stdl-server-722 -n media
 
+helm-prod-73-run:
+	-@helm install stdl-server-731 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-731 \
+		--set plain.hostName=stdl-plain-731.netcup.rwiv.xyz \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-731 \
+		--set vpn.hostName=stdl-vpn-731.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set nodeName=host73
+	-@helm install stdl-server-732 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-732 \
+		--set vpn.hostName=stdl-vpn-732.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set nodeName=host73
+
+helm-prod-73-rm:
+	-@helm uninstall stdl-server-721 -n media
+	-@helm uninstall stdl-server-722 -n media
+
 helm-prod-proxy-run:
 	-@helm install stdl-proxy-71 ../kube/proxy -n media \
 		--set image.tag=$(APP_VERSION) \
@@ -161,10 +191,15 @@ helm-prod-proxy-run:
 		--set image.tag=$(APP_VERSION) \
 		--set metadata.name=stdl-proxy-72 \
 		--set nodeName=host72
+	-@helm install stdl-proxy-73 ../kube/proxy -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-proxy-73 \
+		--set nodeName=host73
 
 helm-prod-proxy-rm:
 	-@helm uninstall stdl-proxy-71 -n media
 	-@helm uninstall stdl-proxy-72 -n media
+	-@helm uninstall stdl-proxy-73 -n media
 
 helm-stage-server-run:
 	-@helm install stdl-server-521 ../kube/server -n stage \
