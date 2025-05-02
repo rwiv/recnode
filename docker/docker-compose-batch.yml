@@ -4,7 +4,7 @@ services:
     container_name: stdl-batch
     environment:
       PY_ENV: prod
-      CONFIG_PATH: /app/fs_conf.yaml
+      CONFIG_PATH: /app/conf.yaml
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
 
       FS_NAME: "${FS_NAME}"
@@ -19,6 +19,7 @@ services:
       REDIS_CA_PATH: /app/ca.crt
     entrypoint: python -m stdl batch
     volumes:
+      - "${CONFIG_PATH}:/app/conf.yaml"
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${REDIS_CA_PATH}:/app/ca.crt"
       - "${TMP_DIR_PATH}:/app/tmp"
