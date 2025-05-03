@@ -116,6 +116,17 @@ helm-prod-71-run:
 		--set redis.host=stdl-redis.rwiv.xyz \
 		--set redis.port=30211 \
 		--set nodeName=host71
+	-@helm install stdl-server-713 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-713 \
+		--set vpn.hostName=stdl-vpn-713.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set nodeName=host71
 
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
@@ -146,6 +157,17 @@ helm-prod-72-run:
 		--set redis.host=stdl-redis.rwiv.xyz \
 		--set redis.port=30211 \
 		--set nodeName=host72
+	-@helm install stdl-server-723 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-723 \
+		--set vpn.hostName=stdl-vpn-723.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set nodeName=host72
 
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
@@ -171,6 +193,17 @@ helm-prod-73-run:
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-732 \
 		--set vpn.hostName=stdl-vpn-732.netcup.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
+		--set gateway=istio-system/external-gateway \
+		--set redis.host=stdl-redis.rwiv.xyz \
+		--set redis.port=30211 \
+		--set nodeName=host73
+	-@helm install stdl-server-733 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-733 \
+		--set vpn.hostName=stdl-vpn-733.netcup.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set redis.host=stdl-redis.rwiv.xyz \

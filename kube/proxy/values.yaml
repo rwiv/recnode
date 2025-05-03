@@ -10,7 +10,7 @@ affinity: {}
 podLabels: {}
 nodeName: ~
 server:
-  replicas: 3
+  replicas: 5
   containerName: stdl-proxy
   service:
     type: ClusterIP
