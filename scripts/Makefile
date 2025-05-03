@@ -107,7 +107,9 @@ helm-prod-71-run:
 		--set nodeName=host71
 	-@helm install stdl-server-712 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set plain.enabled=false \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-712 \
+		--set plain.hostName=stdl-plain-712.netcup.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-712 \
 		--set vpn.hostName=stdl-vpn-712.netcup.rwiv.xyz \
@@ -120,7 +122,6 @@ helm-prod-71-run:
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
 	-@helm uninstall stdl-server-712 -n media
-
 
 helm-prod-72-run:
 	-@helm install stdl-server-721 ../kube/server -n media \
@@ -138,7 +139,9 @@ helm-prod-72-run:
 		--set nodeName=host72
 	-@helm install stdl-server-722 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set plain.enabled=false \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-722 \
+		--set plain.hostName=stdl-plain-722.netcup.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-722 \
 		--set vpn.hostName=stdl-vpn-722.netcup.rwiv.xyz \
@@ -168,7 +171,9 @@ helm-prod-73-run:
 		--set nodeName=host73
 	-@helm install stdl-server-732 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set plain.enabled=false \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-732 \
+		--set plain.hostName=stdl-plain-732.netcup.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-732 \
 		--set vpn.hostName=stdl-vpn-732.netcup.rwiv.xyz \
