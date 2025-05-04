@@ -2,7 +2,7 @@ import asyncio
 import random
 
 import aiofiles
-from pyutils import log, path_join
+from pyutils import log, path_join, error_dict
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
 
@@ -87,7 +87,9 @@ class SegmentedStreamRecorder:
 
         # Fetch m3u8
         try:
-            m3u8_text = await self.http.get_text(self.ctx.stream_url, self.ctx.headers, print_error=False)
+            m3u8_text = await self.http.get_text(
+                self.ctx.stream_url, self.ctx.headers, attr=self.ctx.to_dict(), print_error=False
+            )
         except HttpRequestError as e:
             live_info = await self.fetcher.fetch_live_info(self.ctx.live_url)
             if live_info is None:
@@ -113,7 +115,7 @@ class SegmentedStreamRecorder:
             map_url = map_seg.uri
             if self.ctx.stream_base_url is not None:
                 map_url = "/".join([self.ctx.stream_base_url, map_seg.uri])
-            b = await self.http.get_bytes(map_url, headers=self.ctx.headers)
+            b = await self.http.get_bytes(map_url, headers=self.ctx.headers, attr=self.ctx.to_dict())
             async with aiofiles.open(path_join(self.ctx.tmp_dir_path, "-1.ts"), "wb") as f:
                 await f.write(b)
 
@@ -124,9 +126,8 @@ class SegmentedStreamRecorder:
         results = await asyncio.gather(*coroutines, return_exceptions=True)
         for result in results:
             if isinstance(result, BaseException):
-                log.error("Error processing segment", {"error": str(result)})
-                # TODO: implement error handling logic (using redis) and remove `raise`
-                raise result
+                log.error("Failed to processing segment", self.__error_attr(result))
+                # TODO: implement error handling logic (using redis)
 
         # Upload segments tar
         target_segments = await self.helper.check_segments(self.ctx)
@@ -143,6 +144,13 @@ class SegmentedStreamRecorder:
 
         # to prevent segment requests from being concentrated on a specific node
         await asyncio.sleep(random.uniform(self.min_delay_sec, self.max_delay_sec))
+    
+    def __error_attr(self, ex: BaseException):
+        assert self.ctx is not None
+        attr = self.ctx.to_dict()
+        for k, v in error_dict(ex).items():
+            attr[k] = v
+        return attr
 
     async def __process_segment(self, segment: HLSSegment):
         assert self.ctx is not None
@@ -161,7 +169,7 @@ class SegmentedStreamRecorder:
         url = segment.uri
         if self.ctx.stream_base_url is not None:
             url = "/".join([self.ctx.stream_base_url, segment.uri])
-        b = await self.http.get_bytes(url, headers=self.ctx.headers)
+        b = await self.http.get_bytes(url, headers=self.ctx.headers, attr=self.ctx.to_dict())
         async with aiofiles.open(seg_path, "wb") as f:
             await f.write(b)
 
