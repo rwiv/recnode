@@ -1,3 +1,5 @@
+from typing import Any
+
 from pydantic import BaseModel
 from pyutils import error_dict
 
@@ -24,13 +26,16 @@ class RequestContext(BaseModel):
         self.live.set_dict(err)
         return err
 
-    def to_dict(self, with_stream_url: bool = False) -> dict[str, str]:
+    def to_dict(self, extra: dict | None = None, with_stream_url: bool = False) -> dict[str, Any]:
         result = {
             "video_name": self.video_name,
         }
         if with_stream_url:
             result["stream_url"] = self.stream_url
         self.live.set_dict(result)
+        if extra is not None:
+            for key, value in extra.items():
+                result[key] = value
         return result
 
     def get_thread_path(self):

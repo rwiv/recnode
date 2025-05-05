@@ -1,15 +1,17 @@
 import os
 import sys
 
+from .async_types import *
 from .http import FIREFOX_USER_AGENT
 from .http_async import AsyncHttpClient
 from .string import random_string
 from .errors import HttpError, HttpRequestError
 
 targets = [
+    "async_types",
+    "errors",
     "http_async",
     "string",
-    "errors",
 ]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):

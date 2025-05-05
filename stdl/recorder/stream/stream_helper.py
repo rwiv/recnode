@@ -22,6 +22,9 @@ from ...utils import random_string, FIREFOX_USER_AGENT
 WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
 
 
+FILE_WAIT_SEC = 2
+
+
 class StreamHelper:
     def __init__(
         self,
@@ -51,6 +54,7 @@ class StreamHelper:
 
         seg_size_mb: int = args.seg_size_mb or DEFAULT_SEGMENT_SIZE_MB
         self.seg_size = seg_size_mb * 1024 * 1024
+        self.threshold_sec = FILE_WAIT_SEC
 
     async def get_ctx(self, state: LiveState) -> RequestContext:
         headers = {"User-Agent": FIREFOX_USER_AGENT}
@@ -133,9 +137,13 @@ class StreamHelper:
             path_join(ctx.tmp_dir_path, seg_name)
             for seg_name in sorted(segment_names, key=lambda x: int(Path(x).stem))
         ]
+
+        current_time = time.time()
         result = []
         size_sum = 0
         for seg_path in segment_paths:
+            if current_time - os.stat(seg_path).st_mtime <= self.threshold_sec:
+                continue
             size_sum += Path(seg_path).stat().st_size
             result.append(seg_path)
             if size_sum >= self.seg_size:
@@ -157,6 +165,7 @@ class StreamHelper:
         target_segments = [
             path_join(ctx.tmp_dir_path, file_name) for file_name in os.listdir(ctx.tmp_dir_path)
         ]
+        time.sleep(FILE_WAIT_SEC)
         if len(target_segments) > 0:
             tar_path = self.archive(target_segments, ctx.tmp_dir_path)
             ctx_info = ctx.to_dict()
