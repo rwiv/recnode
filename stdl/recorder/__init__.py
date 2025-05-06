@@ -10,8 +10,7 @@ from .schema.recording_arguments import StreamLinkSessionArgs
 from .stream.streamlink_utils import disable_streamlink_log, get_streams
 
 targets = [
-    "recorder",
-    "platform",
+    "manger",
     "schema",
     "stream",
 ]
