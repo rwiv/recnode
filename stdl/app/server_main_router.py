@@ -44,5 +44,9 @@ class MainController:
         self.__scheduler.cancel(state)
         return "ok"
 
-    def get_status(self):
-        return self.__scheduler.ger_status()
+    def get_status(self, fields: str | None = None):
+        full_stats = False
+        field_elems = fields.split(",") if fields else []
+        if "full_stats" in field_elems:
+            full_stats = True
+        return self.__scheduler.ger_status(full_stats=full_stats)

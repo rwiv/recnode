@@ -19,18 +19,19 @@ class RecordingScheduler:
         self.check_thread: Thread | None = None
         self.start_monitoring_states()
 
-    def ger_status(self):
+    def ger_status(self, full_stats: bool = False):
+        recorders = [recorder.get_status(full_stats=full_stats) for recorder in self.__recorder_map.values()]
         return {
             # "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
             "thread_cnt": len(threading.enumerate()),
-            "recorders": [recorder.get_status() for recorder in self.__recorder_map.values()],
+            "recorders": recorders,
         }
 
     def record(self, state: LiveState):
         writer = create_fs_writer(self.env)
         recorder = RecorderResolver(self.env, writer).create_recorder(state)
 
-        key = create_key(state)
+        key = parse_key(state)
         if self.__recorder_map.get(key):
             log.info("Already Recording")
             return
@@ -38,9 +39,9 @@ class RecordingScheduler:
         recorder.record(state=state, block=False)
 
     def cancel(self, state: LiveState):
-        key = create_key(state)
-        if self.__recorder_map.get(key):
-            self.__recorder_map[key].stream.state.cancel()
+        recorder = self.__recorder_map.get(parse_key(state))
+        if recorder is not None:
+            recorder.stream.state.cancel()
         else:
             log.error(f"Not found recorder", state.model_dump(mode="json"))
 
@@ -68,5 +69,5 @@ class RecordingScheduler:
                 time.sleep(SCHEDULER_CHECK_DELAY_SEC)
 
 
-def create_key(state: LiveState) -> str:
+def parse_key(state: LiveState) -> str:
     return f"{state.platform.value}:{state.channel_id}:{state.video_name}"
