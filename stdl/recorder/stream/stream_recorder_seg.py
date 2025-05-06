@@ -72,10 +72,16 @@ class SegmentedStreamRecorder:
         self.ctx: RequestContext | None = None
 
         self.m3u8_http = AsyncHttpClient(
-            timeout_sec=req_conf.m3u8_timeout_sec, retry_limit=0, retry_delay_sec=0, print_error=False,
+            timeout_sec=req_conf.m3u8_timeout_sec,
+            retry_limit=0,
+            retry_delay_sec=0,
+            print_error=False,
         )
         self.seg_http = AsyncHttpClient(
-            timeout_sec=req_conf.seg_timeout_sec, retry_limit=0, retry_delay_sec=0, print_error=False,
+            timeout_sec=req_conf.seg_timeout_sec,
+            retry_limit=0,
+            retry_delay_sec=0,
+            print_error=False,
         )
         self.fetcher = PlatformFetcher()
         self.writer = writer
@@ -123,14 +129,14 @@ class SegmentedStreamRecorder:
             "failed_total": failed_cnt,
             "done_total": done_cnt,
             "retry_total": self.seg_retry_counter.get(),
-            "req_total": sum(req_counts),
-            "seg_req_min": min(req_counts) if len(req_counts) > 0 else 0,
-            "seg_req_max": max(req_counts) if len(req_counts) > 0 else 0,
-            "seg_req_avg": round(sum(req_counts) / len(req_counts), 3) if len(req_counts) > 0 else 0,
-            "seg_req_duration_min": round(min(self.req_durations), 3) if req_duration_size > 0 else 0,
-            "seg_req_duration_max": round(max(self.req_durations), 3) if req_duration_size > 0 else 0,
-            "seg_req_duration_avg": (
-                round(sum(self.req_durations), 3) / req_duration_size if req_duration_size > 0 else 0
+            "seg_request_total": sum(req_counts),
+            "seg_request_try_min": min(req_counts) if len(req_counts) > 0 else 0,
+            "seg_request_try_max": max(req_counts) if len(req_counts) > 0 else 0,
+            "seg_request_try_avg": round(sum(req_counts) / len(req_counts), 3) if len(req_counts) > 0 else 0,
+            "seg_request_duration_min": round(min(self.req_durations), 3) if req_duration_size > 0 else 0,
+            "seg_request_duration_max": round(max(self.req_durations), 3) if req_duration_size > 0 else 0,
+            "seg_request_duration_avg": (
+                round(sum(self.req_durations) / req_duration_size, 3) if req_duration_size > 0 else 0
             ),
         }
         if with_nums:
@@ -168,7 +174,10 @@ class SegmentedStreamRecorder:
             self.status_type = RecordingStatus.FAILED
 
         self.__close_recording()
-        log.info("Finish Recording", self.ctx.to_dict())
+        result_attr = self.ctx.to_dict()
+        for k, v in self.get_stats().items():
+            result_attr[k] = v
+        log.info("Finish Recording", result_attr)
         return self.ctx.live
 
     async def __interval(self, is_init: bool = False):
