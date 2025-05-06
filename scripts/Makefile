@@ -131,6 +131,7 @@ helm-prod-71-run:
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
 	-@helm uninstall stdl-server-712 -n media
+	-@helm uninstall stdl-server-713 -n media
 
 helm-prod-72-run:
 	-@helm install stdl-server-721 ../kube/server -n media \
@@ -172,6 +173,7 @@ helm-prod-72-run:
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
 	-@helm uninstall stdl-server-722 -n media
+	-@helm uninstall stdl-server-723 -n media
 
 helm-prod-73-run:
 	-@helm install stdl-server-731 ../kube/server -n media \
@@ -213,6 +215,7 @@ helm-prod-73-run:
 helm-prod-73-rm:
 	-@helm uninstall stdl-server-731 -n media
 	-@helm uninstall stdl-server-732 -n media
+	-@helm uninstall stdl-server-733 -n media
 
 helm-prod-proxy-run:
 	-@helm install stdl-proxy-71 ../kube/proxy -n media \
