@@ -42,6 +42,14 @@ spec:
               value: "{{ .Values.server.service.targetPort }}"
             - name: SEG_SIZE_MB
               value: "{{ .Values.server.segSizeMb }}"
+            - name: DEFAULT_TIMEOUT_SEC
+              value: "{{ .Values.server.reqConf.defaultTimeoutSec }}"
+            - name: SEG_TIMEOUT_SEC
+              value: "{{ .Values.server.reqConf.segTimeoutSec }}"
+            - name: SEG_PARALLEL_RETRY_LIMIT
+              value: "{{ .Values.server.reqConf.segParallelRetryLimit }}"
+            - name: FAILED_COUNT_THRESHOLD_RATIO
+              value: "{{ .Values.server.reqConf.failedCountThresholdRatio }}"
             - name: TMP_DIR_PATH
               value: /app/tmp
             - name: FS_NAME

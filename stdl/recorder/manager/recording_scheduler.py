@@ -19,8 +19,11 @@ class RecordingScheduler:
         self.check_thread: Thread | None = None
         self.start_monitoring_states()
 
-    def ger_status(self, full_stats: bool = False):
-        recorders = [recorder.get_status(full_stats=full_stats) for recorder in self.__recorder_map.values()]
+    def ger_status(self, with_stats: bool = False, full_stats: bool = False):
+        recorders = [
+            recorder.get_status(with_stats=with_stats, full_stats=full_stats)
+            for recorder in self.__recorder_map.values()
+        ]
         return {
             # "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
             "thread_cnt": len(threading.enumerate()),

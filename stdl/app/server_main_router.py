@@ -45,8 +45,13 @@ class MainController:
         return "ok"
 
     def get_status(self, fields: str | None = None):
-        full_stats = False
         field_elems = fields.split(",") if fields else []
+        with_stats = False
+        if "stats" in field_elems:
+            with_stats = True
+
+        full_stats = False
         if "full_stats" in field_elems:
+            with_stats = True
             full_stats = True
-        return self.__scheduler.ger_status(full_stats=full_stats)
+        return self.__scheduler.ger_status(with_stats=with_stats, full_stats=full_stats)

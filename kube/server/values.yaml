@@ -55,3 +55,8 @@ server:
     name: stdl-fs
     fsNameKey: fs-name
   segSizeMb: 17
+  reqConf:
+    defaultTimeoutSec: 10
+    segTimeoutSec: 9
+    segParallelRetryLimit: 4
+    failedCountThresholdRatio: 3

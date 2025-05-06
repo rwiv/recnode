@@ -5,6 +5,7 @@ from pyutils import load_dotenv, path_join, find_project_root
 
 from .env_proxy import ProxyConfig, read_proxy_config
 from .env_redis import RedisConfig, read_redis_config
+from .env_request import RequestConfig, read_request_config
 from .env_stream import StreamConfig, read_stream_config
 from ..spec import LOCAL_FS_NAME
 
@@ -17,6 +18,7 @@ class Env(BaseModel):
     out_dir_path: constr(min_length=1) | None
     tmp_dir_path: constr(min_length=1)
     config_path: constr(min_length=1) | None
+    req_conf: RequestConfig
     stream: StreamConfig
     redis: RedisConfig
     proxy: ProxyConfig
@@ -41,6 +43,7 @@ def get_env() -> Env:
         out_dir_path=os.getenv("OUT_DIR_PATH") or None,
         tmp_dir_path=os.getenv("TMP_DIR_PATH"),
         config_path=os.getenv("CONFIG_PATH") or None,
+        req_conf=read_request_config(),
         stream=read_stream_config(),
         redis=read_redis_config(),
         proxy=read_proxy_config(),

@@ -22,6 +22,24 @@ class AsyncSet[T]:
         return list(self.set)
 
 
+class AsyncCounter:
+    def __init__(self):
+        self.lock = asyncio.Lock()
+        self.count = 0
+
+    async def increment(self):
+        async with self.lock:
+            self.count += 1
+
+    async def decrement(self):
+        async with self.lock:
+            if self.count > 0:
+                self.count -= 1
+
+    def get(self) -> int:
+        return self.count
+
+
 class AsyncMap[K, V]:
     def __init__(self):
         self.lock = asyncio.Lock()

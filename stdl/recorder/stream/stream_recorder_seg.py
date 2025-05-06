@@ -12,13 +12,11 @@ from .stream_helper import StreamHelper
 from .stream_types import RequestContext
 from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
+from ...common.env import RequestConfig
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
-from ...utils import AsyncHttpClient, HttpRequestError, AsyncMap, AsyncSet
-
-SEGMENT_PARALLEL_RETRY_LIMIT = 3
-FAILED_CNT_THRESHOLD_RATIO = 2
+from ...utils import AsyncHttpClient, HttpRequestError, AsyncMap, AsyncSet, AsyncCounter
 
 TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
@@ -51,11 +49,12 @@ class SegmentedStreamRecorder:
         args: StreamArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
-        segment_limit: int = SEGMENT_PARALLEL_RETRY_LIMIT,
+        req_conf: RequestConfig,
     ):
         self.min_delay_sec = 0.7
         self.max_delay_sec = 1.2
-        self.segment_limit = segment_limit
+        self.segment_parallel_retry_limit = req_conf.seg_parallel_retry_limit
+        self.failed_threshold_ratio = req_conf.failed_count_threshold_ratio
 
         self.idx = 0
         self.done_flag = False
@@ -65,12 +64,17 @@ class SegmentedStreamRecorder:
         self.retrying_segments: AsyncMap[int, Segment] = AsyncMap()
         self.success_nums: AsyncSet[int] = AsyncSet()
         self.failed_segments: AsyncMap[int, Segment] = AsyncMap()
-        self.request_counts: AsyncMap[int, int] = AsyncMap()
+        self.request_counts: AsyncMap[int, AsyncCounter] = AsyncMap()
         self.req_durations: list[float] = []
+        self.retry_counter = AsyncCounter()
         self.ctx: RequestContext | None = None
 
-        self.http = AsyncHttpClient(timeout_sec=9, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
-        self.seg_http = AsyncHttpClient(timeout_sec=8, retry_limit=0, retry_delay_sec=0)
+        self.http = AsyncHttpClient(
+            timeout_sec=req_conf.default_timeout_sec, retry_limit=1, retry_delay_sec=0, print_error=True
+        )
+        self.seg_http = AsyncHttpClient(
+            timeout_sec=req_conf.seg_timeout_sec, retry_limit=0, retry_delay_sec=0, print_error=False
+        )
         self.fetcher = PlatformFetcher()
         self.writer = writer
         self.helper = StreamHelper(
@@ -81,20 +85,21 @@ class SegmentedStreamRecorder:
         assert self.ctx is not None
         self.helper.check_tmp_dir(self.ctx)
 
-    def get_status(self, full_stats: bool = False) -> dict:
+    def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         assert self.ctx is not None
         status = self.ctx.to_status(
             fs_name=self.writer.fs_name,
             num=self.idx,
             status=self.status_type,
         )
+        status.stream_url = None
         dct = status.model_dump(mode="json", by_alias=True, exclude_none=True)
-        del dct["stream_url"]
 
-        if not full_stats:
-            dct["stats"] = self.get_stats()
-        else:
-            dct["stats"] = self.get_stats(with_nums=True, with_req_cnt_dict=True)
+        if with_stats:
+            if full_stats:
+                dct["stats"] = self.get_stats(with_nums=True, with_req_cnt_dict=True)
+            else:
+                dct["stats"] = self.get_stats()
 
         return dct
 
@@ -103,7 +108,7 @@ class SegmentedStreamRecorder:
         success_nums = self.success_nums.list()
         retry_nums = self.retrying_segments.keys()
         failed_nums = self.failed_segments.keys()
-        req_counts = self.request_counts.map.values()
+        req_counts = [counter.get() for counter in self.request_counts.map.values()]
         req_duration_size = len(self.req_durations)
 
         success_cnt = len(success_nums)
@@ -115,10 +120,11 @@ class SegmentedStreamRecorder:
             "success_cnt": success_cnt,
             "failed_cnt": failed_cnt,
             "done_cnt": done_cnt,
+            "retry_cnt_total": self.retry_counter.get(),
+            "req_cnt_total": sum(req_counts),
             "req_cnt_min": min(req_counts) if len(req_counts) > 0 else 0,
             "req_cnt_max": max(req_counts) if len(req_counts) > 0 else 0,
-            "req_cnt_avg": sum(req_counts) / len(req_counts) if len(req_counts) > 0 else 0,
-            "req_cnt_total": sum(req_counts),
+            "req_cnt_avg": round(sum(req_counts) / len(req_counts), 3) if len(req_counts) > 0 else 0,
             "req_duration_min": round(min(self.req_durations), 3) if req_duration_size > 0 else 0,
             "req_duration_max": round(max(self.req_durations), 3) if req_duration_size > 0 else 0,
             "req_duration_avg": (
@@ -213,7 +219,7 @@ class SegmentedStreamRecorder:
             url = raw_seg.uri
             if self.ctx.stream_base_url is not None:
                 url = "/".join([self.ctx.stream_base_url, raw_seg.uri])
-            seg = Segment(num=raw_seg.num, url=url, limit=self.segment_limit)
+            seg = Segment(num=raw_seg.num, url=url, limit=self.segment_parallel_retry_limit)
             _ = asyncio.create_task(self.__process_segment(seg))
 
         for _, failed in self.retrying_segments.items():
@@ -252,11 +258,14 @@ class SegmentedStreamRecorder:
                 return
 
         # Update request count
-        req_cnt = await self.request_counts.get(seg.num)
-        if req_cnt is None:
-            req_cnt = 0
-        req_cnt += 1
-        await self.request_counts.set(seg.num, req_cnt)
+        req_counter = await self.request_counts.get(seg.num)
+        if req_counter is None:
+            req_counter = AsyncCounter()
+            await self.request_counts.set(seg.num, req_counter)
+        await req_counter.increment()
+
+        if seg.is_failed:
+            await self.retry_counter.increment()
 
         if "preloading" in seg.url:
             # this is used to check the logic implemented inside `SoopHLSStreamWriter`.
@@ -278,20 +287,23 @@ class SegmentedStreamRecorder:
             async with aiofiles.open(seg_path, "wb") as f:
                 await f.write(b)
 
-            await self.success_nums.add(seg.num)
             await self.processing_nums.remove(seg.num)
             if seg.is_failed:
                 await self.retrying_segments.remove(seg.num)
+            await self.success_nums.add(seg.num)
+            await self.failed_segments.remove(seg.num)
         except BaseException as ex:
             self.req_durations.append(time.time() - req_start)
             if not seg.is_failed:  # first time failed:
                 seg.is_failed = True
                 await self.retrying_segments.set(seg.num, seg)
             else:  # case of retry:
-                if req_cnt >= (self.segment_limit * FAILED_CNT_THRESHOLD_RATIO):
+                if req_counter.get() >= (self.segment_parallel_retry_limit * self.failed_threshold_ratio):
                     await self.processing_nums.remove(seg.num)
                     await self.retrying_segments.remove(seg.num)
-                    await self.failed_segments.set(seg.num, seg)
+                    async with self.success_nums.lock:
+                        if not self.success_nums.contains(seg.num):
+                            await self.failed_segments.set(seg.num, seg)
                     log.error("Failed to process segment", self.__error_attr(ex, num=seg.num))
                 await seg.release()
 

@@ -37,14 +37,15 @@ class LiveRecorder:
             args=stream_args,
             incomplete_dir_path=self.incomplete_dir_path,
             writer=writer,
+            req_conf=self.env.req_conf,
         )
 
         self.vid_name: str | None = None
         self.is_done = False
         self.recording_thread: threading.Thread | None = None
 
-    def get_status(self, full_stats: bool = False):
-        return self.stream.get_status(full_stats=full_stats)
+    def get_status(self, with_stats: bool = False, full_stats: bool = False):
+        return self.stream.get_status(with_stats=with_stats, full_stats=full_stats)
 
     def record(self, state: LiveState, block: bool = True):
         self.recording_thread = threading.Thread(target=self.__record_stream, args=(state,))

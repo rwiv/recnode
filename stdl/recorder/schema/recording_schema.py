@@ -43,4 +43,4 @@ class RecorderStatusInfo(BaseModel):
     fs_name: str = Field(serialization_alias="fsName")
     num: int
     status: RecordingStatus = Field(serialization_alias="status")
-    stream_url: str = Field(serialization_alias="streamUrl")
+    stream_url: str | None = Field(serialization_alias="streamUrl", default=None)
