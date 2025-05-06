@@ -35,6 +35,10 @@ class AsyncCounter:
         async with self.lock:
             if self.count > 0:
                 self.count -= 1
+    
+    async def reset(self):
+        async with self.lock:
+            self.count = 0
 
     def get(self) -> int:
         return self.count
