@@ -72,10 +72,10 @@ class SegmentedStreamRecorder:
         self.ctx: RequestContext | None = None
 
         self.m3u8_http = AsyncHttpClient(
-            timeout_sec=req_conf.m3u8_timeout_sec, retry_limit=1, retry_delay_sec=0, print_error=True
+            timeout_sec=req_conf.m3u8_timeout_sec, retry_limit=0, retry_delay_sec=0, print_error=False,
         )
         self.seg_http = AsyncHttpClient(
-            timeout_sec=req_conf.seg_timeout_sec, retry_limit=0, retry_delay_sec=0, print_error=False
+            timeout_sec=req_conf.seg_timeout_sec, retry_limit=0, retry_delay_sec=0, print_error=False,
         )
         self.fetcher = PlatformFetcher()
         self.writer = writer
@@ -198,6 +198,7 @@ class SegmentedStreamRecorder:
             return
         finally:
             if self.m3u8_retry_counter.get() >= self.m3u8_retry_limit:
+                log.error("Max retry limit reached for m3u8", self.ctx.to_dict())
                 self.done_flag = True
                 return
 
