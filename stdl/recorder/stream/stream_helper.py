@@ -30,7 +30,6 @@ class StreamHelper:
         self,
         args: StreamArgs,
         state: RecordingState,
-        status: RecordingStatus,
         writer: ObjectWriter,
         fetcher: PlatformFetcher,
         incomplete_dir_path: str,
@@ -39,7 +38,6 @@ class StreamHelper:
         self.stream_info = args.info
         self.session_args = args.session_args
         self.state = state
-        self.status = status
 
         self.incomplete_dir_path = incomplete_dir_path
         self.tmp_base_path = args.tmp_dir_path

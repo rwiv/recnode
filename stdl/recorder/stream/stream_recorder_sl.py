@@ -37,7 +37,7 @@ class StreamlinkStreamRecorder:
         self.fetcher = PlatformFetcher()
         self.writer = writer
         self.helper = StreamHelper(
-            args, self.state, self.status, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path
+            args, self.state, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path
         )
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:

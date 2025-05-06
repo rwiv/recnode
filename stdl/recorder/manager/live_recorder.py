@@ -43,7 +43,7 @@ class LiveRecorder:
         self.is_done = False
         self.recording_thread: threading.Thread | None = None
 
-    def get_state(self):
+    def get_status(self):
         return self.stream.get_status()
 
     def record(self, state: LiveState, block: bool = True):

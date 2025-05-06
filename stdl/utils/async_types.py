@@ -40,9 +40,8 @@ class AsyncMap[K, V]:
             if key in self.map:
                 del self.map[key]
 
-    async def contains(self, key: K) -> bool:
-        async with self.lock:
-            return key in self.map
+    def contains(self, key: K) -> bool:
+        return key in self.map
 
     def keys(self) -> list[K]:
         return list(self.map.keys())

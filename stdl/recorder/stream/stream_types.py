@@ -46,6 +46,7 @@ class RequestContext(BaseModel):
             id=self.id,
             platform=self.live.platform,
             channel_id=self.live.channel_id,
+            channel_name=self.live.channel_name,
             live_id=self.live.live_id,
             fs_name=fs_name,
             video_name=self.video_name,

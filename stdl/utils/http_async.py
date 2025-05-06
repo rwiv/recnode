@@ -98,7 +98,11 @@ class AsyncHttpClient:
                     for k, v in attr.items():
                         err[k] = v
 
-                if self.retry_limit == 0 or retry_cnt == self.retry_limit:
+                if self.retry_limit == 0:
+                    if print_error:
+                        log.error("Failed to request", err)
+                    raise
+                if retry_cnt == self.retry_limit:
                     if print_error:
                         log.error("Failed to request: Retry Limit Exceeded", err)
                     raise

@@ -1,3 +1,4 @@
+import threading
 import time
 from threading import Thread
 
@@ -21,7 +22,8 @@ class RecordingScheduler:
     def ger_status(self):
         return {
             # "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
-            "recorders": [recorder.get_state() for recorder in self.__recorder_map.values()],
+            "thread_cnt": len(threading.enumerate()),
+            "recorders": [recorder.get_status() for recorder in self.__recorder_map.values()],
         }
 
     def record(self, state: LiveState):
