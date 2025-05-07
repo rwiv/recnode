@@ -25,20 +25,3 @@ class Histogram:
         if self.total_count == 0:
             return 0
         return self.total_sum / self.total_count
-
-    def max(self):
-        if self.total_count == 0:
-            return 0
-        return max(self.__available_keys())
-
-    def min(self):
-        if self.total_count == 0:
-            return 0
-        return min(self.__available_keys())
-
-    def __available_keys(self):
-        keys = []
-        for k, v in self.hist.items():
-            if v > 0:
-                keys.append(k)
-        return keys
