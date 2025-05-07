@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from streamlink.session.session import Streamlink
 
 from ..fetcher import LiveInfo
-from ...common.spec import PlatformType
+from ...common import PlatformType
 from ...utils import HttpRequestError
 
 

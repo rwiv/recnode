@@ -5,7 +5,7 @@ from .live_url_resolver import resolve_live_url
 from .platform.chzzk_fetcher import ChzzkFetcher
 from .platform.soop_fetcher import SoopFetcher
 from .platform.twitch_fetcher import TwitchFetcher
-from ..common.spec import PlatformType
+from ..common import PlatformType
 from ..metric import MetricManager
 
 

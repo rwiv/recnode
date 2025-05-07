@@ -2,7 +2,7 @@ import re
 
 from pydantic import BaseModel
 
-from ..common.spec import PlatformType
+from ..common import PlatformType
 
 
 class LiveUrlInfo(BaseModel):

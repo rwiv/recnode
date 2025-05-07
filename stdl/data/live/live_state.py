@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from ...common.spec import PlatformType
+from ...common import PlatformType
 
 
 class LiveState(BaseModel):

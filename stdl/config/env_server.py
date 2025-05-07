@@ -7,7 +7,7 @@ from .config_proxy import ProxyConfig, read_proxy_config
 from .config_redis import RedisConfig, read_redis_config
 from .config_request import RequestConfig, read_request_config
 from .config_stream import StreamConfig, read_stream_config
-from ..common.spec import LOCAL_FS_NAME
+from ..common import LOCAL_FS_NAME
 
 
 class Env(BaseModel):

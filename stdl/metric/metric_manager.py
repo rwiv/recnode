@@ -6,7 +6,7 @@ from .buckets import (
     m3u8_request_duration_buckets,
 )
 from .histogram import Histogram
-from ..common.spec import PlatformType
+from ..common import PlatformType
 
 
 class MetricManager:

@@ -4,7 +4,7 @@ from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .config_proxy import ProxyConfig, read_proxy_config
-from ..common.spec import LOCAL_FS_NAME
+from ..common import LOCAL_FS_NAME
 
 
 class ProxyEnv(BaseModel):

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
 
-from ..common.spec import PlatformType
+from ..common import PlatformType
 
 
 class LiveInfo(BaseModel):

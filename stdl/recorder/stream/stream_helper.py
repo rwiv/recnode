@@ -13,7 +13,7 @@ from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.streamlink_utils import get_streams
-from ...common.spec import PlatformType
+from ...common import PlatformType
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher, LiveInfo
 from ...file import ObjectWriter

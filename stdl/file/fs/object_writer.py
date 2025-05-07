@@ -8,7 +8,7 @@ from pyutils import dirpath
 from .fs_config import S3Config
 from .fs_types import FsType
 from ..s3.s3_utils import create_client
-from ...common.spec import LOCAL_FS_NAME
+from ...common import LOCAL_FS_NAME
 from ...utils import HttpRequestError
 
 

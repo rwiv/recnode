@@ -3,7 +3,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from pyutils import log
 
-from ...common.spec import PlatformType
+from ...common import PlatformType
 
 
 class StreamInfo(BaseModel):

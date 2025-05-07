@@ -4,7 +4,7 @@ import aiohttp
 from pydantic import BaseModel, Field
 
 from ..fetcher import LiveInfo
-from ...common.spec import PlatformType
+from ...common import PlatformType
 from ...utils import HttpRequestError
 
 

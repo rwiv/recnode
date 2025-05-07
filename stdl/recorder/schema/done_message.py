@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field, constr
 
-from ...common.spec import PlatformType
+from ...common import PlatformType
 
 
 class DoneStatus(Enum):

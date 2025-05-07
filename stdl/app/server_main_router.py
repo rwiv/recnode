@@ -2,7 +2,7 @@ import requests
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, constr
 
-from ..common.spec import PlatformType
+from ..common import PlatformType
 from ..data.live import LiveStateService
 from ..recorder import RecordingScheduler
 
