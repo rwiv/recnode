@@ -36,4 +36,4 @@ class RedisMap:
         result = self.__redis.exists(key)
         if not isinstance(result, int):
             raise RedisError("Expected integer data", 500)
-        return result != 1
+        return result == 1
