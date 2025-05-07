@@ -10,6 +10,7 @@ from .server_main_router import MainController
 from ..common.env import get_env
 from ..data.live import LiveStateService
 from ..data.redis import create_redis_client, RedisMap
+from ..metric import MetricManager
 from ..recorder import RecordingScheduler, disable_streamlink_log
 
 
@@ -35,7 +36,8 @@ def run_server():
     disable_streamlink_log()
 
     env = get_env()
-    scheduler = RecordingScheduler(env)
+    metric = MetricManager()
+    scheduler = RecordingScheduler(env, metric)
 
     redis_client = create_redis_client(env.redis)
     redis_map = RedisMap(redis_client)

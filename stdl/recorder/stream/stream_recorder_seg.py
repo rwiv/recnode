@@ -4,6 +4,7 @@ import random
 import time
 
 import aiofiles
+from prometheus_client import generate_latest
 from pyutils import log, path_join, error_dict
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
@@ -16,6 +17,7 @@ from ...common.env import RequestConfig
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
+from ...metric import MetricManager
 from ...utils import AsyncHttpClient, HttpRequestError, AsyncMap, AsyncSet, AsyncCounter
 
 TEST_FLAG = False
@@ -50,6 +52,7 @@ class SegmentedStreamRecorder:
         incomplete_dir_path: str,
         writer: ObjectWriter,
         req_conf: RequestConfig,
+        metric: MetricManager,
     ):
         self.min_delay_sec = 0.7
         self.max_delay_sec = 1.2
@@ -66,10 +69,13 @@ class SegmentedStreamRecorder:
         self.success_nums: AsyncSet[int] = AsyncSet()
         self.failed_segments: AsyncMap[int, Segment] = AsyncMap()
         self.request_counts: AsyncMap[int, AsyncCounter] = AsyncMap()
-        self.req_durations: list[float] = []
         self.seg_retry_counter = AsyncCounter()
         self.m3u8_retry_counter = AsyncCounter()
         self.ctx: RequestContext | None = None
+
+        self.metric = metric
+        self.seg_duration_hist = metric.create_http_request_duration_hist()
+        self.m3u8_duration_hist = metric.create_http_request_duration_hist()
 
         self.m3u8_http = AsyncHttpClient(
             timeout_sec=req_conf.m3u8_timeout_sec,
@@ -83,7 +89,7 @@ class SegmentedStreamRecorder:
             retry_delay_sec=0,
             print_error=False,
         )
-        self.fetcher = PlatformFetcher()
+        self.fetcher = PlatformFetcher(self.metric)
         self.writer = writer
         self.helper = StreamHelper(
             args, self.state, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path
@@ -117,7 +123,6 @@ class SegmentedStreamRecorder:
         retry_nums = self.retrying_segments.keys()
         failed_nums = self.failed_segments.keys()
         req_counts = [counter.get() for counter in self.request_counts.map.values()]
-        req_duration_size = len(self.req_durations)
 
         success_cnt = len(success_nums)
         failed_cnt = len(failed_nums)
@@ -129,15 +134,18 @@ class SegmentedStreamRecorder:
             "failed_total": failed_cnt,
             "done_total": done_cnt,
             "retry_total": self.seg_retry_counter.get(),
-            "seg_request_total": sum(req_counts),
-            "seg_request_try_min": min(req_counts) if len(req_counts) > 0 else 0,
-            "seg_request_try_max": max(req_counts) if len(req_counts) > 0 else 0,
-            "seg_request_try_avg": round(sum(req_counts) / len(req_counts), 3) if len(req_counts) > 0 else 0,
-            "seg_request_duration_min": round(min(self.req_durations), 3) if req_duration_size > 0 else 0,
-            "seg_request_duration_max": round(max(self.req_durations), 3) if req_duration_size > 0 else 0,
-            "seg_request_duration_avg": (
-                round(sum(self.req_durations) / req_duration_size, 3) if req_duration_size > 0 else 0
+            "segment_request_total": sum(req_counts),
+            "segment_request_try_min": min(req_counts) if len(req_counts) > 0 else 0,
+            "segment_request_try_max": max(req_counts) if len(req_counts) > 0 else 0,
+            "segment_request_try_avg": (
+                round(sum(req_counts) / len(req_counts), 3) if len(req_counts) > 0 else 0
             ),
+            "segment_request_duration_min": self.seg_duration_hist.min(),
+            "segment_request_duration_max": self.seg_duration_hist.max(),
+            "segment_request_duration_avg": round(self.seg_duration_hist.avg(), 3),
+            "m3u8_request_duration_min": self.m3u8_duration_hist.min(),
+            "m3u8_request_duration_max": self.m3u8_duration_hist.max(),
+            "m3u8_request_duration_avg": round(self.m3u8_duration_hist.avg(), 3),
         }
         if with_nums:
             result["processing_nums"] = processing_nums
@@ -178,6 +186,8 @@ class SegmentedStreamRecorder:
         for k, v in self.get_stats().items():
             result_attr[k] = v
         log.info("Finish Recording", result_attr)
+
+        print(generate_latest().decode("utf-8"))
         return self.ctx.live
 
     async def __interval(self, is_init: bool = False):
@@ -188,10 +198,16 @@ class SegmentedStreamRecorder:
 
         # Fetch m3u8
         try:
+            start_time = time.time()
             m3u8_text = await self.m3u8_http.get_text(
                 self.ctx.stream_url, self.ctx.headers, attr=self.ctx.to_dict(), print_error=False
             )
             await self.m3u8_retry_counter.reset()
+            await self.metric.set_m3u8_request_duration(
+                time.time() - start_time,
+                self.ctx.live.platform,
+                self.m3u8_duration_hist,
+            )
         except HttpRequestError as e:
             await self.m3u8_retry_counter.increment()
             live_info = await self.fetcher.fetch_live_info(self.ctx.live_url)
@@ -299,7 +315,9 @@ class SegmentedStreamRecorder:
             b = await self.seg_http.get_bytes(
                 seg.url, headers=self.ctx.headers, attr=self.ctx.to_dict({"num": seg.num})
             )
-            self.req_durations.append(time.time() - req_start)
+            await self.metric.set_segment_request_duration(
+                time.time() - req_start, self.ctx.live.platform, self.seg_duration_hist
+            )
             seg_path = path_join(self.ctx.tmp_dir_path, f"{seg.num}.ts")
             async with aiofiles.open(seg_path, "wb") as f:
                 await f.write(b)
@@ -310,7 +328,9 @@ class SegmentedStreamRecorder:
             await self.success_nums.add(seg.num)
             await self.failed_segments.remove(seg.num)
         except BaseException as ex:
-            self.req_durations.append(time.time() - req_start)
+            await self.metric.set_segment_request_duration(
+                time.time() - req_start, self.ctx.live.platform, self.seg_duration_hist
+            )
             if not seg.is_failed:  # first time failed:
                 seg.is_failed = True
                 await self.retrying_segments.set(seg.num, seg)

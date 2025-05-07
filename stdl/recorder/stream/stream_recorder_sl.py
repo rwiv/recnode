@@ -10,6 +10,7 @@ from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderS
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
+from ...metric import MetricManager
 from ...utils import AsyncHttpClient
 
 
@@ -19,6 +20,7 @@ class StreamlinkStreamRecorder:
         args: StreamArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
+        metric: MetricManager,
     ):
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
@@ -34,7 +36,7 @@ class StreamlinkStreamRecorder:
         self.ctx: RequestContext | None = None
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
-        self.fetcher = PlatformFetcher()
+        self.fetcher = PlatformFetcher(metric)
         self.writer = writer
         self.helper = StreamHelper(
             args, self.state, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path

@@ -10,6 +10,7 @@ from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common.env import Env
 from ...data.live import LiveState
 from ...file import ObjectWriter
+from ...metric import MetricManager
 
 
 class LiveRecorder:
@@ -19,6 +20,7 @@ class LiveRecorder:
         stream_args: StreamArgs,
         recording_args: RecordingArgs,
         writer: ObjectWriter,
+        metric: MetricManager,
     ):
         self.env = env
         self.channel_id = stream_args.info.uid
@@ -38,6 +40,7 @@ class LiveRecorder:
             incomplete_dir_path=self.incomplete_dir_path,
             writer=writer,
             req_conf=self.env.req_conf,
+            metric=metric,
         )
 
         self.vid_name: str | None = None

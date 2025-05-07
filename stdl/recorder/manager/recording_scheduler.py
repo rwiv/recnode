@@ -10,11 +10,13 @@ from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
 from ...common.env import Env
 from ...data.live import LiveState
 from ...file import create_fs_writer
+from ...metric import MetricManager
 
 
 class RecordingScheduler:
-    def __init__(self, env: Env):
+    def __init__(self, env: Env, metric: MetricManager):
         self.env = env
+        self.metric = metric
         self.__recorder_map: dict[str, LiveRecorder] = {}
         self.check_thread: Thread | None = None
         self.start_monitoring_states()
@@ -32,7 +34,7 @@ class RecordingScheduler:
 
     def record(self, state: LiveState):
         writer = create_fs_writer(self.env)
-        recorder = RecorderResolver(self.env, writer).create_recorder(state)
+        recorder = RecorderResolver(self.env, writer, self.metric).create_recorder(state)
 
         key = parse_key(state)
         if self.__recorder_map.get(key):

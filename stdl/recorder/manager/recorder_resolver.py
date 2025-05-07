@@ -5,12 +5,14 @@ from ...common.env import Env
 from ...common.spec import PlatformType
 from ...data.live import LiveState
 from ...file import ObjectWriter
+from ...metric import MetricManager
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, writer: ObjectWriter):
+    def __init__(self, env: Env, writer: ObjectWriter, metric: MetricManager):
         self.env = env
         self.writer = writer
+        self.metric = metric
 
     def create_recorder(self, state: LiveState) -> LiveRecorder:
         if state.platform == PlatformType.CHZZK:
@@ -74,4 +76,5 @@ class RecorderResolver:
                 use_credentials=cookie_header is not None,
             ),
             writer=self.writer,
+            metric=self.metric,
         )

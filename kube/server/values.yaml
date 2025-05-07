@@ -56,7 +56,7 @@ server:
     fsNameKey: fs-name
   segSizeMb: 17
   reqConf:
-    m3u8RetryLimit: 3
+    m3u8RetryLimit: 4
     m3u8TimeoutSec: 10
     segTimeoutSec: 8
     segParallelRetryLimit: 4

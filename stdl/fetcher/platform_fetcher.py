@@ -1,16 +1,20 @@
+import time
+
 from .fetcher import LiveInfo
 from .live_url_resolver import resolve_live_url
 from .platform.chzzk_fetcher import ChzzkFetcher
 from .platform.soop_fetcher import SoopFetcher
 from .platform.twitch_fetcher import TwitchFetcher
 from ..common.spec import PlatformType
+from ..metric import MetricManager
 
 
 class PlatformFetcher:
-    def __init__(self):
+    def __init__(self, metric: MetricManager):
         self.__chzzk = ChzzkFetcher()
         self.__soop = SoopFetcher()
         self.__twitch = TwitchFetcher()
+        self.__metric = metric
         self.headers = {}
 
     def set_headers(self, headers: dict):
@@ -21,11 +25,16 @@ class PlatformFetcher:
 
     async def fetch_live_info(self, live_url: str) -> LiveInfo | None:
         url_info = resolve_live_url(live_url=live_url)
+        start_time = time.time()
         if url_info.platform == PlatformType.CHZZK:
-            return await self.__chzzk.fetch_live_info(url_info.channel_id, self.headers)
+            result = await self.__chzzk.fetch_live_info(url_info.channel_id, self.headers)
         elif url_info.platform == PlatformType.SOOP:
-            return await self.__soop.fetch_live_info(url_info.channel_id, self.headers)
+            result = await self.__soop.fetch_live_info(url_info.channel_id, self.headers)
         elif url_info.platform == PlatformType.TWITCH:
-            return await self.__twitch.metadata_channel(url_info.channel_id, self.headers)
+            result = await self.__twitch.metadata_channel(url_info.channel_id, self.headers)
         else:
             raise ValueError("Unsupported platform")
+        await self.__metric.set_api_request_duration(
+            duration=time.time() - start_time, platform=url_info.platform
+        )
+        return result
