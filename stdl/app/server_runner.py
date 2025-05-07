@@ -7,7 +7,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 from .server_main_router import MainController
-from ..common.env import get_env
+from ..config import get_env
 from ..data.live import LiveStateService
 from ..data.redis import create_redis_client, RedisMap
 from ..metric import MetricManager

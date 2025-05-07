@@ -13,7 +13,7 @@ from .stream_helper import StreamHelper
 from .stream_types import RequestContext
 from ..schema.recording_arguments import StreamArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
-from ...common.env import RequestConfig
+from ...config import RequestConfig
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter

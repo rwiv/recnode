@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from pyutils import log
 
 from .proxy_main_router import ProxyMainController
-from ..common.env import get_proxy_env
+from ..config import get_proxy_env
 from ..file import create_proxy_fs_writer
 
 

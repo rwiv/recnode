@@ -1,8 +1,8 @@
 from .live_recorder import LiveRecorder
 from ..schema.recording_arguments import StreamArgs, StreamLinkSessionArgs, RecordingArgs
 from ..schema.recording_schema import StreamInfo
-from ...common.env import Env
 from ...common.spec import PlatformType
+from ...config import Env
 from ...data.live import LiveState
 from ...file import ObjectWriter
 from ...metric import MetricManager

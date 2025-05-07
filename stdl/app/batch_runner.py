@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from pyutils import log
 from streamlink.stream.hls.hls import HLSStream
 
-from ..common.env import get_env
+from ..config import get_env
 from ..data.live import LiveState
 from ..fetcher import PlatformFetcher
 from ..file import create_fs_writer

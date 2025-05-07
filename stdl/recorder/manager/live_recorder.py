@@ -7,7 +7,7 @@ from pyutils import log, path_join, error_dict
 
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
-from ...common.env import Env
+from ...config import Env
 from ...data.live import LiveState
 from ...file import ObjectWriter
 from ...metric import MetricManager

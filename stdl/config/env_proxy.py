@@ -3,8 +3,8 @@ import os
 from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
-from .env_proxy import ProxyConfig, read_proxy_config
-from ..spec import LOCAL_FS_NAME
+from .config_proxy import ProxyConfig, read_proxy_config
+from ..common.spec import LOCAL_FS_NAME
 
 
 class ProxyEnv(BaseModel):

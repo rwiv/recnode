@@ -4,7 +4,7 @@ from .fs_config import read_fs_config_by_file
 from .fs_types import FsType
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter, ProxyObjectWriter
 from ..s3.s3_utils import disable_warning_log
-from ...common.env import Env, ProxyEnv
+from ...config import Env, ProxyEnv
 
 
 def create_fs_writer(env: Env) -> ObjectWriter:

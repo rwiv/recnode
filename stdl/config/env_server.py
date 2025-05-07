@@ -3,11 +3,11 @@ import os
 from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
-from .env_proxy import ProxyConfig, read_proxy_config
-from .env_redis import RedisConfig, read_redis_config
-from .env_request import RequestConfig, read_request_config
-from .env_stream import StreamConfig, read_stream_config
-from ..spec import LOCAL_FS_NAME
+from .config_proxy import ProxyConfig, read_proxy_config
+from .config_redis import RedisConfig, read_redis_config
+from .config_request import RequestConfig, read_request_config
+from .config_stream import StreamConfig, read_stream_config
+from ..common.spec import LOCAL_FS_NAME
 
 
 class Env(BaseModel):

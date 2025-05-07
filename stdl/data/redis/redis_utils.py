@@ -1,7 +1,7 @@
 from redis import Redis
 
 from .redis_errors import RedisError
-from ...common.env import RedisConfig
+from ...config import RedisConfig
 
 
 def create_redis_client(conf: RedisConfig) -> Redis:
