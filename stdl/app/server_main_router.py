@@ -1,5 +1,6 @@
 import requests
 from fastapi import APIRouter, HTTPException
+from prometheus_client import generate_latest
 from pydantic import BaseModel, constr
 
 from ..common import PlatformType
@@ -17,12 +18,13 @@ class MainController:
         self.__scheduler = scheduler
         self.__live_state_service = live_state_service
 
-        self.router = APIRouter(prefix="/api")
-        self.router.add_api_route("/health", self.health, methods=["GET"])
-        self.router.add_api_route("/my-ip", self.my_ip, methods=["GET"])
-        self.router.add_api_route("/recordings/{record_id}", self.record, methods=["POST"])
-        self.router.add_api_route("/recordings/{record_id}", self.cancel, methods=["DELETE"])
-        self.router.add_api_route("/recordings", self.get_status, methods=["GET"])
+        self.router = APIRouter()
+        self.router.add_api_route("/metrics", self.metrics, methods=["GET"])
+        self.router.add_api_route("/api/health", self.health, methods=["GET"])
+        self.router.add_api_route("/api/my-ip", self.my_ip, methods=["GET"])
+        self.router.add_api_route("/api/recordings/{record_id}", self.record, methods=["POST"])
+        self.router.add_api_route("/api/recordings/{record_id}", self.cancel, methods=["DELETE"])
+        self.router.add_api_route("/api/recordings", self.get_status, methods=["GET"])
 
     def health(self):
         return {"status": "UP"}
@@ -30,10 +32,18 @@ class MainController:
     def my_ip(self):
         return requests.get("https://api.ipify.org").text
 
+    def metrics(self):
+        return generate_latest(), {"Content-Type": "text/plain"}
+
     def record(self, record_id: str):
         state = self.__live_state_service.get(record_id)
         if state is None:
-            raise HTTPException(status_code=404, detail="live stste not found")
+            raise HTTPException(status_code=404, detail="Not found LiveState")
+
+        for platform, channel_id in self.__scheduler.get_recorder_infos():
+            if platform == state.platform and channel_id == state.channel_id:
+                raise HTTPException(status_code=400, detail="Already recording live")
+
         self.__scheduler.record(state)
         return "ok"
 

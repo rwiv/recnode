@@ -23,9 +23,9 @@ class LiveRecorder:
         metric: MetricManager,
     ):
         self.env = env
-        self.channel_id = stream_args.info.uid
         self.url = stream_args.info.url
         self.platform = stream_args.info.platform
+        self.channel_id = stream_args.info.uid
         self.use_credentials = recording_args.use_credentials
 
         self.tmp_dir_path = stream_args.tmp_dir_path

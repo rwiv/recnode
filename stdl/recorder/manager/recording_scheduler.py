@@ -7,6 +7,7 @@ from pyutils import log, error_dict
 from .live_recorder import LiveRecorder
 from ..manager.recorder_resolver import RecorderResolver
 from ..schema.recording_constants import SCHEDULER_CHECK_DELAY_SEC
+from ...common import PlatformType
 from ...config import Env
 from ...data.live import LiveState
 from ...file import create_fs_writer
@@ -31,6 +32,12 @@ class RecordingScheduler:
             "thread_cnt": len(threading.enumerate()),
             "recorders": recorders,
         }
+
+    def get_recorder_infos(self):
+        result: list[tuple[PlatformType, str]] = []
+        for recorder in self.__recorder_map.values():
+            result.append((recorder.platform, recorder.channel_id))
+        return result
 
     def record(self, state: LiveState):
         writer = create_fs_writer(self.env)

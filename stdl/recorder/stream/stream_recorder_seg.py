@@ -183,8 +183,8 @@ class SegmentedStreamRecorder:
         for k, v in self.get_stats().items():
             result_attr[k] = v
         log.info("Finish Recording", result_attr)
-
-        print(generate_latest().decode("utf-8"))
+        # if TEST_FLAG:
+        #     print(generate_latest().decode("utf-8"))
         return self.ctx.live
 
     async def __interval(self, is_init: bool = False):
@@ -205,19 +205,15 @@ class SegmentedStreamRecorder:
                 self.ctx.live.platform,
                 self.m3u8_duration_hist,
             )
-        except HttpRequestError as e:
+        except Exception as ex:
             await self.m3u8_retry_counter.increment()
             live_info = await self.fetcher.fetch_live_info(self.ctx.live_url)
             if live_info is None:
                 self.done_flag = True
                 return
             else:
-                log.error("Failed to get playlist", self.ctx.to_err(e))
+                log.error("Failed to get playlist", self.ctx.to_err(ex))
                 return
-        except Exception as e:
-            await self.m3u8_retry_counter.increment()
-            log.error("Failed to get playlist", self.ctx.to_err(e))
-            return
         finally:
             if self.m3u8_retry_counter.get() >= self.m3u8_retry_limit:
                 log.error("Max retry limit reached for m3u8", self.ctx.to_dict())
