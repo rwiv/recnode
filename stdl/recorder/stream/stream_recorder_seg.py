@@ -22,6 +22,8 @@ from ...utils import AsyncHttpClient, AsyncMap, AsyncSet, AsyncCounter
 TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
 
+MAP_NUM = -1
+
 
 class Segment:
     def __init__(self, num: int, url: str, limit: int):
@@ -235,7 +237,7 @@ class SegmentedStreamRecorder:
             if self.ctx.stream_base_url is not None:
                 map_url = "/".join([self.ctx.stream_base_url, map_seg.uri])
             b = await self.seg_http.get_bytes(map_url, headers=self.ctx.headers, attr=self.ctx.to_dict())
-            async with aiofiles.open(path_join(self.ctx.tmp_dir_path, "-1.ts"), "wb") as f:
+            async with aiofiles.open(path_join(self.ctx.tmp_dir_path, f"{MAP_NUM}.ts"), "wb") as f:
                 await f.write(b)
 
         # Process segments
@@ -274,6 +276,9 @@ class SegmentedStreamRecorder:
 
     async def __process_segment(self, seg: Segment):
         assert self.ctx is not None
+
+        if seg.num == MAP_NUM:
+            raise ValueError(f"{MAP_NUM} is not a valid segment number")
 
         # Check if have permission to segment
         if not seg.is_failed:
