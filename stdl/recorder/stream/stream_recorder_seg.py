@@ -102,7 +102,11 @@ class SegmentedStreamRecorder:
         self.fetcher = PlatformFetcher(self.metric)
         self.writer = writer
         self.helper = StreamHelper(
-            args, self.state, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path
+            args=args,
+            state=self.state,
+            writer=writer,
+            fetcher=self.fetcher,
+            incomplete_dir_path=incomplete_dir_path,
         )
 
     def check_tmp_dir(self):
@@ -197,13 +201,16 @@ class SegmentedStreamRecorder:
         try:
             start_time = time.time()
             m3u8_text = await self.m3u8_http.get_text(
-                self.ctx.stream_url, self.ctx.headers, attr=self.ctx.to_dict(), print_error=False
+                url=self.ctx.stream_url,
+                headers=self.ctx.headers,
+                attr=self.ctx.to_dict(),
+                print_error=False,
             )
             await self.m3u8_retry_counter.reset()
             await self.metric.set_m3u8_request_duration(
-                time.time() - start_time,
-                self.ctx.live.platform,
-                self.m3u8_duration_hist,
+                duration=time.time() - start_time,
+                platform=self.ctx.live.platform,
+                extra=self.m3u8_duration_hist,
             )
         except Exception as ex:
             await self.m3u8_retry_counter.increment()
@@ -305,10 +312,12 @@ class SegmentedStreamRecorder:
                 await seg.increment_retry_count()
 
             b = await self.seg_http.get_bytes(
-                seg.url, headers=self.ctx.headers, attr=self.ctx.to_dict({"num": seg.num})
+                url=seg.url, headers=self.ctx.headers, attr=self.ctx.to_dict({"num": seg.num})
             )
             await self.metric.set_segment_request_duration(
-                time.time() - req_start, self.ctx.live.platform, self.seg_duration_hist
+                duration=time.time() - req_start,
+                platform=self.ctx.live.platform,
+                extra=self.seg_duration_hist,
             )
             seg_path = path_join(self.ctx.tmp_dir_path, f"{seg.num}.ts")
             async with aiofiles.open(seg_path, "wb") as f:
@@ -321,15 +330,15 @@ class SegmentedStreamRecorder:
             await self.failed_segments.remove(seg.num)
             await self.seg_success_counter.increment()
             await self.metric.set_segment_request_retry(
-                seg.retry_count,
-                self.ctx.live.platform,
-                self.seg_retry_hist,
+                retry_cnt=seg.retry_count,
+                platform=self.ctx.live.platform,
+                extra=self.seg_retry_hist,
             )
         except BaseException as ex:
             await self.metric.set_segment_request_duration(
-                time.time() - req_start,
-                self.ctx.live.platform,
-                self.seg_duration_hist,
+                duration=time.time() - req_start,
+                platform=self.ctx.live.platform,
+                extra=self.seg_duration_hist,
             )
             if not seg.is_failed:  # first time failed:
                 seg.is_failed = True
@@ -342,13 +351,13 @@ class SegmentedStreamRecorder:
                         if not self.success_nums.contains(seg.num):
                             await self.failed_segments.set(seg.num, seg)
                     await self.metric.inc_segment_request_failures(
-                        self.ctx.live.platform,
-                        self.seg_failure_counter,
+                        platform=self.ctx.live.platform,
+                        extra=self.seg_failure_counter,
                     )
                     await self.metric.set_segment_request_retry(
-                        seg.retry_count,
-                        self.ctx.live.platform,
-                        self.seg_retry_hist,
+                        retry_cnt=seg.retry_count,
+                        platform=self.ctx.live.platform,
+                        extra=self.seg_retry_hist,
                     )
                     log.error("Failed to process segment", self.__error_attr(ex, num=seg.num))
                 await seg.release()
