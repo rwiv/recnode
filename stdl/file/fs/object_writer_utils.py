@@ -5,19 +5,20 @@ from .fs_types import FsType
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter, ProxyObjectWriter
 from ..s3.s3_utils import disable_warning_log
 from ...config import Env, ProxyEnv
+from ...metric import MetricManager
 
 
-def create_fs_writer(env: Env) -> ObjectWriter:
+def create_fs_writer(env: Env, metric: MetricManager) -> ObjectWriter:
     if env.proxy.enabled:
         if env.proxy.endpoint is None:
             raise ValueError("Proxy endpoint is not set")
-        return ProxyObjectWriter(env.proxy.endpoint, env.fs_name)
+        return ProxyObjectWriter(env.proxy.endpoint, env.fs_name, metric)
 
     fs_name = env.fs_name
     fs_conf_path = env.fs_config_path
 
     if fs_conf_path is None or not Path(fs_conf_path).exists():
-        return LocalObjectWriter()
+        return LocalObjectWriter(metric=metric)
     fs_conf = None
     for conf in read_fs_config_by_file(fs_conf_path):
         if conf.name == fs_name:
@@ -31,17 +32,17 @@ def create_fs_writer(env: Env) -> ObjectWriter:
             raise ValueError(f"Cannot find S3 configuration with name {fs_name}")
         if not fs_conf.s3.verify:
             disable_warning_log()
-        return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3)
+        return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3, metric=metric)
     else:
-        return LocalObjectWriter()
+        return LocalObjectWriter(metric=metric)
 
 
-def create_proxy_fs_writer(env: ProxyEnv) -> ObjectWriter:
+def create_proxy_fs_writer(env: ProxyEnv, metric: MetricManager) -> ObjectWriter:
     fs_name = env.fs_name
     fs_conf_path = env.fs_config_path
 
     if fs_conf_path is None or not Path(fs_conf_path).exists():
-        return LocalObjectWriter()
+        return LocalObjectWriter(metric=metric)
     fs_conf = None
     for conf in read_fs_config_by_file(fs_conf_path):
         if conf.name == fs_name:
@@ -55,6 +56,6 @@ def create_proxy_fs_writer(env: ProxyEnv) -> ObjectWriter:
             raise ValueError(f"Cannot find S3 configuration with name {fs_name}")
         if not fs_conf.s3.verify:
             disable_warning_log()
-        return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3)
+        return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3, metric=metric)
     else:
-        return LocalObjectWriter()
+        return LocalObjectWriter(metric=metric)

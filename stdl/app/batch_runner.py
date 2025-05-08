@@ -30,8 +30,8 @@ def read_conf(config_path: str) -> BatchConfig:
 class BatchRunner:
     def __init__(self):
         self.env = get_env()
-        self.writer = create_fs_writer(self.env)
         self.metric = MetricManager()
+        self.writer = create_fs_writer(self.env, self.metric)
         self.fetcher = PlatformFetcher(self.metric)
         self.recorder_resolver = RecorderResolver(self.env, self.writer, self.metric)
 

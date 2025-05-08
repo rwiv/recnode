@@ -9,6 +9,7 @@ from pyutils import log
 from .proxy_main_router import ProxyMainController
 from ..config import get_proxy_env
 from ..file import create_proxy_fs_writer
+from ..metric import MetricManager
 
 
 def run_proxy():
@@ -19,7 +20,8 @@ def run_proxy():
     executor = ThreadPoolExecutor(max_workers=50)
     asyncio.get_event_loop().set_default_executor(executor)
 
-    writer = create_proxy_fs_writer(env)
+    metric = MetricManager()
+    writer = create_proxy_fs_writer(env, metric)
     main_controller = ProxyMainController(writer)
 
     app = FastAPI()

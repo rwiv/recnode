@@ -5,6 +5,7 @@ from .buckets import (
     api_request_duration_buckets,
     m3u8_request_duration_buckets,
     segment_request_retry_buckets,
+    object_write_duration_buckets,
 )
 from .histogram import Histogram
 from ..common import PlatformType
@@ -37,10 +38,15 @@ class MetricManager:
             ["platform"],
             buckets=segment_request_retry_buckets,
         )
-        self.segment_request_failures = Counter(
+        self.segment_request_failures_counter = Counter(
             "segment_request_failures",
             "Count of HLS segment request failures",
             ["platform"],
+        )
+        self.object_write_duration_hist = PromHistogram(
+            "object_write_duration_seconds",
+            "Duration of object write requests in seconds",
+            buckets=object_write_duration_buckets,
         )
 
     async def set_api_request_duration(
@@ -72,9 +78,12 @@ class MetricManager:
             await extra.observe(retry_cnt)
 
     async def inc_segment_request_failures(self, platform: PlatformType, extra: AsyncCounter | None = None):
-        self.segment_request_failures.labels(platform=platform.value).inc()
+        self.segment_request_failures_counter.labels(platform=platform.value).inc()
         if extra is not None:
             await extra.increment()
+
+    def set_object_write_duration(self, duration: float):
+        self.object_write_duration_hist.observe(duration)
 
     def create_m3u8_request_duration_histogram(self):
         return Histogram(m3u8_request_duration_buckets)

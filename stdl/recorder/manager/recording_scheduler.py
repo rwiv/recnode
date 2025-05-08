@@ -40,7 +40,7 @@ class RecordingScheduler:
         return result
 
     def record(self, state: LiveState):
-        writer = create_fs_writer(self.env)
+        writer = create_fs_writer(self.env, self.metric)
         recorder = RecorderResolver(self.env, writer, self.metric).create_recorder(state)
 
         key = parse_key(state)

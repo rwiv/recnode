@@ -4,7 +4,6 @@ import random
 import time
 
 import aiofiles
-from prometheus_client import generate_latest
 from pyutils import log, path_join, error_dict
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
@@ -18,7 +17,7 @@ from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...metric import MetricManager
-from ...utils import AsyncHttpClient, HttpRequestError, AsyncMap, AsyncSet, AsyncCounter
+from ...utils import AsyncHttpClient, AsyncMap, AsyncSet, AsyncCounter
 
 TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
@@ -69,7 +68,7 @@ class SegmentedStreamRecorder:
         self.idx = 0
         self.done_flag = False
         self.state = RecordingState()
-        self.status_type: RecordingStatus = RecordingStatus.WAIT
+        self.status: RecordingStatus = RecordingStatus.WAIT
         self.ctx: RequestContext | None = None
 
         self.processing_nums: AsyncSet[int] = AsyncSet()
@@ -113,7 +112,7 @@ class SegmentedStreamRecorder:
         status = self.ctx.to_status(
             fs_name=self.writer.fs_name,
             num=self.idx,
-            status=self.status_type,
+            status=self.status,
         )
         status.stream_url = None
         dct = status.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -161,22 +160,21 @@ class SegmentedStreamRecorder:
 
         try:
             await self.__interval(is_init=True)
-            self.status_type = RecordingStatus.RECORDING
 
             while True:
                 if self.done_flag:
-                    self.status_type = RecordingStatus.DONE
+                    self.status = RecordingStatus.DONE
                     log.debug("Finish Stream", self.ctx.to_dict())
                     break
                 if self.state.abort_flag:
-                    self.status_type = RecordingStatus.DONE
+                    self.status = RecordingStatus.DONE
                     log.debug("Abort Stream", self.ctx.to_dict())
                     break
 
                 await self.__interval()
         except Exception as e:
             log.error("Error during recording", self.ctx.to_err(e))
-            self.status_type = RecordingStatus.FAILED
+            self.status = RecordingStatus.FAILED
 
         self.__close_recording()
         result_attr = self.ctx.to_dict()
@@ -226,6 +224,9 @@ class SegmentedStreamRecorder:
         segments: list[HLSSegment] = playlist.segments
         if len(segments) == 0:
             raise ValueError("No segments found in the playlist")
+
+        if self.status != RecordingStatus.RECORDING:
+            self.status = RecordingStatus.RECORDING
 
         # If the first segment has a map, download it
         map_seg = segments[0].map
