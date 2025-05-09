@@ -10,7 +10,7 @@ from starlette.responses import JSONResponse
 from .server_main_router import MainController
 from ..config import get_env
 from ..data.live import LiveStateService
-from ..data.redis import RedisMap, create_redis_pool
+from ..data.redis import create_redis_pool
 from ..metric import MetricManager
 from ..recorder import RecordingScheduler, disable_streamlink_log
 
@@ -42,9 +42,8 @@ def run_server():
 
     redis_pool = create_redis_pool(env.redis)
     redis_client = Redis(connection_pool=redis_pool)
-    redis_map = RedisMap(redis_client)
 
-    live_state_service = LiveStateService(redis_map)
+    live_state_service = LiveStateService(redis_client)
     main_controller = MainController(scheduler, live_state_service)
 
     app = FastAPI()

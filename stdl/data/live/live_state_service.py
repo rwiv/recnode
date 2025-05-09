@@ -1,13 +1,15 @@
+from redis.asyncio import Redis
+
 from .live_state import LiveState
-from ..redis import RedisMap
+from ..redis import RedisString
 
 
 KEY_PREFIX = "live"
 
 
 class LiveStateService:
-    def __init__(self, client: RedisMap):
-        self.__client = client
+    def __init__(self, client: Redis):
+        self.__client = RedisString(client)
 
     async def get(self, record_id: str) -> LiveState | None:
         text = await self.__client.get(f"{KEY_PREFIX}:{record_id}")
