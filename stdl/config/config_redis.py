@@ -8,6 +8,7 @@ class RedisConfig(BaseModel):
     port: conint(ge=1)
     password: constr(min_length=1)
     ca_path: constr(min_length=1)
+    pool_size: conint(ge=1)
 
 
 def read_redis_config():
@@ -16,4 +17,5 @@ def read_redis_config():
         port=os.getenv("REDIS_PORT"),  # type: ignore
         password=os.getenv("REDIS_PASSWORD"),
         ca_path=os.getenv("REDIS_CA_PATH"),
+        pool_size=os.getenv("REDIS_POOL_SIZE"),  # type: ignore
     )

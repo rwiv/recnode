@@ -43,6 +43,7 @@ redis:
     passwordKey: password
   tls:
     secretName: stdl-redis-tls
+  poolSize: 100
 
 server:
   replicas: 1

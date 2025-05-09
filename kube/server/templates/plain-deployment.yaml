@@ -72,6 +72,8 @@ spec:
                   key: {{ .Values.redis.auth.passwordKey }}
             - name: REDIS_CA_PATH
               value: /mnt/redis-tls/ca.crt
+            - name: REDIS_POOL_SIZE
+              value: "{{ .Values.redis.poolSize }}"
           volumeMounts:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml

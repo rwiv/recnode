@@ -5,7 +5,7 @@ from .redis_map import RedisMap
 from .redis_errors import RedisError
 from .redis_us_set import RedisUniqueSortedSet
 from .redis_queue import RedisQueue
-from .redis_utils import create_redis_client, get_keys
+from .redis_utils import create_redis_client, create_redis_pool, get_keys
 
 targets = [
     "redis_map",

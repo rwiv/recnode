@@ -35,8 +35,8 @@ class MainController:
     def metrics(self):
         return generate_latest(), {"Content-Type": "text/plain"}
 
-    def record(self, record_id: str):
-        state = self.__live_state_service.get(record_id)
+    async def record(self, record_id: str):
+        state = await self.__live_state_service.get(record_id)
         if state is None:
             raise HTTPException(status_code=404, detail="Not found LiveState")
 
@@ -47,8 +47,8 @@ class MainController:
         self.__scheduler.record(state)
         return "ok"
 
-    def cancel(self, record_id: str):
-        state = self.__live_state_service.get(record_id)
+    async def cancel(self, record_id: str):
+        state = await self.__live_state_service.get(record_id)
         if state is None:
             raise HTTPException(status_code=404, detail="live state not found")
         self.__scheduler.cancel(state)
