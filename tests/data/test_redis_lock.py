@@ -1,4 +1,5 @@
 import asyncio
+import random
 import time
 from datetime import datetime
 
@@ -23,7 +24,10 @@ async def async_func1(n: int):
     ex = 3_000
     wt = 30_000
     ri = 0.1
-    async with RedisSpinLock(client, "my-resource", expire_sec=ex, wait_timeout_ms=wt, retry_interval=ri):
+    key = "my-resource"
+
+    await asyncio.sleep(random.uniform(0, 10))
+    async with RedisSpinLock(client, key, expire_sec=ex, wait_timeout_ms=wt, retry_interval=ri):
         print(f"{n}: {cur_time()}: Start")
         await asyncio.sleep(1)
         print(f"{n}: {cur_time()} End")
@@ -36,6 +40,7 @@ async def async_func2(n: int):
     ari = 0.2
     key = "my-resource"
 
+    await asyncio.sleep(random.uniform(0, 10))
     async with RedisPubSubLock(
         client=client,
         key=key,
@@ -45,7 +50,7 @@ async def async_func2(n: int):
         auto_renew_interval_sec=ari,
     ):
         print(f"{n}: {cur_time()}: Start")
-        await asyncio.sleep(1)
+        await asyncio.sleep(1.5)
         print(f"{n}: {cur_time()} End")
 
 
@@ -54,10 +59,9 @@ async def test_lock():
     print()
     start = time.time()
     coroutines = []
-    for i in range(20):
+    for i in range(10):
         # coroutines.append(async_func1(i))
         coroutines.append(async_func2(i))
-        await asyncio.sleep(0.1)
     await asyncio.gather(*coroutines)
     print(f"Time taken: {time.time() - start:.2f} seconds")
 

@@ -4,6 +4,7 @@ import random
 import redis.asyncio as redis
 from asyncio import timeout
 
+from pyutils import log
 
 _RELEASE_SCRIPT = r"""
 -- KEYS[1] = lock_key, KEYS[2] = channel
@@ -20,6 +21,14 @@ elseif not v then
     return 2
 else
     -- owned by someone else
+    return 0
+end
+"""
+
+_RENEW_SCRIPT = r"""
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+    return redis.call('PEXPIRE', KEYS[1], ARGV[2])
+else
     return 0
 end
 """
@@ -105,10 +114,12 @@ class RedisPubSubLock:
     async def renew(self) -> bool:
         if not self.__locked:
             raise ValueError("Lock not acquired")
-        return await self.__client.expire(self.__key, self.__expire_ms)
+        result = await self.__client.eval(_RENEW_SCRIPT, 1, self.__key, self.__token, self.__expire_ms)  # type: ignore
+        return bool(result)
 
     async def __aenter__(self):
         if not await self.acquire():
+            log.error("Lock acquisition timeout")  # TODO: check log
             raise asyncio.TimeoutError("Lock acquisition timeout")
         return self
 
