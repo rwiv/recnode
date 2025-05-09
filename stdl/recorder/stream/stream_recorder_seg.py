@@ -303,10 +303,6 @@ class SegmentedStreamRecorder:
 
         req_start = time.time()
         try:
-            # if TEST_FLAG:  # TODO: remove (only for test)
-            #     if random.random() < 0.8:
-            #         raise ValueError("Simulated error")
-
             await self.seg_request_counter.increment()
             if seg.is_failed:
                 await seg.increment_retry_count()
@@ -319,22 +315,32 @@ class SegmentedStreamRecorder:
                 platform=self.ctx.live.platform,
                 extra=self.seg_duration_hist,
             )
+
+            # await asyncio.sleep(2)
+            # if TEST_FLAG and not seg.is_failed:  # TODO: remove (only for test)
+            #     if random.random() < 0.8:
+            #         raise ValueError("Simulated error")
+
+            if self.success_nums.contains(seg.num):
+                return
+
             seg_path = path_join(self.ctx.tmp_dir_path, f"{seg.num}.ts")
             async with aiofiles.open(seg_path, "wb") as f:
                 await f.write(b)
 
+            await self.success_nums.add(seg.num)
             await self.processing_nums.remove(seg.num)
             if seg.is_failed:
                 await self.retrying_segments.remove(seg.num)
-            await self.success_nums.add(seg.num)
             await self.failed_segments.remove(seg.num)
+
             await self.seg_success_counter.increment()
             await self.metric.set_segment_request_retry(
                 retry_cnt=seg.retry_count,
                 platform=self.ctx.live.platform,
                 extra=self.seg_retry_hist,
             )
-        except BaseException as ex:
+        except Exception as ex:
             await self.metric.set_segment_request_duration(
                 duration=time.time() - req_start,
                 platform=self.ctx.live.platform,
