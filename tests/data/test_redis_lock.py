@@ -1,5 +1,6 @@
 import asyncio
 import time
+from datetime import datetime
 
 import pytest
 from pyutils import load_dotenv, path_join, find_project_root
@@ -23,30 +24,29 @@ async def async_func1(n: int):
     wt = 30_000
     ri = 0.1
     async with RedisSpinLock(client, "my-resource", expire_sec=ex, wait_timeout_ms=wt, retry_interval=ri):
-        print(f"{n}: Lock acquired!")
+        print(f"{n}: {cur_time()}: Start")
         await asyncio.sleep(1)
-        print(f"{n}: Async function called!")
-    print(f"{n}: Lock released!")
+        print(f"{n}: {cur_time()} End")
 
 
 async def async_func2(n: int):
     # ex_ms = 3_000
-    ex_ms = 1000
+    ex_ms = 500
     wt_sec = 30
-    ari = 0.1
+    ari = 0.2
     key = "my-resource"
+
     async with RedisPubSubLock(
-        client,
-        key,
+        client=client,
+        key=key,
         expire_ms=ex_ms,
         timeout_sec=wt_sec,
         auto_renew_enabled=True,
         auto_renew_interval_sec=ari,
     ):
-        print(f"{n}: Lock acquired!")
+        print(f"{n}: {cur_time()}: Start")
         await asyncio.sleep(1)
-        print(f"{n}: Async function called!")
-    print(f"{n}: Lock released!")
+        print(f"{n}: {cur_time()} End")
 
 
 @pytest.mark.asyncio
@@ -60,3 +60,8 @@ async def test_lock():
         await asyncio.sleep(0.1)
     await asyncio.gather(*coroutines)
     print(f"Time taken: {time.time() - start:.2f} seconds")
+
+
+def cur_time():
+    now = datetime.now()
+    return now.strftime("%M:%S") + f":{int(now.microsecond / 1000):03d}"

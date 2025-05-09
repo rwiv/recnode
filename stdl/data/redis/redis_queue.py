@@ -5,6 +5,9 @@ class RedisQueue:
     def __init__(self, redis: Redis):
         self.__redis = redis
 
+    async def set_expire(self, key: str, ex: int) -> bool:
+        return await self.__redis.expire(key, ex)
+
     async def push(self, key: str, value: str):
         await self.__redis.lpush(key, value)  # type: ignore
 

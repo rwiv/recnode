@@ -7,6 +7,9 @@ class RedisString:
     def __init__(self, client: Redis):
         self.__redis = client
 
+    async def set_expire(self, key: str, ex: int) -> bool:
+        return await self.__redis.expire(key, ex)
+
     async def set(self, key: str, value: str, nx: bool = False, xx: bool = False, ex: int | None = None):
         result = await self.__redis.set(name=key, value=value, nx=nx, xx=xx, ex=ex)
         if result is None:

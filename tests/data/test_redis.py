@@ -32,9 +32,11 @@ async def test_redis_str():
     print()
     await test_clear()
     key = "test1"
+    print(await redis_str.set_expire(key, 10))
     print(await redis_str.get(key))
     print(await redis_str.contains(key))
     await redis_str.set(key, "test")
+    print(await redis_str.set_expire(key, 10))
     print(await redis_str.get(key))
     print(await redis_str.contains(key))
     await redis_str.delete(key)
