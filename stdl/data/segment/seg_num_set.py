@@ -27,17 +27,21 @@ class SegmentNumberSet:
     async def set(self, num: int):
         await self.__sorted_set.set(self.__get_key(), str(num), num)
 
-    def new_lock(self) -> RedisPubSubLock:
-        return RedisPubSubLock(
-            client=self.__client,
-            key=f"{self.__get_key()}:lock",
-            expire_ms=self.__lock_expire_ms,
-            timeout_sec=self.__lock_wait_timeout_sec,
-        )
-
     async def all(self) -> list[int]:
         result = await self.__sorted_set.list(self.__get_key())
         return [int(i) for i in result]
+
+    async def get(self, num: int) -> int | None:
+        result = await self.__sorted_set.get_by_score(self.__get_key(), num)
+        if result is None:
+            return None
+        return int(result)
+
+    async def get_highest(self) -> int | None:
+        result = await self.__sorted_set.get_highest(self.__get_key())
+        if result is None:
+            return None
+        return int(result)
 
     async def range(self, start: int, end: int) -> list[int]:
         result = await self.__sorted_set.range_by_score(self.__get_key(), start, end)
@@ -54,6 +58,14 @@ class SegmentNumberSet:
 
     async def clear(self):
         await self.__sorted_set.clear(self.__get_key())
+
+    def lock(self) -> RedisPubSubLock:
+        return RedisPubSubLock(
+            client=self.__client,
+            key=f"{self.__get_key()}:lock",
+            expire_ms=self.__lock_expire_ms,
+            timeout_sec=self.__lock_wait_timeout_sec,
+        )
 
     def __get_key(self):
         return f"live:{self.__live_record_id}:segments:{self.__key_suffix}"

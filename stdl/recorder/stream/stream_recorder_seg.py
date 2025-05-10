@@ -2,6 +2,7 @@ import asyncio
 import json
 import random
 import time
+from datetime import datetime
 
 import aiofiles
 from pyutils import log, path_join, error_dict
@@ -15,7 +16,7 @@ from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ...config import RequestConfig, RedisDataConfig
 from ...data.live import LiveState
-from ...data.segment import SegmentNumberSet, SegmentStateService
+from ...data.segment import SegmentNumberSet, SegmentStateService, SegmentState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...metric import MetricManager
@@ -28,9 +29,10 @@ MAP_NUM = -1
 
 
 class Segment:
-    def __init__(self, num: int, url: str, limit: int):
+    def __init__(self, num: int, url: str, duration: float, limit: int):
         self.num = num
         self.url = url
+        self.duration = duration
         self.limit = limit
         self.retry_count = 0
 
@@ -53,6 +55,16 @@ class Segment:
             self.retry_count += 1
             return self.retry_count
 
+    def to_new_state(self, size: int) -> SegmentState:
+        return SegmentState(
+            url=self.url,
+            num=self.num,
+            duration=self.duration,
+            size=size,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
+
 
 class SegmentedStreamRecorder:
     def __init__(
@@ -72,6 +84,7 @@ class SegmentedStreamRecorder:
         self.seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio
 
+        self.redis = redis
         self.live = live
         self.redis_data_conf = redis_data_conf
 
@@ -89,7 +102,7 @@ class SegmentedStreamRecorder:
         self.seg_state_service = SegmentStateService(
             client=redis,
             live_record_id=live.id,
-            expire_ms=redis_data_conf.live_expire_sec * 1000,
+            expire_ms=redis_data_conf.seg_expire_sec * 1000,
             lock_expire_ms=redis_data_conf.lock_expire_ms,
             lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
         )
@@ -103,7 +116,6 @@ class SegmentedStreamRecorder:
         self.seg_failure_counter = AsyncCounter()
         self.m3u8_retry_counter = AsyncCounter()
 
-        self.redis = redis
         self.m3u8_http = AsyncHttpClient(
             timeout_sec=req_conf.m3u8_timeout_sec,
             retry_limit=0,
@@ -199,7 +211,7 @@ class SegmentedStreamRecorder:
             log.error("Error during recording", self.ctx.to_err(e))
             self.status = RecordingStatus.FAILED
 
-        self.__close_recording()
+        await self.__close_recording()
         result_attr = self.ctx.to_dict()
         for k, v in self.get_stats().items():
             result_attr[k] = v
@@ -211,8 +223,6 @@ class SegmentedStreamRecorder:
     async def __interval(self, is_init: bool = False):
         if TEST_FLAG:
             print(json.dumps(self.get_stats(), indent=4))
-
-        await self.success_nums_redis.renew()
 
         # Fetch m3u8
         try:
@@ -266,19 +276,21 @@ class SegmentedStreamRecorder:
 
         # Process segments
         for raw_seg in segments:
-            if self.is_done_seg(raw_seg.num) or self.processing_nums.contains(raw_seg.num):
+            if self.__is_done_seg(raw_seg.num) or self.processing_nums.contains(raw_seg.num):
                 continue
 
             url = raw_seg.uri
             if self.ctx.stream_base_url is not None:
                 url = "/".join([self.ctx.stream_base_url, raw_seg.uri])
-            seg = Segment(num=raw_seg.num, url=url, limit=self.seg_parallel_retry_limit)
-            _ = asyncio.create_task(self.__process_segment(seg))
+            seg = Segment(
+                num=raw_seg.num, url=url, duration=raw_seg.duration, limit=self.seg_parallel_retry_limit
+            )
+            _ = asyncio.create_task(self.__process_segment(seg), name=f"{self.live.id}:req:{seg.num}")
 
         for _, failed in self.retrying_segments.items():
-            if self.is_done_seg(failed.num):
+            if self.__is_done_seg(failed.num):
                 continue
-            _ = asyncio.create_task(self.__process_segment(failed))
+            _ = asyncio.create_task(self.__process_segment(failed), name=f"{self.live.id}:retry:{failed.num}")
 
         # Upload segments tar
         target_segments = await self.helper.check_segments(self.ctx)
@@ -295,7 +307,7 @@ class SegmentedStreamRecorder:
         # to prevent segment requests from being concentrated on a specific node
         await asyncio.sleep(random.uniform(self.min_delay_sec, self.max_delay_sec))
 
-    def is_done_seg(self, seg_num: int) -> bool:
+    def __is_done_seg(self, seg_num: int) -> bool:
         return self.success_nums.contains(seg_num) or self.failed_segments.contains(seg_num)
 
     async def __process_segment(self, seg: Segment):
@@ -310,6 +322,14 @@ class SegmentedStreamRecorder:
             if not await seg.acquire():
                 # log.debug("Failed to acquire segment")
                 return
+
+        ok, critical = await self.seg_state_service.validate_segment(seg.num, self.success_nums_redis)
+        if not ok:
+            log.warn("Detect duplicated segment", self.ctx.to_dict({"num": seg.num}))
+            if critical:
+                log.error("Detect invalid segment", self.ctx.to_dict({"num": seg.num}))
+                self.done_flag = True
+            return
 
         if "preloading" in seg.url:
             # this is used to check the logic implemented inside `SoopHLSStreamWriter`.
@@ -344,6 +364,8 @@ class SegmentedStreamRecorder:
                 await f.write(b)
 
             await self.success_nums.add(seg.num)
+            await self.success_nums_redis.set(seg.num)
+            await self.seg_state_service.set_nx(seg.to_new_state(len(b)))
             await self.processing_nums.remove(seg.num)
             if seg.is_failed:
                 await self.retrying_segments.remove(seg.num)
@@ -383,8 +405,16 @@ class SegmentedStreamRecorder:
                     log.error("Failed to process segment", self.__error_attr(ex, num=seg.num))
                 await seg.release()
 
-    def __close_recording(self):
+    async def __close_recording(self):
         self.helper.check_tmp_dir(self.ctx)
+        current_task = asyncio.current_task()
+        tg_tasks = []
+        for task in asyncio.all_tasks():
+            if task == current_task:
+                continue
+            if task.get_name().startswith(self.live.id):
+                tg_tasks.append(task)
+        await asyncio.gather(*tg_tasks)
 
     def __error_attr(self, ex: BaseException, num: int | None = None):
         attr = self.ctx.to_dict()

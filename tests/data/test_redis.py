@@ -59,6 +59,7 @@ async def test_redis_sroted_set():
     assert await redis_sorted_set.set(key, "c", 6) == 1
     assert await redis_sorted_set.list(key) == ["a", "b", "c"]
     assert await redis_sorted_set.size(key) == 3
+    assert await redis_sorted_set.get_highest(key) == "c"
     assert not await redis_sorted_set.contains_by_score(key, 2)
     assert await redis_sorted_set.contains_by_score(key, 3)
     assert await redis_sorted_set.range_by_score(key, 1, 2) == []

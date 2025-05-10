@@ -16,9 +16,9 @@ class RedisString:
         value: str,
         nx: bool = False,
         xx: bool = False,
-        ex: int | None = None,
+        px: int | None = None,
     ) -> bool:  # return True if set
-        ok = await self.__redis.set(name=key, value=value, nx=nx, xx=xx, ex=ex)
+        ok = await self.__redis.set(name=key, value=value, nx=nx, xx=xx, px=px)
         if ok is None:
             return False
         if not isinstance(ok, bool):

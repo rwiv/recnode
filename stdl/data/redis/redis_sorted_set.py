@@ -16,8 +16,23 @@ class RedisSortedSet:
     async def set_batch(self, key: str, mapping: Mapping[str, Union[int, float, str]]):  # return added count
         return await self.__redis.zadd(key, mapping=mapping)
 
-    async def get_by_score(self, key: str, score: Union[int, float, str]) -> str:
-        return await self.__redis.zrangebyscore(key, score, score, start=0, num=1)
+    async def get_highest(self, key: str) -> str | None:
+        lst = await self.__redis.zrevrange(key, 0, 0)
+        if len(lst) == 0:
+            return None
+        result = lst[0]
+        if isinstance(result, bytes):
+            result = result.decode("utf-8")
+        return result
+
+    async def get_by_score(self, key: str, score: Union[int, float, str]) -> str | None:
+        lst = await self.__redis.zrangebyscore(key, score, score, start=0, num=1)
+        if len(lst) == 0:
+            return None
+        result = lst[0]
+        if isinstance(result, bytes):
+            result = result.decode("utf-8")
+        return result
 
     async def range_by_score(
         self,
