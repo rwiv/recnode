@@ -2,7 +2,6 @@ import asyncio
 import json
 import random
 import time
-from datetime import datetime
 
 import aiofiles
 from pyutils import log, path_join, error_dict
@@ -16,7 +15,7 @@ from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ...config import RequestConfig, RedisDataConfig
 from ...data.live import LiveState
-from ...data.segment import SegmentNumberSet, SegmentStateService, SegmentState
+from ...data.segment import SegmentNumberSet, SegmentStateService, Segment
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...metric import MetricManager
@@ -26,44 +25,6 @@ TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
 
 MAP_NUM = -1
-
-
-class Segment:
-    def __init__(self, num: int, url: str, duration: float, limit: int):
-        self.num = num
-        self.url = url
-        self.duration = duration
-        self.limit = limit
-        self.retry_count = 0
-
-        self.is_failed = False
-        self.__lock = asyncio.Lock()
-
-    async def acquire(self) -> bool:
-        async with self.__lock:
-            if self.limit <= 0:
-                return False
-            self.limit -= 1
-            return True
-
-    async def release(self):
-        async with self.__lock:
-            self.limit += 1
-
-    async def increment_retry_count(self):
-        async with self.__lock:
-            self.retry_count += 1
-            return self.retry_count
-
-    def to_new_state(self, size: int) -> SegmentState:
-        return SegmentState(
-            url=self.url,
-            num=self.num,
-            duration=self.duration,
-            size=size,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
 
 
 class SegmentedStreamRecorder:
@@ -98,24 +59,6 @@ class SegmentedStreamRecorder:
         self.success_nums: AsyncSet[int] = AsyncSet()
         self.failed_segments: AsyncMap[int, Segment] = AsyncMap()
 
-        self.success_nums_redis = self.__create_num_seg("success")
-        self.seg_state_service = SegmentStateService(
-            client=redis,
-            live_record_id=live.id,
-            expire_ms=redis_data_conf.seg_expire_sec * 1000,
-            lock_expire_ms=redis_data_conf.lock_expire_ms,
-            lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
-        )
-
-        self.metric = metric
-        self.m3u8_duration_hist = metric.create_m3u8_request_duration_histogram()
-        self.seg_duration_hist = metric.create_segment_request_duration_histogram()
-        self.seg_retry_hist = metric.create_segment_request_retry_histogram()
-        self.seg_request_counter = AsyncCounter()
-        self.seg_success_counter = AsyncCounter()
-        self.seg_failure_counter = AsyncCounter()
-        self.m3u8_retry_counter = AsyncCounter()
-
         self.m3u8_http = AsyncHttpClient(
             timeout_sec=req_conf.m3u8_timeout_sec,
             retry_limit=0,
@@ -128,6 +71,26 @@ class SegmentedStreamRecorder:
             retry_delay_sec=0,
             print_error=False,
         )
+
+        self.success_nums_redis = self.__create_num_seg("success")
+        self.seg_state_service = SegmentStateService(
+            client=redis,
+            live_record_id=live.id,
+            expire_ms=redis_data_conf.seg_expire_sec * 1000,
+            lock_expire_ms=redis_data_conf.lock_expire_ms,
+            lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
+            seg_http=self.seg_http,
+        )
+
+        self.metric = metric
+        self.m3u8_duration_hist = metric.create_m3u8_request_duration_histogram()
+        self.seg_duration_hist = metric.create_segment_request_duration_histogram()
+        self.seg_retry_hist = metric.create_segment_request_retry_histogram()
+        self.seg_request_counter = AsyncCounter()
+        self.seg_success_counter = AsyncCounter()
+        self.seg_failure_counter = AsyncCounter()
+        self.m3u8_retry_counter = AsyncCounter()
+
         self.fetcher = PlatformFetcher(self.metric)
         self.writer = writer
         self.helper = StreamHelper(
@@ -270,7 +233,7 @@ class SegmentedStreamRecorder:
             map_url = map_seg.uri
             if self.ctx.stream_base_url is not None:
                 map_url = "/".join([self.ctx.stream_base_url, map_seg.uri])
-            b = await self.seg_http.get_bytes(map_url, headers=self.ctx.headers, attr=self.ctx.to_dict())
+            b = await self.seg_http.get_bytes(map_url, attr=self.ctx.to_dict())
             async with aiofiles.open(path_join(self.ctx.tmp_dir_path, f"{MAP_NUM}.ts"), "wb") as f:
                 await f.write(b)
 
@@ -343,9 +306,7 @@ class SegmentedStreamRecorder:
             if seg.is_failed:
                 await seg.increment_retry_count()
 
-            b = await self.seg_http.get_bytes(
-                url=seg.url, headers=self.ctx.headers, attr=self.ctx.to_dict({"num": seg.num})
-            )
+            b = await self.seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
             await self.metric.set_segment_request_duration(
                 duration=time.time() - req_start,
                 platform=self.ctx.live.platform,

@@ -4,10 +4,10 @@ from datetime import datetime
 
 from pydantic import BaseModel
 from redis.asyncio import Redis
-from streamlink.stream.hls.segment import HLSSegment
 
 from .seg_num_set import SegmentNumberSet
 from ..redis import RedisString, RedisPubSubLock
+from ...utils import AsyncHttpClient
 
 
 class SegmentState(BaseModel):
@@ -21,6 +21,44 @@ class SegmentState(BaseModel):
     updated_at: datetime
 
 
+class Segment:
+    def __init__(self, num: int, url: str, duration: float, limit: int):
+        self.num = num
+        self.url = url
+        self.duration = duration
+        self.limit = limit
+        self.retry_count = 0
+
+        self.is_failed = False
+        self.__lock = asyncio.Lock()
+
+    async def acquire(self) -> bool:
+        async with self.__lock:
+            if self.limit <= 0:
+                return False
+            self.limit -= 1
+            return True
+
+    async def release(self):
+        async with self.__lock:
+            self.limit += 1
+
+    async def increment_retry_count(self):
+        async with self.__lock:
+            self.retry_count += 1
+            return self.retry_count
+
+    def to_new_state(self, size: int) -> SegmentState:
+        return SegmentState(
+            url=self.url,
+            num=self.num,
+            duration=self.duration,
+            size=size,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        )
+
+
 class SegmentStateService:
     def __init__(
         self,
@@ -29,6 +67,7 @@ class SegmentStateService:
         expire_ms: int,
         lock_expire_ms: int,
         lock_wait_timeout_sec: float,
+        seg_http: AsyncHttpClient,
     ):
         self.__client = client
         self.__str = RedisString(client)
@@ -38,11 +77,12 @@ class SegmentStateService:
         self.__lock_wait_timeout_sec = lock_wait_timeout_sec
         self.__invalid_seg_time_diff_threshold_sec = 2 * 60  # 2 minutes
         self.__invalid_seg_num_diff_threshold = 150  # 5 minutes (150 segments == 300 seconds)
+        self.__seg_http = seg_http
 
     async def renew(self, num: int):
         await self.__str.set_pexpire(self.__get_key(num), self.__expire_ms)
 
-    async def validate_segments(self, segments: list[HLSSegment], success_nums: SegmentNumberSet) -> bool:
+    async def validate_segments(self, segments: list[Segment], success_nums: SegmentNumberSet) -> bool:
         if len(segments) == 0:
             raise ValueError("segments is empty")
 
@@ -54,19 +94,23 @@ class SegmentStateService:
                 raise ValueError("No segments found in success_nums")
             return sorted_raw_segments[-1].num - highest_num > 100
 
-        raw_segments_map = {seg.num: seg for seg in segments}
-        seg_stats = await asyncio.gather(*[self.get(num) for num in matched_nums])
-        filtered: list[SegmentState] = [seg for seg in seg_stats if seg is not None]
-        for i, seg_stat in enumerate(filtered):
-            raw_seg = raw_segments_map.get(seg_stat.num)
-            if raw_seg is None:
+        res = await asyncio.gather(*[self.get(num) for num in matched_nums])
+        seg_stats: list[SegmentState] = sorted([seg for seg in res if seg is not None], key=lambda x: x.num)
+        segments_map = {seg.num: seg for seg in segments}
+        for i, seg_stat in enumerate(seg_stats):
+            seg = segments_map.get(seg_stat.num)
+            if seg is None:
                 raise ValueError(f"Raw segment not found for num {seg_stat.num}")
-            if raw_seg.uri not in seg_stat.url:
+            if seg.url != seg_stat.url:
                 return False
-            if raw_seg.duration != seg_stat.duration:
+            if seg.duration != seg_stat.duration:
                 return False
+            if i == len(seg_stats) - 1:
+                b = await self.__seg_http.get_bytes(url=seg.url)
+                if len(b) != seg_stat.size:
+                    return False
 
-        return False
+        return True
 
     async def validate_segment(self, num: int, success_nums: SegmentNumberSet) -> tuple[bool, bool]:
         if not await success_nums.get(num):

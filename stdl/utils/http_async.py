@@ -31,18 +31,34 @@ class AsyncHttpClient:
                 raise ValueError(f"Header {k} already set")
             self.headers[k] = v
 
-    async def get_text(self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None) -> str:
+    async def get_text(
+        self,
+        url: str,
+        headers: dict | None = None,
+        attr: dict | None = None,
+        print_error: bool | None = None,
+    ) -> str:
         if print_error is None:
             print_error = self.print_error
         return await self.fetch(method="GET", url=url, headers=headers, text=True, attr=attr, print_error=print_error)
 
-    async def get_json(self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None) -> Any:
+    async def get_json(
+        self,
+        url: str,
+        headers: dict | None = None,
+        attr: dict | None = None,
+        print_error: bool | None = None,
+    ) -> Any:
         if print_error is None:
             print_error = self.print_error
         return await self.fetch(method="GET", url=url, headers=headers, json=True, attr=attr, print_error=print_error)
 
     async def get_bytes(
-        self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None
+        self,
+        url: str,
+        headers: dict | None = None,
+        attr: dict | None = None,
+        print_error: bool | None = None,
     ) -> bytes:
         if print_error is None:
             print_error = self.print_error
@@ -52,16 +68,18 @@ class AsyncHttpClient:
         self,
         method: str,
         url: str,
-        headers: dict,
+        headers: dict | None = None,
         text: bool = False,
         json: bool = False,
         raw: bool = False,
         attr: dict | None = None,
         print_error: bool = True,
     ) -> Any:
-        req_headers = self.headers.copy()
-        for key, value in headers.items():
-            req_headers[key] = value
+        req_headers = self.headers
+        if headers is not None:
+            req_headers = self.headers.copy()
+            for key, value in headers.items():
+                req_headers[key] = value
 
         for retry_cnt in range(self.retry_limit + 1):
             start = time.time()
@@ -128,3 +146,18 @@ async def request(
                 return await res.json()
             else:
                 return await res.text()
+
+
+class AsyncHttpClientMock(AsyncHttpClient):
+    def __init__(self, b_size: int):
+        super().__init__()
+        self.b_size = b_size
+
+    async def get_bytes(
+        self,
+        url: str,
+        headers: dict | None = None,
+        attr: dict | None = None,
+        print_error: bool | None = None,
+    ) -> bytes:
+        return b"0" * self.b_size

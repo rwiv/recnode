@@ -2,7 +2,7 @@ import os
 import sys
 
 from .seg_num_set import SegmentNumberSet
-from .seg_state_service import SegmentStateService, SegmentState
+from .seg_state_service import SegmentStateService, SegmentState, Segment
 
 
 targets = [

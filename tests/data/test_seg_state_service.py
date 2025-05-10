@@ -12,9 +12,11 @@ from stdl.data.redis import (
     RedisSortedSet,
 )
 from stdl.data.segment import SegmentNumberSet, SegmentStateService, SegmentState
+from stdl.utils import AsyncHttpClientMock
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
-conf = get_env().redis
+env = get_env()
+conf = env.redis
 pool = create_redis_pool(conf)
 client = Redis(connection_pool=pool)
 
@@ -24,13 +26,14 @@ redis_sorted_set = RedisSortedSet(client)
 
 ex = 10_000
 lw = 2
+http_mock = AsyncHttpClientMock(b_size=100)
 
 
 @pytest.mark.asyncio
 async def test_validate_segment():
     live_record_id = "31cad56f-3d77-41d6-85b1-0cc77272aac0"
     success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw)
-    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw)
+    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, http_mock)
 
     await seg_service.set_nx(seg(1))
     await success_nums.set(1)
@@ -50,15 +53,15 @@ async def test_validate_segment():
 async def test_validate_segments():
     live_record_id = "cc23b367-bc45-40cd-9523-e334b1bcd52d"
     success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw)
-    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw)
+    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, http_mock)
 
 
-def seg(num: int, created_at: datetime = datetime.now()):
+def seg(num: int, created_at: datetime = datetime.now(), size: int = 100):
     return SegmentState(
         url="https://example.com",
         num=num,
         duration=2.0,
-        size=100,
+        size=size,
         created_at=created_at,
         updated_at=datetime.now(),
     )
