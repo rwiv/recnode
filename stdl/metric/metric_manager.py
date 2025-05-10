@@ -49,16 +49,12 @@ class MetricManager:
             buckets=object_write_duration_buckets,
         )
 
-    async def set_api_request_duration(
-        self, duration: float, platform: PlatformType, extra: Histogram | None = None
-    ):
+    async def set_api_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
         self.api_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)
 
-    async def set_m3u8_request_duration(
-        self, duration: float, platform: PlatformType, extra: Histogram | None = None
-    ):
+    async def set_m3u8_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
         self.m3u8_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)
@@ -70,9 +66,7 @@ class MetricManager:
         if extra is not None:
             await extra.observe(duration)
 
-    async def set_segment_request_retry(
-        self, retry_cnt: int, platform: PlatformType, extra: Histogram | None = None
-    ):
+    async def set_segment_request_retry(self, retry_cnt: int, platform: PlatformType, extra: Histogram | None = None):
         self.segment_request_retry_hist.labels(platform=platform.value).observe(retry_cnt)
         if extra is not None:
             await extra.observe(retry_cnt)

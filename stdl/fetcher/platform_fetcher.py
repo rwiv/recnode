@@ -34,7 +34,5 @@ class PlatformFetcher:
             result = await self.__twitch.metadata_channel(url_info.channel_id, self.headers)
         else:
             raise ValueError("Unsupported platform")
-        await self.__metric.set_api_request_duration(
-            duration=time.time() - start_time, platform=url_info.platform
-        )
+        await self.__metric.set_api_request_duration(duration=time.time() - start_time, platform=url_info.platform)
         return result

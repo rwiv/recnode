@@ -31,32 +31,22 @@ class AsyncHttpClient:
                 raise ValueError(f"Header {k} already set")
             self.headers[k] = v
 
-    async def get_text(
-        self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None
-    ) -> str:
+    async def get_text(self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None) -> str:
         if print_error is None:
             print_error = self.print_error
-        return await self.fetch(
-            method="GET", url=url, headers=headers, text=True, attr=attr, print_error=print_error
-        )
+        return await self.fetch(method="GET", url=url, headers=headers, text=True, attr=attr, print_error=print_error)
 
-    async def get_json(
-        self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None
-    ) -> Any:
+    async def get_json(self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None) -> Any:
         if print_error is None:
             print_error = self.print_error
-        return await self.fetch(
-            method="GET", url=url, headers=headers, json=True, attr=attr, print_error=print_error
-        )
+        return await self.fetch(method="GET", url=url, headers=headers, json=True, attr=attr, print_error=print_error)
 
     async def get_bytes(
         self, url: str, headers: dict, attr: dict | None = None, print_error: bool | None = None
     ) -> bytes:
         if print_error is None:
             print_error = self.print_error
-        return await self.fetch(
-            method="GET", url=url, headers=headers, raw=True, attr=attr, print_error=print_error
-        )
+        return await self.fetch(method="GET", url=url, headers=headers, raw=True, attr=attr, print_error=print_error)
 
     async def fetch(
         self,

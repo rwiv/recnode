@@ -257,15 +257,15 @@ class SegmentedStreamRecorder:
         playlist: M3U8 = M3U8Parser().parse(m3u8_text)
         if playlist.is_master:
             raise ValueError("Expected a media playlist, got a master playlist")
-        segments: list[HLSSegment] = playlist.segments
-        if len(segments) == 0:
+        raw_segments: list[HLSSegment] = playlist.segments
+        if len(raw_segments) == 0:
             raise ValueError("No segments found in the playlist")
 
         if self.status != RecordingStatus.RECORDING:
             self.status = RecordingStatus.RECORDING
 
         # If the first segment has a map, download it
-        map_seg = segments[0].map
+        map_seg = raw_segments[0].map
         if is_init and map_seg is not None:
             map_url = map_seg.uri
             if self.ctx.stream_base_url is not None:
@@ -274,17 +274,18 @@ class SegmentedStreamRecorder:
             async with aiofiles.open(path_join(self.ctx.tmp_dir_path, f"{MAP_NUM}.ts"), "wb") as f:
                 await f.write(b)
 
-        # Process segments
-        for raw_seg in segments:
-            if self.__is_done_seg(raw_seg.num) or self.processing_nums.contains(raw_seg.num):
-                continue
-
+        segments = []
+        for raw_seg in raw_segments:
             url = raw_seg.uri
             if self.ctx.stream_base_url is not None:
                 url = "/".join([self.ctx.stream_base_url, raw_seg.uri])
-            seg = Segment(
-                num=raw_seg.num, url=url, duration=raw_seg.duration, limit=self.seg_parallel_retry_limit
-            )
+            seg = Segment(num=raw_seg.num, url=url, duration=raw_seg.duration, limit=self.seg_parallel_retry_limit)
+            segments.append(seg)
+
+        # Process segments
+        for seg in segments:
+            if self.__is_done_seg(seg.num) or self.processing_nums.contains(seg.num):
+                continue
             _ = asyncio.create_task(self.__process_segment(seg), name=f"{self.live.id}:req:{seg.num}")
 
         for _, failed in self.retrying_segments.items():
@@ -298,7 +299,7 @@ class SegmentedStreamRecorder:
             tar_path = self.helper.archive(target_segments, self.ctx.tmp_dir_path)
             self.helper.write_segment_thread(tar_path, self.ctx)
 
-        self.idx = segments[-1].num
+        self.idx = raw_segments[-1].num
 
         if playlist.is_endlist:
             self.done_flag = True

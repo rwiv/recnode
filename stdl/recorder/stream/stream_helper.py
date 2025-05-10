@@ -72,9 +72,7 @@ class StreamHelper:
         )
 
         tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, state.video_name)
-        out_dir_path = path_join(
-            self.incomplete_dir_path, live.platform.value, live.channel_id, state.video_name
-        )
+        out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, state.video_name)
         os.makedirs(tmp_dir_path, exist_ok=True)
 
         stream_base_url = None
@@ -133,8 +131,7 @@ class StreamHelper:
             file_name for file_name in await aioos.listdir(ctx.tmp_dir_path) if not file_name.endswith(".tar")
         ]
         segment_paths = [
-            path_join(ctx.tmp_dir_path, seg_name)
-            for seg_name in sorted(segment_names, key=lambda x: int(Path(x).stem))
+            path_join(ctx.tmp_dir_path, seg_name) for seg_name in sorted(segment_names, key=lambda x: int(Path(x).stem))
         ]
 
         current_time = time.time()
@@ -161,9 +158,7 @@ class StreamHelper:
             th.join()
 
         # Write remaining segments
-        target_segments = [
-            path_join(ctx.tmp_dir_path, file_name) for file_name in os.listdir(ctx.tmp_dir_path)
-        ]
+        target_segments = [path_join(ctx.tmp_dir_path, file_name) for file_name in os.listdir(ctx.tmp_dir_path)]
         time.sleep(FILE_WAIT_SEC)
         if len(target_segments) > 0:
             tar_path = self.archive(target_segments, ctx.tmp_dir_path)
@@ -207,9 +202,7 @@ class StreamHelper:
             os.remove(tmp_file_path)
 
     def archive(self, target_segments: list[str], dir_path: str):
-        out_filename = (
-            f"{Path(target_segments[0]).stem}_{Path(target_segments[-1]).stem}_{random_string(5)}.tar"
-        )
+        out_filename = f"{Path(target_segments[0]).stem}_{Path(target_segments[-1]).stem}_{random_string(5)}.tar"
         tar_path = path_join(dir_path, out_filename)
         with tarfile.open(tar_path, "w") as tar:
             for target_segment in target_segments:

@@ -74,9 +74,7 @@ class RecordingScheduler:
                     if recorder is not None and recorder.is_done:
                         if recorder.recording_thread:
                             recorder.recording_thread.join()
-                        log.info(
-                            f"Remove Done Recorder: platform={recorder.platform}, uid={recorder.channel_id}"
-                        )
+                        log.info(f"Remove Done Recorder: platform={recorder.platform}, uid={recorder.channel_id}")
                         del self.__recorder_map[key]
                 time.sleep(SCHEDULER_CHECK_DELAY_SEC)
             except Exception as e:

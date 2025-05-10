@@ -84,6 +84,4 @@ class MainController:
         if "threads" in field_elems:
             with_threads = True
 
-        return self.__scheduler.ger_status(
-            with_stats=with_stats, full_stats=full_stats, with_threads=with_threads
-        )
+        return self.__scheduler.ger_status(with_stats=with_stats, full_stats=full_stats, with_threads=with_threads)

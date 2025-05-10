@@ -19,9 +19,7 @@ def resolve_live_url(live_url: str) -> LiveUrlInfo:
         channel_id = match.group("channel_id")
         return LiveUrlInfo(platform=PlatformType.CHZZK, channel_id=channel_id)
     elif "soop" in live_url or "afreeca" in live_url:
-        regex = re.compile(
-            r"https?://play\.(sooplive\.co\.kr|afreecatv\.com)/(?P<channel>\w+)(?:/(?P<bno>\d+))?"
-        )
+        regex = re.compile(r"https?://play\.(sooplive\.co\.kr|afreecatv\.com)/(?P<channel>\w+)(?:/(?P<bno>\d+))?")
         match = regex.match(live_url)
         if not match:
             raise ValueError("Invalid SOOP or Afreeca URL")
