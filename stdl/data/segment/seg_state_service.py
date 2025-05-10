@@ -21,8 +21,8 @@ class SegmentStateService:
         client: Redis,
         live_record_id: str,
         expire_ms: int,
-        lock_expire_ms: int = 2_000,
-        lock_wait_timeout_sec: int = 5,
+        lock_expire_ms: int,
+        lock_wait_timeout_sec: float,
     ):
         self.__client = client
         self.__str = RedisString(client)

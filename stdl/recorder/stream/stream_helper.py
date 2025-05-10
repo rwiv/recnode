@@ -9,7 +9,7 @@ from pyutils import log, path_join, filename, error_dict
 from streamlink.stream.hls.hls import HLSStream
 
 from .stream_types import RequestContext
-from ..schema.recording_arguments import StreamArgs
+from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.streamlink_utils import get_streams
@@ -28,14 +28,15 @@ FILE_WAIT_SEC = 2
 class StreamHelper:
     def __init__(
         self,
-        args: StreamArgs,
+        live: LiveState,
+        args: RecordingArgs,
         state: RecordingState,
         writer: ObjectWriter,
         fetcher: PlatformFetcher,
         incomplete_dir_path: str,
     ):
-        self.url = args.info.url
-        self.stream_info = args.info
+        self.live = live
+        self.live_url = args.live_url
         self.session_args = args.session_args
         self.state = state
 
@@ -54,7 +55,7 @@ class StreamHelper:
         self.seg_size = seg_size_mb * 1024 * 1024
         self.threshold_sec = FILE_WAIT_SEC
 
-    async def get_ctx(self, state: LiveState) -> RequestContext:
+    def get_ctx(self, state: LiveState) -> RequestContext:
         headers = {"User-Agent": FIREFOX_USER_AGENT}
         if state.headers is not None:
             for k, v in state.headers.items():
@@ -81,7 +82,7 @@ class StreamHelper:
             stream_base_url = "/".join(state.stream_url.split("/")[:-1])
         ctx = RequestContext(
             id=state.id,
-            live_url=self.url,
+            live_url=self.live_url,
             stream_url=state.stream_url,
             stream_base_url=stream_base_url,
             video_name=state.video_name,
@@ -100,8 +101,8 @@ class StreamHelper:
         retry_cnt = 0
         start_time = time.time()
         info = {
-            "platform": self.stream_info.platform.value,
-            "channel_id": self.stream_info.uid,
+            "platform": self.live.platform.value,
+            "channel_id": self.live.channel_id,
         }
         while True:
             if time.time() - start_time > self.wait_timeout_sec:
@@ -112,13 +113,13 @@ class StreamHelper:
                 return None
 
             try:
-                streams = get_streams(self.url, self.session_args)
+                streams = get_streams(self.live_url, self.session_args)
                 if streams is not None:
                     return streams
             except Exception as e:
                 err = error_dict(e)
-                err["platform"] = self.stream_info.platform
-                err["channel_id"] = self.stream_info.uid
+                err["platform"] = self.live.platform
+                err["channel_id"] = self.live.channel_id
                 log.error("Failed to get streams", err)
 
             if retry_cnt == 0:

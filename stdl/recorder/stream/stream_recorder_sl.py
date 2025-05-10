@@ -5,7 +5,7 @@ from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
 from .stream_helper import StreamHelper
 from .stream_types import RequestContext
-from ..schema.recording_arguments import StreamArgs
+from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
@@ -17,7 +17,8 @@ from ...utils import AsyncHttpClient
 class StreamlinkStreamRecorder:
     def __init__(
         self,
-        args: StreamArgs,
+        live: LiveState,
+        args: RecordingArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
         metric: MetricManager,
@@ -33,24 +34,27 @@ class StreamlinkStreamRecorder:
         self.state = RecordingState()
         self.status: RecordingStatus = RecordingStatus.WAIT
         self.processed_nums: set[int] = set()  # TODO: change using redis
-        self.ctx: RequestContext | None = None
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
         self.fetcher = PlatformFetcher(metric)
         self.writer = writer
         self.helper = StreamHelper(
-            args, self.state, writer, self.fetcher, incomplete_dir_path=incomplete_dir_path
+            live=live,
+            args=args,
+            state=self.state,
+            writer=writer,
+            fetcher=self.fetcher,
+            incomplete_dir_path=incomplete_dir_path,
         )
+        self.ctx: RequestContext = self.helper.get_ctx(live)
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         return self.helper.wait_for_live()
 
     def check_tmp_dir(self):
-        assert self.ctx is not None
         self.helper.check_tmp_dir(self.ctx)
 
     def get_status(self) -> RecorderStatusInfo:
-        assert self.ctx is not None
         return self.ctx.to_status(
             fs_name=self.writer.fs_name,
             num=self.idx,
@@ -58,7 +62,7 @@ class StreamlinkStreamRecorder:
         )
 
     async def record(self, state: LiveState):
-        self.ctx = await self.helper.get_ctx(state)
+        self.ctx = self.helper.get_ctx(state)
         self.http.set_headers(self.ctx.headers)
 
         # Start recording
@@ -127,8 +131,6 @@ class StreamlinkStreamRecorder:
         return self.ctx.live
 
     def __close_recording(self, stream: HLSStreamReader | None = None):
-        assert self.ctx is not None
-
         # Close stream
         if stream is not None:
             stream.close()

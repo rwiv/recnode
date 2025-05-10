@@ -2,7 +2,7 @@ import os
 import sys
 
 from .config_proxy import ProxyConfig, read_proxy_config
-from .config_redis import RedisConfig
+from .config_redis import RedisConfig, RedisDataConfig
 from .config_request import RequestConfig, read_request_config
 from .config_stream import StreamConfig
 from .env_proxy import ProxyEnv, get_proxy_env

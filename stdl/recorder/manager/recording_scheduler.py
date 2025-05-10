@@ -51,7 +51,7 @@ class RecordingScheduler:
             log.info("Already Recording")
             return
         self.__recorder_map[key] = recorder
-        recorder.record(state=state, block=False)
+        recorder.record(block=False)
 
     def cancel(self, state: LiveState):
         recorder = self.__recorder_map.get(parse_key(state))

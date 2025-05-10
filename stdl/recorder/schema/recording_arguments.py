@@ -1,12 +1,5 @@
 from pydantic import BaseModel, constr
 
-from .recording_schema import StreamInfo
-
-
-class RecordingArgs(BaseModel):
-    out_dir_path: constr(min_length=1) | None
-    use_credentials: bool
-
 
 class StreamLinkSessionArgs(BaseModel):
     cookie_header: constr(min_length=1) | None = None
@@ -15,8 +8,8 @@ class StreamLinkSessionArgs(BaseModel):
     stream_timeout_sec: float | None = None
 
 
-class StreamArgs(BaseModel):
-    info: StreamInfo
+class RecordingArgs(BaseModel):
+    live_url: str
     session_args: StreamLinkSessionArgs
     tmp_dir_path: constr(min_length=1)
     seg_size_mb: int | None

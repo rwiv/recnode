@@ -11,10 +11,11 @@ from streamlink.stream.hls.segment import HLSSegment
 
 from .stream_helper import StreamHelper
 from .stream_types import RequestContext
-from ..schema.recording_arguments import StreamArgs
+from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
-from ...config import RequestConfig
+from ...config import RequestConfig, RedisDataConfig
 from ...data.live import LiveState
+from ...data.segment import SegmentNumberSet, SegmentStateService
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...metric import MetricManager
@@ -56,11 +57,13 @@ class Segment:
 class SegmentedStreamRecorder:
     def __init__(
         self,
-        args: StreamArgs,
+        live: LiveState,
+        args: RecordingArgs,
         incomplete_dir_path: str,
         writer: ObjectWriter,
-        req_conf: RequestConfig,
         redis: Redis,
+        redis_data_conf: RedisDataConfig,
+        req_conf: RequestConfig,
         metric: MetricManager,
     ):
         self.min_delay_sec = 0.7
@@ -69,16 +72,27 @@ class SegmentedStreamRecorder:
         self.seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio
 
+        self.live = live
+        self.redis_data_conf = redis_data_conf
+
         self.idx = 0
         self.done_flag = False
         self.state = RecordingState()
         self.status: RecordingStatus = RecordingStatus.WAIT
-        self.ctx: RequestContext | None = None
 
         self.processing_nums: AsyncSet[int] = AsyncSet()
         self.retrying_segments: AsyncMap[int, Segment] = AsyncMap()
         self.success_nums: AsyncSet[int] = AsyncSet()
         self.failed_segments: AsyncMap[int, Segment] = AsyncMap()
+
+        self.success_nums_redis = self.__create_num_seg("success")
+        self.seg_state_service = SegmentStateService(
+            client=redis,
+            live_record_id=live.id,
+            expire_ms=redis_data_conf.live_expire_sec * 1000,
+            lock_expire_ms=redis_data_conf.lock_expire_ms,
+            lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
+        )
 
         self.metric = metric
         self.m3u8_duration_hist = metric.create_m3u8_request_duration_histogram()
@@ -89,6 +103,7 @@ class SegmentedStreamRecorder:
         self.seg_failure_counter = AsyncCounter()
         self.m3u8_retry_counter = AsyncCounter()
 
+        self.redis = redis
         self.m3u8_http = AsyncHttpClient(
             timeout_sec=req_conf.m3u8_timeout_sec,
             retry_limit=0,
@@ -104,19 +119,19 @@ class SegmentedStreamRecorder:
         self.fetcher = PlatformFetcher(self.metric)
         self.writer = writer
         self.helper = StreamHelper(
+            live=live,
             args=args,
             state=self.state,
             writer=writer,
             fetcher=self.fetcher,
             incomplete_dir_path=incomplete_dir_path,
         )
+        self.ctx: RequestContext = self.helper.get_ctx(live)
 
     def check_tmp_dir(self):
-        assert self.ctx is not None
         self.helper.check_tmp_dir(self.ctx)
 
     def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
-        assert self.ctx is not None
         status = self.ctx.to_status(
             fs_name=self.writer.fs_name,
             num=self.idx,
@@ -159,7 +174,7 @@ class SegmentedStreamRecorder:
         return result
 
     async def record(self, state: LiveState):
-        self.ctx = await self.helper.get_ctx(state)
+        self.ctx = self.helper.get_ctx(state)
         self.m3u8_http.set_headers(self.ctx.headers)
         self.seg_http.set_headers(self.ctx.headers)
 
@@ -194,10 +209,10 @@ class SegmentedStreamRecorder:
         return self.ctx.live
 
     async def __interval(self, is_init: bool = False):
-        assert self.ctx is not None
-
         if TEST_FLAG:
             print(json.dumps(self.get_stats(), indent=4))
+
+        await self.success_nums_redis.renew()
 
         # Fetch m3u8
         try:
@@ -284,8 +299,6 @@ class SegmentedStreamRecorder:
         return self.success_nums.contains(seg_num) or self.failed_segments.contains(seg_num)
 
     async def __process_segment(self, seg: Segment):
-        assert self.ctx is not None
-
         if seg.num == MAP_NUM:
             raise ValueError(f"{MAP_NUM} is not a valid segment number")
 
@@ -371,14 +384,22 @@ class SegmentedStreamRecorder:
                 await seg.release()
 
     def __close_recording(self):
-        assert self.ctx is not None
         self.helper.check_tmp_dir(self.ctx)
 
     def __error_attr(self, ex: BaseException, num: int | None = None):
-        assert self.ctx is not None
         attr = self.ctx.to_dict()
         for k, v in error_dict(ex).items():
             attr[k] = v
         if num is not None:
             attr["num"] = num
         return attr
+
+    def __create_num_seg(self, suffix: str):
+        return SegmentNumberSet(
+            client=self.redis,
+            live_record_id=self.live.id,
+            key_suffix=suffix,
+            expire_ms=self.redis_data_conf.live_expire_sec * 1000,
+            lock_expire_ms=self.redis_data_conf.lock_expire_ms,
+            lock_wait_timeout_sec=self.redis_data_conf.lock_wait_sec,
+        )

@@ -49,7 +49,7 @@ class BatchRunner:
 
         state = self.get_state(conf)
         recorder = self.recorder_resolver.create_recorder(state=state)
-        recorder.record(state=state, block=True)
+        recorder.record(block=True)
 
     def get_state(self, conf: BatchConfig):
         streams = get_streams(url=conf.url, args=StreamLinkSessionArgs(cookie_header=conf.cookie))
