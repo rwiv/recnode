@@ -2,6 +2,7 @@ import requests
 from fastapi import APIRouter, HTTPException
 from prometheus_client import generate_latest
 from pydantic import BaseModel, constr
+from redis.asyncio import ConnectionPool
 
 from ..common import PlatformType
 from ..data.live import LiveStateService
@@ -14,14 +15,21 @@ class CancelRequest(BaseModel):
 
 
 class MainController:
-    def __init__(self, scheduler: RecordingScheduler, live_state_service: LiveStateService):
+    def __init__(
+        self,
+        redis_pool: ConnectionPool,
+        scheduler: RecordingScheduler,
+        live_state_service: LiveStateService,
+    ):
         self.__scheduler = scheduler
         self.__live_state_service = live_state_service
+        self.__redis_pool = redis_pool
 
         self.router = APIRouter()
         self.router.add_api_route("/metrics", self.metrics, methods=["GET"])
         self.router.add_api_route("/api/health", self.health, methods=["GET"])
         self.router.add_api_route("/api/my-ip", self.my_ip, methods=["GET"])
+        self.router.add_api_route("/api/stats/redis", self.redis_stats, methods=["GET"])
         self.router.add_api_route("/api/recordings/{record_id}", self.record, methods=["POST"])
         self.router.add_api_route("/api/recordings/{record_id}", self.cancel, methods=["DELETE"])
         self.router.add_api_route("/api/recordings", self.get_status, methods=["GET"])
@@ -34,6 +42,12 @@ class MainController:
 
     def metrics(self):
         return generate_latest(), {"Content-Type": "text/plain"}
+
+    def redis_stats(self):
+        return {
+            "in_use_connections": len(self.__redis_pool._in_use_connections),
+            "available_connections": len(self.__redis_pool._available_connections),
+        }
 
     async def record(self, record_id: str):
         state = await self.__live_state_service.get(record_id)
@@ -56,6 +70,7 @@ class MainController:
 
     def get_status(self, fields: str | None = None):
         field_elems = fields.split(",") if fields else []
+
         with_stats = False
         if "stats" in field_elems:
             with_stats = True
@@ -64,4 +79,11 @@ class MainController:
         if "full_stats" in field_elems:
             with_stats = True
             full_stats = True
-        return self.__scheduler.ger_status(with_stats=with_stats, full_stats=full_stats)
+
+        with_threads = False
+        if "threads" in field_elems:
+            with_threads = True
+
+        return self.__scheduler.ger_status(
+            with_stats=with_stats, full_stats=full_stats, with_threads=with_threads
+        )

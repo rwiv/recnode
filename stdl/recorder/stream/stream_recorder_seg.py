@@ -5,6 +5,7 @@ import time
 
 import aiofiles
 from pyutils import log, path_join, error_dict
+from redis.asyncio import Redis
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
 
@@ -59,6 +60,7 @@ class SegmentedStreamRecorder:
         incomplete_dir_path: str,
         writer: ObjectWriter,
         req_conf: RequestConfig,
+        redis: Redis,
         metric: MetricManager,
     ):
         self.min_delay_sec = 0.7

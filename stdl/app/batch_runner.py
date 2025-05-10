@@ -6,10 +6,12 @@ from datetime import datetime
 import yaml
 from pydantic import BaseModel
 from pyutils import log
+from redis.asyncio import Redis
 from streamlink.stream.hls.hls import HLSStream
 
 from ..config import get_env
 from ..data.live import LiveState
+from ..data.redis import create_redis_pool
 from ..fetcher import PlatformFetcher
 from ..file import create_fs_writer
 from ..metric import MetricManager
@@ -33,7 +35,9 @@ class BatchRunner:
         self.metric = MetricManager()
         self.writer = create_fs_writer(self.env, self.metric)
         self.fetcher = PlatformFetcher(self.metric)
-        self.recorder_resolver = RecorderResolver(self.env, self.writer, self.metric)
+        self.redis_pool = create_redis_pool(self.env.redis)
+        self.redis_client = Redis(connection_pool=self.redis_pool)
+        self.recorder_resolver = RecorderResolver(self.env, self.writer, self.redis_client, self.metric)
 
     def run(self):
         log.set_level(logging.DEBUG)

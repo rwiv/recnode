@@ -5,7 +5,6 @@ from redis.asyncio import Redis
 from stdl.config import get_env
 from stdl.data.redis import (
     RedisString,
-    get_keys,
     RedisQueue,
     create_redis_pool,
     RedisSortedSet,
@@ -22,59 +21,50 @@ redis_sorted_set = RedisSortedSet(client)
 
 
 @pytest.mark.asyncio
-async def test_get_keys():
-    print()
-    print(await get_keys(client))
-
-
-@pytest.mark.asyncio
 async def test_redis_str():
-    print()
-    await test_clear()
     key = "test1"
-    print(await redis_str.set_pexpire(key, 10_000))
-    print(await redis_str.get(key))
-    print(await redis_str.contains(key))
-    print(await redis_str.set(key, "test", nx=True))
-    print(await redis_str.set(key, "test", nx=True))
-    print(await redis_str.set_pexpire(key, 10_000))
-    print(await redis_str.get(key))
-    print(await redis_str.contains(key))
-    print(await redis_str.delete(key))
-    print(await redis_str.delete(key))
+    await test_clear()
+    assert not await redis_str.set_pexpire(key, 10_000)
+    assert await redis_str.get(key) is None
+    assert not await redis_str.contains(key)
+    assert await redis_str.set(key, "test", nx=True)
+    assert not await redis_str.set(key, "test", nx=True)
+    assert await redis_str.set_pexpire(key, 10_000)
+    assert await redis_str.get(key) == "test"
+    assert await redis_str.contains(key)
+    assert await redis_str.delete(key)
+    assert not await redis_str.delete(key)
 
 
 @pytest.mark.asyncio
 async def test_redis_queue():
-    print()
-    await test_clear()
     key = "test2"
-    print(await redis_queue.get(key))
-    print(await redis_queue.push(key, "test1"))
-    print(await redis_queue.push(key, "test2"))
-    print(await redis_queue.push(key, "test2"))
-    print(await redis_queue.size(key))
-    print(await redis_queue.get(key))
-    print(await redis_queue.pop(key))
-    await redis_queue.clear(key)
+    await test_clear()
+    assert await redis_queue.get(key) is None
+    assert await redis_queue.push(key, "test1") == 1
+    assert await redis_queue.push(key, "test2") == 2
+    assert await redis_queue.push(key, "test2") == 3
+    assert await redis_queue.size(key) == 3
+    assert await redis_queue.get(key) == "test1"
+    assert await redis_queue.pop(key) == "test1"
+    assert await redis_queue.get(key) == "test2"
+    assert await redis_queue.clear(key) == 1
 
 
 @pytest.mark.asyncio
 async def test_redis_sroted_set():
-    print()
-    await test_clear()
     key = "test3"
-    await redis_sorted_set.set(key, "a", 3)
-    await redis_sorted_set.set(key, "b", 5)
-    await redis_sorted_set.set(key, "c", 6)
-    print(await redis_sorted_set.list(key))
-    print(await redis_sorted_set.size(key))
-    print(await redis_sorted_set.contains_by_score(key, 2))
-    print(await redis_sorted_set.contains_by_score(key, 3))
-    print(await redis_sorted_set.range_by_score(key, 1, 2))
-    print(await redis_sorted_set.range_by_score(key, 3, 5))
-    print(await redis_sorted_set.remove_by_score(key, 2, 5))
-    await redis_sorted_set.clear(key)
+    await test_clear()
+    assert await redis_sorted_set.set_batch(key, mapping={"a": 3, "b": 5}) == 2
+    assert await redis_sorted_set.set(key, "c", 6) == 1
+    assert await redis_sorted_set.list(key) == ["a", "b", "c"]
+    assert await redis_sorted_set.size(key) == 3
+    assert not await redis_sorted_set.contains_by_score(key, 2)
+    assert await redis_sorted_set.contains_by_score(key, 3)
+    assert await redis_sorted_set.range_by_score(key, 1, 2) == []
+    assert await redis_sorted_set.range_by_score(key, 3, 5) == ["a", "b"]
+    assert await redis_sorted_set.remove_by_score(key, 2, 5) == 2
+    assert await redis_sorted_set.clear(key) == 1
 
 
 @pytest.mark.asyncio

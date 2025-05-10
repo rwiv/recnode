@@ -3,6 +3,7 @@ import time
 from threading import Thread
 
 from pyutils import log, error_dict
+from redis.asyncio import Redis
 
 from .live_recorder import LiveRecorder
 from ..manager.recorder_resolver import RecorderResolver
@@ -15,23 +16,27 @@ from ...metric import MetricManager
 
 
 class RecordingScheduler:
-    def __init__(self, env: Env, metric: MetricManager):
+    def __init__(self, env: Env, redis: Redis, metric: MetricManager):
         self.env = env
+        self.redis = redis
         self.metric = metric
+        self.writer = create_fs_writer(self.env, self.metric)
+        self.resolver = RecorderResolver(self.env, self.writer, self.redis, self.metric)
         self.__recorder_map: dict[str, LiveRecorder] = {}
         self.check_thread: Thread | None = None
         self.start_monitoring_states()
 
-    def ger_status(self, with_stats: bool = False, full_stats: bool = False):
+    def ger_status(self, with_stats: bool = False, full_stats: bool = False, with_threads: bool = False):
         recorders = [
             recorder.get_status(with_stats=with_stats, full_stats=full_stats)
             for recorder in self.__recorder_map.values()
         ]
-        return {
-            # "threads": [{"id": th.ident, "name": th.name} for th in threading.enumerate()],
-            "thread_cnt": len(threading.enumerate()),
+        result: dict = {
             "recorders": recorders,
         }
+        if with_threads:
+            result["thread_counts"] = len(threading.enumerate())
+        return result
 
     def get_recorder_infos(self):
         result: list[tuple[PlatformType, str]] = []
@@ -40,9 +45,7 @@ class RecordingScheduler:
         return result
 
     def record(self, state: LiveState):
-        writer = create_fs_writer(self.env, self.metric)
-        recorder = RecorderResolver(self.env, writer, self.metric).create_recorder(state)
-
+        recorder = self.resolver.create_recorder(state)
         key = parse_key(state)
         if self.__recorder_map.get(key):
             log.info("Already Recording")

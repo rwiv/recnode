@@ -4,6 +4,7 @@ import threading
 import time
 
 from pyutils import log, path_join, error_dict
+from redis.asyncio import Redis
 
 from ..schema.recording_arguments import StreamArgs, RecordingArgs
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
@@ -20,6 +21,7 @@ class LiveRecorder:
         stream_args: StreamArgs,
         recording_args: RecordingArgs,
         writer: ObjectWriter,
+        redis: Redis,
         metric: MetricManager,
     ):
         self.env = env
@@ -40,6 +42,7 @@ class LiveRecorder:
             incomplete_dir_path=self.incomplete_dir_path,
             writer=writer,
             req_conf=self.env.req_conf,
+            redis=redis,
             metric=metric,
         )
 

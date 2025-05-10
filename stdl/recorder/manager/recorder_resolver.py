@@ -1,3 +1,5 @@
+from redis.asyncio import Redis
+
 from .live_recorder import LiveRecorder
 from ..schema.recording_arguments import StreamArgs, StreamLinkSessionArgs, RecordingArgs
 from ..schema.recording_schema import StreamInfo
@@ -9,10 +11,11 @@ from ...metric import MetricManager
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, writer: ObjectWriter, metric: MetricManager):
+    def __init__(self, env: Env, writer: ObjectWriter, redis: Redis, metric: MetricManager):
         self.env = env
         self.writer = writer
         self.metric = metric
+        self.redis = redis
 
     def create_recorder(self, state: LiveState) -> LiveRecorder:
         if state.platform == PlatformType.CHZZK:
@@ -76,5 +79,6 @@ class RecorderResolver:
                 use_credentials=cookie_header is not None,
             ),
             writer=self.writer,
+            redis=self.redis,
             metric=self.metric,
         )
