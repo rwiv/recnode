@@ -5,11 +5,11 @@ class RedisQueue:
     def __init__(self, redis: Redis):
         self.__redis = redis
 
-    async def set_expire(self, key: str, ex: int) -> bool:
-        return await self.__redis.expire(key, ex)
+    async def set_pexpire(self, key: str, px_ms: int) -> bool:  # return True if set
+        return await self.__redis.pexpire(name=key, time=px_ms)
 
-    async def push(self, key: str, value: str):
-        await self.__redis.lpush(key, value)  # type: ignore
+    async def push(self, key: str, value: str) -> int:  # return size
+        return await self.__redis.lpush(key, value)  # type: ignore
 
     async def pop(self, key: str) -> str | None:
         return await self.__redis.rpop(key)  # type: ignore
@@ -24,7 +24,7 @@ class RedisQueue:
         return await self.__redis.lrange(key, 0, -1)  # type: ignore
 
     async def remove_by_value(self, key: str, value: str):
-        await self.__redis.lrem(key, 1, value)  # type: ignore
+        return await self.__redis.lrem(key, 1, value)  # type: ignore
 
     async def empty(self, key: str) -> bool:
         return await self.size(key) == 0

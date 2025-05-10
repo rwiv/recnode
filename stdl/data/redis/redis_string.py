@@ -7,21 +7,32 @@ class RedisString:
     def __init__(self, client: Redis):
         self.__redis = client
 
-    async def set_expire(self, key: str, ex: int) -> bool:
-        return await self.__redis.expire(key, ex)
+    async def set_pexpire(self, key: str, px_ms: int) -> bool:  # return True if set
+        return await self.__redis.pexpire(name=key, time=px_ms)
 
-    async def set(self, key: str, value: str, nx: bool = False, xx: bool = False, ex: int | None = None):
-        result = await self.__redis.set(name=key, value=value, nx=nx, xx=xx, ex=ex)
-        if result is None:
-            return
-        if not result:
-            raise RedisError("Failed to set value", 400)
+    async def set(
+        self,
+        key: str,
+        value: str,
+        nx: bool = False,
+        xx: bool = False,
+        ex: int | None = None,
+    ) -> bool:  # return True if set
+        ok = await self.__redis.set(name=key, value=value, nx=nx, xx=xx, ex=ex)
+        if ok is None:
+            return False
+        if not isinstance(ok, bool):
+            raise RedisError("Expected boolean data", 500)
+        return ok
 
     async def get(self, key: str) -> str | None:
         return await self.__redis.get(key)
 
-    async def delete(self, key: str):
-        await self.__redis.delete(key)
+    async def delete(self, key: str) -> bool:  # return True if deleted
+        deleted = await self.__redis.delete(key)
+        if not isinstance(deleted, int):
+            raise RedisError("Expected integer data", 500)
+        return deleted > 0
 
     async def contains(self, key: str) -> bool:
         result = await self.__redis.exists(key)

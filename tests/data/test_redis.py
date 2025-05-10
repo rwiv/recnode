@@ -32,14 +32,16 @@ async def test_redis_str():
     print()
     await test_clear()
     key = "test1"
-    print(await redis_str.set_expire(key, 10))
+    print(await redis_str.set_pexpire(key, 10_000))
     print(await redis_str.get(key))
     print(await redis_str.contains(key))
-    await redis_str.set(key, "test")
-    print(await redis_str.set_expire(key, 10))
+    print(await redis_str.set(key, "test", nx=True))
+    print(await redis_str.set(key, "test", nx=True))
+    print(await redis_str.set_pexpire(key, 10_000))
     print(await redis_str.get(key))
     print(await redis_str.contains(key))
-    await redis_str.delete(key)
+    print(await redis_str.delete(key))
+    print(await redis_str.delete(key))
 
 
 @pytest.mark.asyncio
@@ -48,8 +50,9 @@ async def test_redis_queue():
     await test_clear()
     key = "test2"
     print(await redis_queue.get(key))
-    await redis_queue.push(key, "test1")
-    await redis_queue.push(key, "test2")
+    print(await redis_queue.push(key, "test1"))
+    print(await redis_queue.push(key, "test2"))
+    print(await redis_queue.push(key, "test2"))
     print(await redis_queue.size(key))
     print(await redis_queue.get(key))
     print(await redis_queue.pop(key))
