@@ -15,7 +15,7 @@ from ..schema.recording_schema import RecordingStatus
 from ...config import RequestConfig, RedisDataConfig
 from ...data.live import LiveState, LiveStateService
 from ...data.segment import SegmentNumberSet, SegmentStateService, Segment, SegmentStateValidator
-from ...file import AsyncObjectWriter
+from ...file import ObjectWriter
 from ...metric import MetricManager
 from ...utils import AsyncHttpClient, AsyncMap, AsyncSet, AsyncCounter
 
@@ -31,7 +31,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         self,
         live: LiveState,
         args: RecordingArgs,
-        writer: AsyncObjectWriter,
+        writer: ObjectWriter,
         redis: Redis,
         redis_data_conf: RedisDataConfig,
         req_conf: RequestConfig,

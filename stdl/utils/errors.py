@@ -1,4 +1,3 @@
-import requests
 from aiohttp import ClientResponse
 
 
@@ -26,17 +25,7 @@ class HttpRequestError(HttpError):
         self.reason = reason
 
     @staticmethod
-    def from_response(message: str, res: requests.Response) -> "HttpRequestError":
-        return HttpRequestError(
-            message=message,
-            status=res.status_code,
-            url=res.url,
-            method=res.request.method,
-            reason=res.reason,
-        )
-
-    @staticmethod
-    def from_response2(message: str, res: ClientResponse) -> "HttpRequestError":
+    def from_response(message: str, res: ClientResponse) -> "HttpRequestError":
         return HttpRequestError(
             message=message,
             status=res.status,

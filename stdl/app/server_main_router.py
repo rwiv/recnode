@@ -1,4 +1,4 @@
-import requests
+import aiohttp
 from fastapi import APIRouter, HTTPException
 from prometheus_client import generate_latest
 from pydantic import BaseModel, constr
@@ -7,6 +7,7 @@ from redis.asyncio import ConnectionPool
 from ..common import PlatformType
 from ..data.live import LiveStateService
 from ..recorder import RecordingScheduler
+from ..utils import HttpRequestError
 
 
 class CancelRequest(BaseModel):
@@ -37,8 +38,12 @@ class MainController:
     def health(self):
         return {"status": "UP"}
 
-    def my_ip(self):
-        return requests.get("https://api.ipify.org").text
+    async def my_ip(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url="https://api.ipify.org") as res:
+                if res.status >= 400:
+                    raise HttpRequestError.from_response("Failed to request", res)
+                return await res.text()
 
     def metrics(self):
         return generate_latest(), {"Content-Type": "text/plain"}

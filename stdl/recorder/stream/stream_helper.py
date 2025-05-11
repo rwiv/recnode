@@ -15,7 +15,7 @@ from ..stream.streamlink_utils import get_streams
 from ...common import PlatformType
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher, LiveInfo
-from ...file import AsyncObjectWriter
+from ...file import ObjectWriter
 from ...utils import random_string, FIREFOX_USER_AGENT, stem
 
 OBJECT_TASK_NAME = "object"
@@ -28,7 +28,7 @@ class StreamHelper:
         live: LiveState,
         args: RecordingArgs,
         state: RecordingState,
-        writer: AsyncObjectWriter,
+        writer: ObjectWriter,
         fetcher: PlatformFetcher,
         incomplete_dir_path: str,
     ):

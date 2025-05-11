@@ -9,7 +9,7 @@ from .stream_recorder import StreamRecorder
 from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingStatus
 from ...data.live import LiveState
-from ...file import AsyncObjectWriter
+from ...file import ObjectWriter
 from ...metric import MetricManager
 from ...utils import AsyncHttpClient
 
@@ -19,7 +19,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         self,
         live: LiveState,
         args: RecordingArgs,
-        writer: AsyncObjectWriter,
+        writer: ObjectWriter,
         metric: MetricManager,
         incomplete_dir_path: str,
     ):

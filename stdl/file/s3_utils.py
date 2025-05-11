@@ -1,7 +1,7 @@
 from aiobotocore.session import get_session
 from types_aiobotocore_s3.client import S3Client
 
-from ..fs.fs_config import S3Config
+from .fs_config import S3Config
 
 
 def create_async_client(conf: S3Config) -> S3Client:

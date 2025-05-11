@@ -1,14 +1,15 @@
 import time
 
-import requests
+import aiohttp
 from fastapi import APIRouter, UploadFile, File
 from pyutils import log, error_dict
 
-from ..file import AsyncObjectWriter, FsType
+from ..file import ObjectWriter, FsType
+from ..utils import HttpRequestError
 
 
 class ProxyMainController:
-    def __init__(self, writer: AsyncObjectWriter):
+    def __init__(self, writer: ObjectWriter):
         self.write_retry_limit = 8
         self.write_retry_delay_sec = 0.5
 
@@ -22,8 +23,12 @@ class ProxyMainController:
     def health(self):
         return {"status": "UP"}
 
-    def my_ip(self):
-        return requests.get("https://api.ipify.org").text
+    async def my_ip(self):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url="https://api.ipify.org") as res:
+                if res.status >= 400:
+                    raise HttpRequestError.from_response("Failed to request", res)
+                return await res.text()
 
     async def upload(self, file: UploadFile = File(...)):
         data = await file.read()

@@ -7,7 +7,7 @@ from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.stream_helper import StreamHelper
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
-from ...file import AsyncObjectWriter
+from ...file import ObjectWriter
 from ...metric import MetricManager
 
 
@@ -16,7 +16,7 @@ class StreamRecorder(ABC):
         self,
         live: LiveState,
         args: RecordingArgs,
-        writer: AsyncObjectWriter,
+        writer: ObjectWriter,
         metric: MetricManager,
         incomplete_dir_path: str,
     ):

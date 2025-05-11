@@ -9,13 +9,13 @@ from pyutils import dirpath
 
 from .fs_config import S3Config
 from .fs_types import FsType
-from ..s3.s3_async_utils import create_async_client
-from ...common import LOCAL_FS_NAME
-from ...metric import MetricManager
-from ...utils import HttpRequestError
+from .s3_utils import create_async_client
+from ..common import LOCAL_FS_NAME
+from ..metric import MetricManager
+from ..utils import HttpRequestError
 
 
-class AsyncObjectWriter(ABC):
+class ObjectWriter(ABC):
     def __init__(self, fs_type: FsType, fs_name: str, metric: MetricManager):
         self.fs_type = fs_type
         self.fs_name = fs_name
@@ -31,7 +31,7 @@ class AsyncObjectWriter(ABC):
         pass
 
 
-class LocalAsyncObjectWriter(AsyncObjectWriter):
+class LocalObjectWriter(ObjectWriter):
     def __init__(self, metric: MetricManager):
         super().__init__(FsType.LOCAL, LOCAL_FS_NAME, metric)
 
@@ -42,7 +42,7 @@ class LocalAsyncObjectWriter(AsyncObjectWriter):
             await f.write(data)
 
 
-class S3AsyncObjectWriter(AsyncObjectWriter):
+class S3ObjectWriter(ObjectWriter):
     def __init__(self, fs_name: str, conf: S3Config, metric: MetricManager):
         super().__init__(FsType.S3, fs_name, metric)
         self.conf = conf
@@ -56,7 +56,7 @@ class S3AsyncObjectWriter(AsyncObjectWriter):
                 raise HttpRequestError("Failed to upload file", status=status)
 
 
-class ProxyAsyncObjectWriter(AsyncObjectWriter):
+class ProxyObjectWriter(ObjectWriter):
     def __init__(self, endpoint: str, fs_name: str, metric: MetricManager):
         super().__init__(FsType.PROXY, fs_name, metric)
         self.__endpoint = endpoint
@@ -68,4 +68,4 @@ class ProxyAsyncObjectWriter(AsyncObjectWriter):
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, data=form) as res:
                 if res.status >= 400:
-                    raise HttpRequestError.from_response2("Failed to upload file", res=res)
+                    raise HttpRequestError.from_response("Failed to upload file", res=res)
