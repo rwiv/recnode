@@ -1,6 +1,5 @@
-def stem(name: str):
-    i = name.rfind(".")
-    if 0 < i < len(name) - 1:
-        return name[:i]
-    else:
-        return name
+from pathlib import Path
+
+
+def stem(path: str):
+    return Path(path).stem

@@ -1,9 +1,10 @@
 import os
 import tarfile
 import time
-from pathlib import Path
 
 from pyutils import path_join, find_project_root
+
+from stdl.utils import stem
 
 base_dir_path = path_join(find_project_root(), "dev", "test")
 paths = [
@@ -36,7 +37,7 @@ def test_tarfile():
 
 def test_tarfile2():
     os.makedirs(path_join(base_dir_path, "src"), exist_ok=True)
-    file_names = sorted(os.listdir(path_join(base_dir_path, "src")), key=lambda x: int(Path(x).stem))
+    file_names = sorted(os.listdir(path_join(base_dir_path, "src")), key=lambda x: int(stem(x)))
     file_paths = [path_join(base_dir_path, "src", file_name) for file_name in file_names]
 
     start = time.time()

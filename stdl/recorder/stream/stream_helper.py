@@ -2,10 +2,9 @@ import asyncio
 import os
 import tarfile
 import time
-from pathlib import Path
 
 from aiofiles import os as aos
-from pyutils import log, path_join, filename, error_dict
+from pyutils import log, path_join, filename, error_dict, dirpath
 from streamlink.stream.hls.hls import HLSStream
 
 from .stream_types import RequestContext
@@ -169,7 +168,7 @@ class StreamHelper:
         # Clear tmp dir
         if len(await aos.listdir(ctx.tmp_dir_path)) == 0:
             await aos.rmdir(ctx.tmp_dir_path)
-        tmp_channel_dir_path = Path(ctx.tmp_dir_path).parent
+        tmp_channel_dir_path = dirpath(ctx.tmp_dir_path)
         if len(await aos.listdir(tmp_channel_dir_path)) == 0:
             await aos.rmdir(tmp_channel_dir_path)
 
@@ -203,7 +202,7 @@ class StreamHelper:
         tar_path = path_join(dir_path, out_filename)
         with tarfile.open(tar_path, "w") as tar:
             for target_segment in target_segments:
-                tar.add(target_segment, arcname=Path(target_segment).name)
+                tar.add(target_segment, arcname=filename(target_segment))
         for target_segment in target_segments:
             os.remove(target_segment)
         return tar_path

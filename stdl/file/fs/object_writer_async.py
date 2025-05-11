@@ -1,11 +1,9 @@
 import asyncio
-import os
-import time
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 import aiofiles
 import aiohttp
+from aiofiles import os as aos
 from aiohttp import FormData
 from pyutils import dirpath
 
@@ -38,7 +36,8 @@ class LocalAsyncObjectWriter(AsyncObjectWriter):
         super().__init__(FsType.LOCAL, LOCAL_FS_NAME, metric)
 
     async def _write(self, path: str, data: bytes) -> None:
-        await asyncio.to_thread(check_dir, path)
+        if not await aos.path.exists(dirpath(path)):
+            await aos.makedirs(dirpath(path), exist_ok=True)
         async with aiofiles.open(path, "wb") as f:
             await f.write(data)
 
@@ -70,8 +69,3 @@ class ProxyAsyncObjectWriter(AsyncObjectWriter):
             async with session.post(url=url, data=form) as res:
                 if res.status >= 400:
                     raise HttpRequestError.from_response2("Failed to upload file", res=res)
-
-
-def check_dir(path: str):
-    if not Path(dirpath(path)).exists():
-        os.makedirs(dirpath(path), exist_ok=True)
