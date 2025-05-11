@@ -7,7 +7,7 @@ from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.stream_helper import StreamHelper
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
-from ...file import ObjectWriter
+from ...file import AsyncObjectWriter
 from ...metric import MetricManager
 
 
@@ -16,7 +16,7 @@ class StreamRecorder(ABC):
         self,
         live: LiveState,
         args: RecordingArgs,
-        writer: ObjectWriter,
+        writer: AsyncObjectWriter,
         metric: MetricManager,
         incomplete_dir_path: str,
     ):
@@ -48,5 +48,5 @@ class StreamRecorder(ABC):
     def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         pass
 
-    def check_tmp_dir(self):
-        self.helper.check_tmp_dir(self.ctx)
+    async def check_tmp_dir(self):
+        await self.helper.check_tmp_dir(self.ctx)

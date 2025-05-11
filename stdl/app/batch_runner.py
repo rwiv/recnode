@@ -54,7 +54,7 @@ class BatchRunner:
         conf = read_conf(self.env.config_path)
 
         state = await self.get_state(conf)
-        await self.live_state_service.set(state, nx=False)
+        await self.live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
         recorder = self.recorder_resolver.create_recorder(state=state)
         recorder.record()
 

@@ -17,9 +17,6 @@ def run_proxy():
 
     env = get_proxy_env()
 
-    executor = ThreadPoolExecutor(max_workers=50)
-    asyncio.get_event_loop().set_default_executor(executor)
-
     metric = MetricManager()
     writer = create_proxy_fs_writer(env, metric)
     main_controller = ProxyMainController(writer)

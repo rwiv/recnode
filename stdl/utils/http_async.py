@@ -82,7 +82,7 @@ class AsyncHttpClient:
                 req_headers[key] = value
 
         for retry_cnt in range(self.retry_limit + 1):
-            start = time.time()
+            start = asyncio.get_event_loop().time()
             try:
                 return await request(
                     method=method,
@@ -97,7 +97,7 @@ class AsyncHttpClient:
                 err = error_dict(ex)
                 err["url"] = url
                 err["retry_cnt"] = retry_cnt
-                err["elapsed_time"] = round(time.time() - start, 2)
+                err["duration"] = round(asyncio.get_event_loop().time() - start, 2)
                 if isinstance(ex, HttpRequestError):
                     err["status"] = ex.status
                     err["method"] = ex.method

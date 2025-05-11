@@ -1,3 +1,4 @@
+import asyncio
 import time
 
 from .fetcher import LiveInfo
@@ -25,7 +26,7 @@ class PlatformFetcher:
 
     async def fetch_live_info(self, live_url: str) -> LiveInfo | None:
         url_info = resolve_live_url(live_url=live_url)
-        start_time = time.time()
+        start_time = asyncio.get_event_loop().time()
         if url_info.platform == PlatformType.CHZZK:
             result = await self.__chzzk.fetch_live_info(url_info.channel_id, self.headers)
         elif url_info.platform == PlatformType.SOOP:
@@ -34,5 +35,6 @@ class PlatformFetcher:
             result = await self.__twitch.metadata_channel(url_info.channel_id, self.headers)
         else:
             raise ValueError("Unsupported platform")
-        await self.__metric.set_api_request_duration(duration=time.time() - start_time, platform=url_info.platform)
+        duration = asyncio.get_event_loop().time() - start_time
+        await self.__metric.set_api_request_duration(duration=duration, platform=url_info.platform)
         return result

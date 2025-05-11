@@ -1,6 +1,8 @@
+import pytest
 from pyutils import path_join, find_project_root
 
-from stdl.file import read_fs_config_by_file, S3ObjectWriter, FsConfig
+from stdl.file import read_fs_config_by_file, FsConfig
+from stdl.file.fs.object_writer_async import S3AsyncObjectWriter
 from stdl.metric import MetricManager
 
 fs_name = "minio"
@@ -12,8 +14,9 @@ for conf in fs_configs:
         break
 
 
-def test_object_writer():
+@pytest.mark.asyncio
+async def test_object_writer():
     if fs_conf is None or fs_conf.s3 is None:
         raise ValueError("Cannot find S3 configuration")
-    writer = S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3, metric=MetricManager())
-    writer.write("test.txt", b"Hello, World!")
+    writer = S3AsyncObjectWriter(fs_name=fs_name, conf=fs_conf.s3, metric=MetricManager())
+    await writer.write("test.txt", b"Hello, World!")

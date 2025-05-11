@@ -1,6 +1,7 @@
 import asyncio
 import time
 
+from aiofiles import os as aos
 from pyutils import log, path_join
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
@@ -8,7 +9,7 @@ from .stream_recorder import StreamRecorder
 from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingStatus
 from ...data.live import LiveState
-from ...file import ObjectWriter
+from ...file import AsyncObjectWriter
 from ...metric import MetricManager
 from ...utils import AsyncHttpClient
 
@@ -18,7 +19,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         self,
         live: LiveState,
         args: RecordingArgs,
-        writer: ObjectWriter,
+        writer: AsyncObjectWriter,
         metric: MetricManager,
         incomplete_dir_path: str,
     ):
@@ -45,10 +46,11 @@ class StreamlinkStreamRecorder(StreamRecorder):
         return info.model_dump(mode="json", by_alias=True, exclude_none=True)
 
     def record(self):
-        self.recording_task = asyncio.create_task(self.__record(), name=f"recorder:{self.live.id}")
+        self.recording_task = asyncio.create_task(self.__record(), name=f"recording:{self.live.id}")
 
     async def __record(self):
         self.http.set_headers(self.ctx.headers)
+        await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
 
         # Start recording
         streams = self.helper.wait_for_live()
@@ -107,17 +109,17 @@ class StreamlinkStreamRecorder(StreamRecorder):
 
             target_segments = await self.helper.check_segments(self.ctx)
             if target_segments is not None:
-                tar_path = await asyncio.to_thread(self.helper.archive, target_segments, self.ctx.tmp_dir_path)
-                self.helper.write_segment_thread(tar_path, self.ctx)
+                tar_path = await asyncio.to_thread(self.helper.archive_files, target_segments, self.ctx.tmp_dir_path)
+                self.helper.start_write_segment_task(tar_path, self.ctx)
 
-        self.__close_recording()
+        await self.__close_recording()
         log.info("Finish Recording", self.ctx.to_dict())
         self.is_done = True
 
-    def __close_recording(self, stream: HLSStreamReader | None = None):
+    async def __close_recording(self, stream: HLSStreamReader | None = None):
         # Close stream
         if stream is not None:
             stream.close()
             stream.worker.join()
             stream.writer.join()
-        self.helper.check_tmp_dir(self.ctx)
+        await self.helper.check_tmp_dir(self.ctx)

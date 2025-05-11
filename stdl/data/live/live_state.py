@@ -4,7 +4,7 @@ from ...common import PlatformType
 
 
 class LiveState(BaseModel):
-    id: str
+    id: str  # record_id
     platform: PlatformType
     channel_id: str = Field(alias="channelId")
     channel_name: str = Field(alias="channelName")

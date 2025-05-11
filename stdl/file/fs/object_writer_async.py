@@ -24,9 +24,9 @@ class AsyncObjectWriter(ABC):
         self.metric = metric
 
     async def write(self, path: str, data: bytes) -> None:
-        start = time.time()
+        start = asyncio.get_event_loop().time()
         await self._write(path, data)
-        self.metric.set_object_write_duration(time.time() - start)
+        self.metric.set_object_write_duration(asyncio.get_event_loop().time() - start)
 
     @abstractmethod
     async def _write(self, path: str, data: bytes) -> None:

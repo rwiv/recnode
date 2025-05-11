@@ -38,7 +38,7 @@ class RequestContext(BaseModel):
                 result[key] = value
         return result
 
-    def get_thread_path(self):
+    def task_path(self):
         return f"{self.live.platform.value}:{self.live.channel_id}:{self.video_name}"
 
     def to_status(self, fs_name: str, num: int, status: RecordingStatus) -> RecorderStatusInfo:

@@ -1,27 +1,25 @@
+import asyncio
 import os
 import tarfile
-import threading
 import time
 from pathlib import Path
 
-from aiofiles import os as aioos
+from aiofiles import os as aos
 from pyutils import log, path_join, filename, error_dict
 from streamlink.stream.hls.hls import HLSStream
 
 from .stream_types import RequestContext
 from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
-from ..schema.recording_schema import RecordingState, RecordingStatus
+from ..schema.recording_schema import RecordingState
 from ..stream.streamlink_utils import get_streams
 from ...common import PlatformType
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher, LiveInfo
-from ...file import ObjectWriter
-from ...utils import random_string, FIREFOX_USER_AGENT
+from ...file import AsyncObjectWriter
+from ...utils import random_string, FIREFOX_USER_AGENT, stem
 
-WRITE_SEGMENT_THREAD_NAME = "Thread-WriteSegment"
-
-
+OBJECT_TASK_NAME = "object"
 FILE_WAIT_SEC = 2
 
 
@@ -31,7 +29,7 @@ class StreamHelper:
         live: LiveState,
         args: RecordingArgs,
         state: RecordingState,
-        writer: ObjectWriter,
+        writer: AsyncObjectWriter,
         fetcher: PlatformFetcher,
         incomplete_dir_path: str,
     ):
@@ -73,7 +71,6 @@ class StreamHelper:
 
         tmp_dir_path = path_join(self.tmp_base_path, live.platform.value, live.channel_id, state.video_name)
         out_dir_path = path_join(self.incomplete_dir_path, live.platform.value, live.channel_id, state.video_name)
-        os.makedirs(tmp_dir_path, exist_ok=True)
 
         stream_base_url = None
         if live.platform != PlatformType.TWITCH:
@@ -122,73 +119,72 @@ class StreamHelper:
 
             if retry_cnt == 0:
                 log.info("Wait For Live", info)
-            self.status = RecordingStatus.WAIT
             time.sleep(self.wait_delay_sec)
             retry_cnt += 1
 
     async def check_segments(self, ctx: RequestContext):
         segment_names = [
-            file_name for file_name in await aioos.listdir(ctx.tmp_dir_path) if not file_name.endswith(".tar")
+            file_name for file_name in await aos.listdir(ctx.tmp_dir_path) if not file_name.endswith(".tar")
         ]
         segment_paths = [
-            path_join(ctx.tmp_dir_path, seg_name) for seg_name in sorted(segment_names, key=lambda x: int(Path(x).stem))
+            path_join(ctx.tmp_dir_path, seg_name) for seg_name in sorted(segment_names, key=lambda x: int(stem(x)))
         ]
 
-        current_time = time.time()
+        current_time = time.time()  # do not use asyncio.get_event_loop().time() here
         result = []
         size_sum = 0
         for seg_path in segment_paths:
-            if current_time - os.stat(seg_path).st_mtime <= self.threshold_sec:
+            stat = await aos.stat(seg_path)
+            if current_time - stat.st_mtime <= self.threshold_sec:
                 continue
-            size_sum += Path(seg_path).stat().st_size
+            size_sum += stat.st_size
             result.append(seg_path)
             if size_sum >= self.seg_size:
                 return result
         return None
 
-    def check_tmp_dir(self, ctx: RequestContext):
+    async def check_tmp_dir(self, ctx: RequestContext):
         # Wait for existing threads to finish
-        pending_write_threads = [
-            th
-            for th in threading.enumerate()
-            if th.name.startswith(f"{WRITE_SEGMENT_THREAD_NAME}:{ctx.get_thread_path()}")
-        ]
-        for th in pending_write_threads:
-            log.debug("Wait For Thread", {"thread_name": th.name})
-            th.join()
+        current_task = asyncio.current_task()
+        tg_tasks = []
+        for task in asyncio.all_tasks():
+            if task == current_task:
+                continue
+            task_name = task.get_name()
+            if task_name.startswith(f"{OBJECT_TASK_NAME}:{ctx.task_path()}"):
+                log.debug("Wait for object write task", {"task_name": task_name})
+                tg_tasks.append(task)
+        await asyncio.gather(*tg_tasks)
 
         # Write remaining segments
-        target_segments = [path_join(ctx.tmp_dir_path, file_name) for file_name in os.listdir(ctx.tmp_dir_path)]
-        time.sleep(FILE_WAIT_SEC)
+        target_segments = [path_join(ctx.tmp_dir_path, file_name) for file_name in await aos.listdir(ctx.tmp_dir_path)]
+        await asyncio.sleep(FILE_WAIT_SEC)
         if len(target_segments) > 0:
-            tar_path = self.archive(target_segments, ctx.tmp_dir_path)
+            tar_path = await asyncio.to_thread(self.archive_files, target_segments, ctx.tmp_dir_path)
             ctx_info = ctx.to_dict()
             ctx_info["file_name"] = tar_path
             log.debug("Detect And Write Segment", ctx_info)
-            self.write_segment(tar_path, ctx)
+            await self.write_segment(tar_path, ctx)
 
         # Clear tmp dir
-        if len(os.listdir(ctx.tmp_dir_path)) == 0:
-            os.rmdir(ctx.tmp_dir_path)
+        if len(await aos.listdir(ctx.tmp_dir_path)) == 0:
+            await aos.rmdir(ctx.tmp_dir_path)
         tmp_channel_dir_path = Path(ctx.tmp_dir_path).parent
-        if len(os.listdir(tmp_channel_dir_path)) == 0:
-            os.rmdir(tmp_channel_dir_path)
+        if len(await aos.listdir(tmp_channel_dir_path)) == 0:
+            await aos.rmdir(tmp_channel_dir_path)
 
-    # Coroutines require 'await', so using threads instead of asyncio
-    def write_segment_thread(self, file_path: str, ctx: RequestContext) -> threading.Thread:
-        thread = threading.Thread(target=self.write_segment, args=(file_path, ctx))
-        thread.name = f"{WRITE_SEGMENT_THREAD_NAME}:{ctx.get_thread_path()}:{Path(file_path).stem}"
-        thread.start()
-        return thread
+    def start_write_segment_task(self, file_path: str, ctx: RequestContext):
+        task_name = f"{OBJECT_TASK_NAME}:{ctx.task_path()}:{stem(file_path)}"
+        _ = asyncio.create_task(self.write_segment(file_path, ctx), name=task_name)
 
-    def write_segment(self, tmp_file_path: str, ctx: RequestContext):
-        if not Path(tmp_file_path).exists():
+    async def write_segment(self, tmp_file_path: str, ctx: RequestContext):
+        if not await aos.path.exists(tmp_file_path):
             return
 
         for retry_cnt in range(self.write_retry_limit + 1):
             try:
                 with open(tmp_file_path, "rb") as f:
-                    self.writer.write(path_join(ctx.out_dir_path, filename(tmp_file_path)), f.read())
+                    await self.writer.write(path_join(ctx.out_dir_path, filename(tmp_file_path)), f.read())
                 break
             except Exception as e:
                 err = ctx.to_err(e, with_stream_url=False)
@@ -196,13 +192,14 @@ class StreamHelper:
                     log.error("Retry Limit Exceeded: Failed to write segment", err)
                     break
                 log.debug(f"retry write segment: cnt={retry_cnt}", err)
-                time.sleep(self.write_retry_delay_sec * (2**retry_cnt))
+                await asyncio.sleep(self.write_retry_delay_sec * (2**retry_cnt))
 
-        if Path(tmp_file_path).exists():
-            os.remove(tmp_file_path)
+        # Remove tmp file
+        if await aos.path.exists(tmp_file_path):
+            await aos.remove(tmp_file_path)
 
-    def archive(self, target_segments: list[str], dir_path: str):
-        out_filename = f"{Path(target_segments[0]).stem}_{Path(target_segments[-1]).stem}_{random_string(5)}.tar"
+    def archive_files(self, target_segments: list[str], dir_path: str):
+        out_filename = f"{stem(target_segments[0])}_{stem(target_segments[-1])}_{random_string(5)}.tar"
         tar_path = path_join(dir_path, out_filename)
         with tarfile.open(tar_path, "w") as tar:
             for target_segment in target_segments:

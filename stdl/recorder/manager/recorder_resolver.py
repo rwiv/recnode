@@ -7,12 +7,12 @@ from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common import PlatformType
 from ...config import Env
 from ...data.live import LiveState
-from ...file import ObjectWriter
+from ...file import AsyncObjectWriter
 from ...metric import MetricManager
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, writer: ObjectWriter, redis: Redis, metric: MetricManager):
+    def __init__(self, env: Env, writer: AsyncObjectWriter, redis: Redis, metric: MetricManager):
         self.env = env
         self.writer = writer
         self.metric = metric

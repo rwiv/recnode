@@ -6,6 +6,7 @@ from .http import FIREFOX_USER_AGENT
 from .http_async import AsyncHttpClient, AsyncHttpClientMock
 from .string import random_string
 from .errors import HttpError, HttpRequestError
+from .path import *
 
 targets = [
     "async_types",

@@ -1,9 +1,9 @@
 import asyncio
 import json
 import random
-import time
 
 import aiofiles
+from aiofiles import os as aos
 from pyutils import log, path_join, error_dict
 from redis.asyncio import Redis
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
@@ -15,7 +15,7 @@ from ..schema.recording_schema import RecordingStatus
 from ...config import RequestConfig, RedisDataConfig
 from ...data.live import LiveState, LiveStateService
 from ...data.segment import SegmentNumberSet, SegmentStateService, Segment, SegmentStateValidator
-from ...file import ObjectWriter
+from ...file import AsyncObjectWriter
 from ...metric import MetricManager
 from ...utils import AsyncHttpClient, AsyncMap, AsyncSet, AsyncCounter
 
@@ -23,6 +23,7 @@ TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
 
 MAP_NUM = -1
+SEG_TASK_PREFIX = "seg"
 
 
 class SegmentedStreamRecorder(StreamRecorder):
@@ -30,7 +31,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         self,
         live: LiveState,
         args: RecordingArgs,
-        writer: ObjectWriter,
+        writer: AsyncObjectWriter,
         redis: Redis,
         redis_data_conf: RedisDataConfig,
         req_conf: RequestConfig,
@@ -137,7 +138,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         return result
 
     def record(self):
-        self.recording_task = asyncio.create_task(self.__record(), name=f"recorder:{self.live.id}")
+        self.recording_task = asyncio.create_task(self.__record(), name=f"recording:{self.live.id}")
 
     async def __record(self):
         self.m3u8_http.set_headers(self.ctx.headers)
@@ -177,9 +178,12 @@ class SegmentedStreamRecorder(StreamRecorder):
         if TEST_FLAG:
             print(json.dumps(self.__get_stats(), indent=4))
 
+        await self.success_nums_redis.renew()
+        await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
+
         # Fetch m3u8
         try:
-            start_time = time.time()
+            start_time = asyncio.get_event_loop().time()
             m3u8_text = await self.m3u8_http.get_text(
                 url=self.ctx.stream_url,
                 headers=self.ctx.headers,
@@ -188,7 +192,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             )
             await self.m3u8_retry_counter.reset()
             await self.metric.set_m3u8_request_duration(
-                duration=time.time() - start_time,
+                duration=asyncio.get_event_loop().time() - start_time,
                 platform=self.ctx.live.platform,
                 extra=self.m3u8_duration_hist,
             )
@@ -245,18 +249,18 @@ class SegmentedStreamRecorder(StreamRecorder):
         for seg in segments:
             if self.__is_done_seg(seg.num) or self.processing_nums.contains(seg.num):
                 continue
-            _ = asyncio.create_task(self.__process_segment(seg), name=f"{self.live.id}:req:{seg.num}")
+            _ = asyncio.create_task(self.__process_segment(seg), name=self.seg_tname("req", seg.num))
 
         for _, failed in self.retrying_segments.items():
             if self.__is_done_seg(failed.num):
                 continue
-            _ = asyncio.create_task(self.__process_segment(failed), name=f"{self.live.id}:retry:{failed.num}")
+            _ = asyncio.create_task(self.__process_segment(failed), name=self.seg_tname("retry", failed.num))
 
         # Upload segments tar
         target_segments = await self.helper.check_segments(self.ctx)
         if target_segments is not None and len(target_segments) > 0:
-            tar_path = await asyncio.to_thread(self.helper.archive, target_segments, self.ctx.tmp_dir_path)
-            self.helper.write_segment_thread(tar_path, self.ctx)
+            tar_path = await asyncio.to_thread(self.helper.archive_files, target_segments, self.ctx.tmp_dir_path)
+            self.helper.start_write_segment_task(tar_path, self.ctx)
 
         self.idx = raw_segments[-1].num
 
@@ -296,7 +300,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             # if this log is not printed for a long time, this code will be removed.
             log.debug("Preloading Segment", self.ctx.to_dict())
 
-        req_start = time.time()
+        req_start = asyncio.get_event_loop().time()
         try:
             await self.seg_request_counter.increment()
             if seg.is_failed:
@@ -304,7 +308,7 @@ class SegmentedStreamRecorder(StreamRecorder):
 
             b = await self.seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
             await self.metric.set_segment_request_duration(
-                duration=time.time() - req_start,
+                duration=asyncio.get_event_loop().time() - req_start,
                 platform=self.ctx.live.platform,
                 extra=self.seg_duration_hist,
             )
@@ -337,7 +341,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             )
         except Exception as ex:
             await self.metric.set_segment_request_duration(
-                duration=time.time() - req_start,
+                duration=asyncio.get_event_loop().time() - req_start,
                 platform=self.ctx.live.platform,
                 extra=self.seg_duration_hist,
             )
@@ -364,13 +368,13 @@ class SegmentedStreamRecorder(StreamRecorder):
                 await seg.release()
 
     async def __close_recording(self):
-        self.helper.check_tmp_dir(self.ctx)
+        await self.helper.check_tmp_dir(self.ctx)
         current_task = asyncio.current_task()
         tg_tasks = []
         for task in asyncio.all_tasks():
             if task == current_task:
                 continue
-            if task.get_name().startswith(self.live.id):
+            if task.get_name().startswith(f"seg:{self.live.id}"):
                 tg_tasks.append(task)
         await asyncio.gather(*tg_tasks)
 
@@ -391,3 +395,6 @@ class SegmentedStreamRecorder(StreamRecorder):
             lock_expire_ms=self.redis_data_conf.lock_expire_ms,
             lock_wait_timeout_sec=self.redis_data_conf.lock_wait_sec,
         )
+
+    def seg_tname(self, sub_name: str, num: int) -> str:
+        return f"{SEG_TASK_PREFIX}:{self.live.id}:{sub_name}:{num}"
