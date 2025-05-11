@@ -5,6 +5,7 @@ from .fs.fs_config import FsConfig
 from .fs.object_writer import ObjectWriter, S3ObjectWriter, LocalObjectWriter
 from .fs.object_writer_utils import read_fs_config_by_file, create_fs_writer, create_proxy_fs_writer
 from .fs.fs_types import FsType
+from .s3.s3_async_utils import create_async_client
 
 targets = ["fs", "s3"]
 if os.getenv("PY_ENV") != "prod":

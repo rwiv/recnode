@@ -1,7 +1,9 @@
+from pyutils import path_join
 from redis.asyncio import Redis
 
-from .live_recorder import LiveRecorder
 from ..schema.recording_arguments import RecordingArgs, StreamLinkSessionArgs
+from ..stream.stream_recorder import StreamRecorder
+from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common import PlatformType
 from ...config import Env
 from ...data.live import LiveState
@@ -16,7 +18,7 @@ class RecorderResolver:
         self.metric = metric
         self.redis = redis
 
-    def create_recorder(self, state: LiveState) -> LiveRecorder:
+    def create_recorder(self, state: LiveState) -> StreamRecorder:
         if state.platform == PlatformType.CHZZK:
             return self.__create_chzzk_recorder(state)
         elif state.platform == PlatformType.SOOP:
@@ -56,9 +58,9 @@ class RecorderResolver:
             cookie_header=cookie_header,
         )
 
-    def __create_recorder(self, state: LiveState, url: str, cookie_header: str | None) -> LiveRecorder:
-        return LiveRecorder(
-            env=self.env,
+    def __create_recorder(self, state: LiveState, url: str, cookie_header: str | None) -> StreamRecorder:
+        return SegmentedStreamRecorder(
+            live=state,
             args=RecordingArgs(
                 live_url=url,
                 session_args=StreamLinkSessionArgs(
@@ -68,8 +70,10 @@ class RecorderResolver:
                 tmp_dir_path=self.env.tmp_dir_path,
                 seg_size_mb=self.env.stream.seg_size_mb,
             ),
-            live_state=state,
+            incomplete_dir_path=path_join(self.env.out_dir_path, "incomplete"),
             writer=self.writer,
             redis=self.redis,
+            redis_data_conf=self.env.redis_data,
+            req_conf=self.env.req_conf,
             metric=self.metric,
         )

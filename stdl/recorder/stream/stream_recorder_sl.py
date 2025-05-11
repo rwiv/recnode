@@ -1,28 +1,28 @@
+import asyncio
 import time
 
 from pyutils import log, path_join
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
-from .stream_helper import StreamHelper
-from .stream_types import RequestContext
+from .stream_recorder import StreamRecorder
 from ..schema.recording_arguments import RecordingArgs
-from ..schema.recording_schema import RecordingState, RecordingStatus, RecorderStatusInfo
+from ..schema.recording_schema import RecordingStatus
 from ...data.live import LiveState
-from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...metric import MetricManager
 from ...utils import AsyncHttpClient
 
 
-class StreamlinkStreamRecorder:
+class StreamlinkStreamRecorder(StreamRecorder):
     def __init__(
         self,
         live: LiveState,
         args: RecordingArgs,
-        incomplete_dir_path: str,
         writer: ObjectWriter,
         metric: MetricManager,
+        incomplete_dir_path: str,
     ):
+        super().__init__(live, args, writer, metric, incomplete_dir_path)
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
         self.read_buf_size = 4 * 1024 * 1024
@@ -30,39 +30,24 @@ class StreamlinkStreamRecorder:
         self.max_delay_sec = 1.2
 
         self.idx = 0
-        self.done_flag = False
-        self.state = RecordingState()
-        self.status: RecordingStatus = RecordingStatus.WAIT
-        self.processed_nums: set[int] = set()  # TODO: change using redis
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
-        self.fetcher = PlatformFetcher(metric)
-        self.writer = writer
-        self.helper = StreamHelper(
-            live=live,
-            args=args,
-            state=self.state,
-            writer=writer,
-            fetcher=self.fetcher,
-            incomplete_dir_path=incomplete_dir_path,
-        )
-        self.ctx: RequestContext = self.helper.get_ctx(live)
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         return self.helper.wait_for_live()
 
-    def check_tmp_dir(self):
-        self.helper.check_tmp_dir(self.ctx)
-
-    def get_status(self) -> RecorderStatusInfo:
-        return self.ctx.to_status(
+    def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
+        info = self.ctx.to_status(
             fs_name=self.writer.fs_name,
             num=self.idx,
             status=self.status,
         )
+        return info.model_dump(mode="json", by_alias=True, exclude_none=True)
 
-    async def record(self, state: LiveState):
-        self.ctx = self.helper.get_ctx(state)
+    def record(self):
+        self.recording_task = asyncio.create_task(self.__record(), name=f"recorder:{self.live.id}")
+
+    async def __record(self):
         self.http.set_headers(self.ctx.headers)
 
         # Start recording
@@ -122,13 +107,12 @@ class StreamlinkStreamRecorder:
 
             target_segments = await self.helper.check_segments(self.ctx)
             if target_segments is not None:
-                tar_path = self.helper.archive(target_segments, self.ctx.tmp_dir_path)
-                # Coroutines require 'await', so using threads instead of asyncio
+                tar_path = await asyncio.to_thread(self.helper.archive, target_segments, self.ctx.tmp_dir_path)
                 self.helper.write_segment_thread(tar_path, self.ctx)
 
         self.__close_recording()
         log.info("Finish Recording", self.ctx.to_dict())
-        return self.ctx.live
+        self.is_done = True
 
     def __close_recording(self, stream: HLSStreamReader | None = None):
         # Close stream
@@ -136,5 +120,4 @@ class StreamlinkStreamRecorder:
             stream.close()
             stream.worker.join()
             stream.writer.join()
-
         self.helper.check_tmp_dir(self.ctx)

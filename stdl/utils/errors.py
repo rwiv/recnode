@@ -1,4 +1,5 @@
 import requests
+from aiohttp import ClientResponse
 
 
 class HttpError(Exception):
@@ -9,7 +10,14 @@ class HttpError(Exception):
 
 
 class HttpRequestError(HttpError):
-    def __init__(self, message: str, status: int, url: str, method: str | None, reason: str | None = None):
+    def __init__(
+        self,
+        message: str,
+        status: int,
+        url: str | None = None,
+        method: str | None = None,
+        reason: str | None = None,
+    ):
         super().__init__(status, message)
         self.message = message
         self.status = status
@@ -24,5 +32,15 @@ class HttpRequestError(HttpError):
             status=res.status_code,
             url=res.url,
             method=res.request.method,
+            reason=res.reason,
+        )
+
+    @staticmethod
+    def from_response2(message: str, res: ClientResponse) -> "HttpRequestError":
+        return HttpRequestError(
+            message=message,
+            status=res.status,
+            url=str(res.url),
+            method=res.method,
             reason=res.reason,
         )

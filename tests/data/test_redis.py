@@ -55,6 +55,7 @@ async def test_redis_queue():
 async def test_redis_sroted_set():
     key = "test3"
     await test_clear()
+    assert await redis_sorted_set.get_highest(key) is None
     assert await redis_sorted_set.set_batch(key, mapping={"a": 3, "b": 5}) == 2
     assert await redis_sorted_set.set(key, "c", 6) == 1
     assert await redis_sorted_set.list(key) == ["a", "b", "c"]

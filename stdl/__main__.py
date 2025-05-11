@@ -1,3 +1,4 @@
+import asyncio
 import sys
 
 
@@ -11,7 +12,7 @@ if __name__ == "__main__":
     if mode == "batch":
         from .app import BatchRunner
 
-        BatchRunner().run()
+        asyncio.run(BatchRunner().run())
     elif mode == "server":
         from .app import run_server
 

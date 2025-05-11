@@ -44,6 +44,10 @@ class SegmentStateValidator:
             log.error("segments is empty", self.__attr)
             return False
 
+        latest_num = await success_nums.get_highest()
+        if latest_num is None:
+            return True  # init recording
+
         sorted_req_segments = sorted(req_segments, key=lambda x: x.num)
         matched_nums = await success_nums.range(sorted_req_segments[0].num, sorted_req_segments[-1].num)
         if len(matched_nums) == 0:

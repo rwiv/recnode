@@ -10,7 +10,7 @@ from redis.asyncio import Redis
 from streamlink.stream.hls.hls import HLSStream
 
 from ..config import get_env
-from ..data.live import LiveState
+from ..data.live import LiveState, LiveStateService
 from ..data.redis import create_redis_pool
 from ..fetcher import PlatformFetcher
 from ..file import create_fs_writer
@@ -29,6 +29,11 @@ def read_conf(config_path: str) -> BatchConfig:
     return BatchConfig(**yaml.load(text, Loader=yaml.FullLoader))
 
 
+async def async_input(prompt: str) -> str:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, input, prompt)
+
+
 class BatchRunner:
     def __init__(self):
         self.env = get_env()
@@ -38,8 +43,9 @@ class BatchRunner:
         self.redis_pool = create_redis_pool(self.env.redis)
         self.redis_client = Redis(connection_pool=self.redis_pool)
         self.recorder_resolver = RecorderResolver(self.env, self.writer, self.redis_client, self.metric)
+        self.live_state_service = LiveStateService(self.redis_client)
 
-    def run(self):
+    async def run(self):
         log.set_level(logging.DEBUG)
         disable_streamlink_log()
 
@@ -47,11 +53,18 @@ class BatchRunner:
             raise ValueError("Config path not set")
         conf = read_conf(self.env.config_path)
 
-        state = self.get_state(conf)
+        state = await self.get_state(conf)
+        await self.live_state_service.set(state, nx=False)
         recorder = self.recorder_resolver.create_recorder(state=state)
-        recorder.record(block=True)
+        recorder.record()
 
-    def get_state(self, conf: BatchConfig):
+        if self.env.env == "dev":
+            await async_input("Press any key to exit")
+            recorder.state.cancel()
+            if recorder.recording_task is not None:
+                await recorder.recording_task
+
+    async def get_state(self, conf: BatchConfig):
         streams = get_streams(url=conf.url, args=StreamLinkSessionArgs(cookie_header=conf.cookie))
         if streams is None:
             log.error("Failed to get live streams")
@@ -72,7 +85,7 @@ class BatchRunner:
         if len(self.fetcher.headers) == 0:
             self.fetcher.set_headers(headers)
 
-        live = asyncio.run(self.fetcher.fetch_live_info(conf.url))
+        live = await self.fetcher.fetch_live_info(conf.url)
         if live is None:
             raise ValueError("Channel not live")
 
