@@ -13,3 +13,4 @@ class LiveState(BaseModel):
     stream_url: str = Field(alias="streamUrl")
     headers: dict[str, str] | None = None
     video_name: str = Field(alias="videoName")
+    is_invalid: bool | None = Field(alias="isInvalid", default=None)

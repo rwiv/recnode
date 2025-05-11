@@ -14,8 +14,8 @@ from .stream_types import RequestContext
 from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ...config import RequestConfig, RedisDataConfig
-from ...data.live import LiveState
-from ...data.segment import SegmentNumberSet, SegmentStateService, Segment
+from ...data.live import LiveState, LiveStateService
+from ...data.segment import SegmentNumberSet, SegmentStateService, Segment, SegmentStateValidator
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
 from ...metric import MetricManager
@@ -59,6 +59,15 @@ class SegmentedStreamRecorder:
         self.success_nums: AsyncSet[int] = AsyncSet()
         self.failed_segments: AsyncMap[int, Segment] = AsyncMap()
 
+        self.metric = metric
+        self.m3u8_duration_hist = metric.create_m3u8_request_duration_histogram()
+        self.seg_duration_hist = metric.create_segment_request_duration_histogram()
+        self.seg_retry_hist = metric.create_segment_request_retry_histogram()
+        self.seg_request_counter = AsyncCounter()
+        self.seg_success_counter = AsyncCounter()
+        self.seg_failure_counter = AsyncCounter()
+        self.m3u8_retry_counter = AsyncCounter()
+
         self.m3u8_http = AsyncHttpClient(
             timeout_sec=req_conf.m3u8_timeout_sec,
             retry_limit=0,
@@ -71,26 +80,6 @@ class SegmentedStreamRecorder:
             retry_delay_sec=0,
             print_error=False,
         )
-
-        self.success_nums_redis = self.__create_num_seg("success")
-        self.seg_state_service = SegmentStateService(
-            client=redis,
-            live_record_id=live.id,
-            expire_ms=redis_data_conf.seg_expire_sec * 1000,
-            lock_expire_ms=redis_data_conf.lock_expire_ms,
-            lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
-            seg_http=self.seg_http,
-        )
-
-        self.metric = metric
-        self.m3u8_duration_hist = metric.create_m3u8_request_duration_histogram()
-        self.seg_duration_hist = metric.create_segment_request_duration_histogram()
-        self.seg_retry_hist = metric.create_segment_request_retry_histogram()
-        self.seg_request_counter = AsyncCounter()
-        self.seg_success_counter = AsyncCounter()
-        self.seg_failure_counter = AsyncCounter()
-        self.m3u8_retry_counter = AsyncCounter()
-
         self.fetcher = PlatformFetcher(self.metric)
         self.writer = writer
         self.helper = StreamHelper(
@@ -102,6 +91,23 @@ class SegmentedStreamRecorder:
             incomplete_dir_path=incomplete_dir_path,
         )
         self.ctx: RequestContext = self.helper.get_ctx(live)
+
+        self.success_nums_redis = self.__create_num_seg("success")
+        self.seg_state_service = SegmentStateService(
+            client=redis,
+            live_record_id=live.id,
+            expire_ms=redis_data_conf.seg_expire_sec * 1000,
+            lock_expire_ms=redis_data_conf.lock_expire_ms,
+            lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
+            attr=self.ctx.to_dict(),
+        )
+        self.live_state_service = LiveStateService(client=redis)
+        self.seg_state_validator = SegmentStateValidator(
+            live_state_service=self.live_state_service,
+            seg_state_service=self.seg_state_service,
+            seg_http=self.seg_http,
+            attr=self.ctx.to_dict(),
+        )
 
     def check_tmp_dir(self):
         self.helper.check_tmp_dir(self.ctx)
@@ -224,9 +230,6 @@ class SegmentedStreamRecorder:
         if len(raw_segments) == 0:
             raise ValueError("No segments found in the playlist")
 
-        if self.status != RecordingStatus.RECORDING:
-            self.status = RecordingStatus.RECORDING
-
         # If the first segment has a map, download it
         map_seg = raw_segments[0].map
         if is_init and map_seg is not None:
@@ -244,6 +247,15 @@ class SegmentedStreamRecorder:
                 url = "/".join([self.ctx.stream_base_url, raw_seg.uri])
             seg = Segment(num=raw_seg.num, url=url, duration=raw_seg.duration, limit=self.seg_parallel_retry_limit)
             segments.append(seg)
+
+        ok = await self.seg_state_validator.validate_segments(segments, self.success_nums_redis)
+        if not ok:
+            log.error("Invalid m3u8", self.ctx.to_dict())
+            self.done_flag = True
+            return
+
+        if self.status != RecordingStatus.RECORDING:
+            self.status = RecordingStatus.RECORDING
 
         # Process segments
         for seg in segments:
@@ -287,11 +299,11 @@ class SegmentedStreamRecorder:
                 # log.debug("Failed to acquire segment")
                 return
 
-        ok, critical = await self.seg_state_service.validate_segment(seg.num, self.success_nums_redis)
-        if not ok:
-            log.warn("Detect duplicated segment", self.ctx.to_dict({"num": seg.num}))
-            if critical:
-                log.error("Detect invalid segment", self.ctx.to_dict({"num": seg.num}))
+        inspected = await self.seg_state_validator.validate_segment(seg.num, self.success_nums_redis)
+        if not inspected.ok:
+            log.warn("Detect duplicated segment", inspected.attr)
+            if inspected.critical:
+                log.error("Detect invalid segment", inspected.attr)
                 self.done_flag = True
             return
 
