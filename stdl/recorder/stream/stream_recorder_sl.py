@@ -45,10 +45,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         )
         return info.model_dump(mode="json", by_alias=True, exclude_none=True)
 
-    def record(self):
-        self.recording_task = asyncio.create_task(self.__record(), name=f"recording:{self.live.id}")
-
-    async def __record(self):
+    async def _record(self):
         self.http.set_headers(self.ctx.headers)
         await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
 

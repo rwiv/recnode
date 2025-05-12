@@ -37,13 +37,10 @@ async def async_input(prompt: str) -> str:
 class BatchRunner:
     def __init__(self):
         self.env = get_env()
-        self.metric = MetricManager()
-        self.writer = create_fs_writer(self.env, self.metric)
-        self.fetcher = PlatformFetcher(self.metric)
-        self.redis_pool = create_redis_pool(self.env.redis)
-        self.redis_client = Redis(connection_pool=self.redis_pool)
-        self.recorder_resolver = RecorderResolver(self.env, self.writer, self.redis_client, self.metric)
-        self.live_state_service = LiveStateService(self.redis_client)
+        metric = MetricManager()
+        writer = create_fs_writer(self.env, metric)
+        self.fetcher = PlatformFetcher(metric)
+        self.recorder_resolver = RecorderResolver(self.env, writer, metric)
 
     async def run(self):
         log.set_level(logging.DEBUG)
@@ -53,16 +50,18 @@ class BatchRunner:
             raise ValueError("Config path not set")
         conf = read_conf(self.env.config_path)
 
+        live_state_service = LiveStateService(Redis(connection_pool=create_redis_pool(self.env.redis)))
+
         state = await self.get_state(conf)
-        await self.live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
+        await live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
         recorder = self.recorder_resolver.create_recorder(state=state)
         recorder.record()
 
         if self.env.env == "dev":
             await async_input("Press any key to exit")
             recorder.state.cancel()
-            if recorder.recording_task is not None:
-                await recorder.recording_task
+            if recorder.recording_thread is not None:
+                recorder.recording_thread.join()
 
     async def get_state(self, conf: BatchConfig):
         streams = get_streams(url=conf.url, args=StreamLinkSessionArgs(cookie_header=conf.cookie))

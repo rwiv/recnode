@@ -1,4 +1,5 @@
 import asyncio
+import threading
 from abc import ABC, abstractmethod
 
 from .stream_types import RequestContext
@@ -38,10 +39,18 @@ class StreamRecorder(ABC):
         self.ctx: RequestContext = self.helper.get_ctx(live)
 
         self.is_done = False
-        self.recording_task: asyncio.Task | None = None
+        self.recording_thread: threading.Thread | None = None
+
+    def record(self):
+        self.recording_thread = threading.Thread(target=self.__record_with_thread)
+        self.recording_thread.name = f"recording:{self.live.id}"
+        self.recording_thread.start()
+
+    def __record_with_thread(self):
+        asyncio.run(self._record())
 
     @abstractmethod
-    def record(self):
+    async def _record(self):
         pass
 
     @abstractmethod

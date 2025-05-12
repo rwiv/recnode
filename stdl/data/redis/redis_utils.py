@@ -12,7 +12,7 @@ def create_redis_pool(conf: RedisConfig) -> ConnectionPool:
         decode_responses=True,
         connection_class=SSLConnection,
         ssl_ca_certs=conf.ca_path,
-        max_connections=conf.pool_size,
+        max_connections=conf.pool_size_limit,
     )
 
 

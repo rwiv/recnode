@@ -7,16 +7,16 @@ from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common import PlatformType
 from ...config import Env
 from ...data.live import LiveState
+from ...data.redis import create_redis_pool
 from ...file import ObjectWriter
 from ...metric import MetricManager
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, writer: ObjectWriter, redis: Redis, metric: MetricManager):
+    def __init__(self, env: Env, writer: ObjectWriter, metric: MetricManager):
         self.env = env
         self.writer = writer
         self.metric = metric
-        self.redis = redis
 
     def create_recorder(self, state: LiveState) -> StreamRecorder:
         if state.platform == PlatformType.CHZZK:
@@ -72,7 +72,7 @@ class RecorderResolver:
             ),
             incomplete_dir_path=path_join(self.env.out_dir_path, "incomplete"),
             writer=self.writer,
-            redis=self.redis,
+            redis=Redis(connection_pool=create_redis_pool(self.env.redis)),
             redis_data_conf=self.env.redis_data,
             req_conf=self.env.req_conf,
             metric=self.metric,

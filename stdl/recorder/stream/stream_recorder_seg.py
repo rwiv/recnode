@@ -106,13 +106,13 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         if with_stats:
             if full_stats:
-                dct["stats"] = self.__get_stats(with_nums=True)
+                dct["stats"] = self.__get_stats(full=True)
             else:
                 dct["stats"] = self.__get_stats()
 
         return dct
 
-    def __get_stats(self, with_nums: bool = False) -> dict:
+    def __get_stats(self, full: bool = False) -> dict:
         processing_nums = self.processing_nums.list()
         retrying_nums = self.retrying_segments.keys()
 
@@ -130,22 +130,29 @@ class SegmentedStreamRecorder(StreamRecorder):
             "segment_request_duration_avg": round(self.seg_duration_hist.avg(), 3),
             "m3u8_request_duration_avg": round(self.m3u8_duration_hist.avg(), 3),
         }
-        if with_nums:
+        if full:
+            result["redis_using_connection_count"] = len(self.redis.connection_pool._in_use_connections)
+            result["redis_available_connection_count"] = len(self.redis.connection_pool._available_connections)
             result["processing_nums"] = processing_nums
             result["retrying_nums"] = retrying_nums
             result["failed_nums"] = self.failed_segments.keys()
             result["success_nums"] = self.success_nums.list()
         return result
 
-    def record(self):
-        self.recording_task = asyncio.create_task(self.__record(), name=f"recording:{self.live.id}")
+    async def __check_status(self):
+        while True:
+            print(json.dumps(self.__get_stats(), indent=4))
+            await asyncio.sleep(1)
 
-    async def __record(self):
+    async def _record(self):
         self.m3u8_http.set_headers(self.ctx.headers)
         self.seg_http.set_headers(self.ctx.headers)
 
         # Start recording
         log.info("Start Recording", self.ctx.to_dict(with_stream_url=True))
+
+        if TEST_FLAG:
+            _ = asyncio.create_task(self.__check_status())
 
         try:
             await self.__interval(is_init=True)
@@ -175,9 +182,6 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.is_done = True
 
     async def __interval(self, is_init: bool = False):
-        if TEST_FLAG:
-            print(json.dumps(self.__get_stats(), indent=4))
-
         await self.success_nums_redis.renew()
         await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
 

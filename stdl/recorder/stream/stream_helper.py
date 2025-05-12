@@ -143,6 +143,10 @@ class StreamHelper:
         return None
 
     async def check_tmp_dir(self, ctx: RequestContext):
+        if not await aos.path.exists(ctx.tmp_dir_path):
+            log.warn("Temporary Directory Not Found", ctx.to_dict())
+            return
+
         # Wait for existing threads to finish
         current_task = asyncio.current_task()
         tg_tasks = []

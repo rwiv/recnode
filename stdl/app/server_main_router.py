@@ -2,7 +2,7 @@ import aiohttp
 from fastapi import APIRouter, HTTPException
 from prometheus_client import generate_latest
 from pydantic import BaseModel, constr
-from redis.asyncio import ConnectionPool
+from starlette.responses import Response
 
 from ..common import PlatformType
 from ..data.live import LiveStateService
@@ -18,19 +18,16 @@ class CancelRequest(BaseModel):
 class MainController:
     def __init__(
         self,
-        redis_pool: ConnectionPool,
         scheduler: RecordingScheduler,
         live_state_service: LiveStateService,
     ):
         self.__scheduler = scheduler
         self.__live_state_service = live_state_service
-        self.__redis_pool = redis_pool
 
         self.router = APIRouter()
         self.router.add_api_route("/metrics", self.metrics, methods=["GET"])
         self.router.add_api_route("/api/health", self.health, methods=["GET"])
         self.router.add_api_route("/api/my-ip", self.my_ip, methods=["GET"])
-        self.router.add_api_route("/api/stats/redis", self.redis_stats, methods=["GET"])
         self.router.add_api_route("/api/recordings/{record_id}", self.record, methods=["POST"])
         self.router.add_api_route("/api/recordings/{record_id}", self.cancel, methods=["DELETE"])
         self.router.add_api_route("/api/recordings", self.get_status, methods=["GET"])
@@ -46,13 +43,7 @@ class MainController:
                 return await res.text()
 
     def metrics(self):
-        return generate_latest(), {"Content-Type": "text/plain"}
-
-    def redis_stats(self):
-        return {
-            "in_use_connections": len(self.__redis_pool._in_use_connections),
-            "available_connections": len(self.__redis_pool._available_connections),
-        }
+        return Response(content=generate_latest(), media_type="text/plain")
 
     async def record(self, record_id: str):
         state = await self.__live_state_service.get(record_id)
@@ -85,8 +76,8 @@ class MainController:
             with_stats = True
             full_stats = True
 
-        with_threads = False
-        if "threads" in field_elems:
-            with_threads = True
+        with_resources = False
+        if "resources" in field_elems:
+            with_resources = True
 
-        return self.__scheduler.ger_status(with_stats=with_stats, full_stats=full_stats, with_threads=with_threads)
+        return self.__scheduler.ger_status(with_stats=with_stats, full_stats=full_stats, with_resources=with_resources)

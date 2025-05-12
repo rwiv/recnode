@@ -72,8 +72,16 @@ spec:
                   key: {{ .Values.redis.auth.passwordKey }}
             - name: REDIS_CA_PATH
               value: /mnt/redis-tls/ca.crt
-            - name: REDIS_POOL_SIZE
+            - name: REDIS_POOL_SIZE_LIMIT
               value: "{{ .Values.redis.poolSize }}"
+            - name: REDIS_LOCK_EXPIRE_MS
+              value: "{{ .Values.redis.data.lockExpireMs }}"
+            - name: REDIS_LOCK_WAIT_SEC
+              value: "{{ .Values.redis.data.lockWaitSec }}"
+            - name: REDIS_LIVE_EXPIRE_SEC
+              value: "{{ .Values.redis.data.liveExpireSec }}"
+            - name: REDIS_SEG_EXPIRE_SEC
+              value: "{{ .Values.redis.data.segExpireSec }}"
           volumeMounts:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml

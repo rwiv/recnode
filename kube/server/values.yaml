@@ -43,7 +43,12 @@ redis:
     passwordKey: password
   tls:
     secretName: stdl-redis-tls
-  poolSize: 100
+  poolSize: 200
+  data:
+    lockExpireMs: 2000
+    lockWaitSec: 5
+    liveExpireSec: 3600
+    segExpireSec: 10800
 
 server:
   replicas: 1

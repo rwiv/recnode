@@ -38,15 +38,13 @@ def run_server():
 
     env = get_env()
 
-    redis_pool = create_redis_pool(env.redis)
-    redis_client = Redis(connection_pool=redis_pool)
-
     metric = MetricManager()
 
-    scheduler = RecordingScheduler(env, redis_client, metric)
+    scheduler = RecordingScheduler(env, metric)
 
-    live_state_service = LiveStateService(redis_client)
-    main_controller = MainController(redis_pool, scheduler, live_state_service)
+    router_redis = Redis(connection_pool=create_redis_pool(env.redis))
+    live_state_service = LiveStateService(router_redis)
+    main_controller = MainController(scheduler, live_state_service)
 
     app = FastAPI()
     app.add_middleware(BaseHTTPMiddleware, dispatch=handle_error)
