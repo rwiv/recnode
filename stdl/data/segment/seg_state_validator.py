@@ -62,10 +62,11 @@ class SegmentStateValidator:
                 if sorted_req_segments[-1].num - highest_num > self.__invalid_seg_num_diff_threshold:
                     return await self.__update_to_invalid_live()
 
-            matched_req_segments = [seg for seg in sorted_req_segments if seg.num in matched_nums]
             res = await asyncio.gather(*[self.__seg_state_service.get(num) for num in matched_nums])
-            matched_seg_states: list[SegmentState] = sorted([seg for seg in res if seg is not None], key=lambda x: x.num)
+            matched_seg_states: list[SegmentState] = [seg for seg in res if seg is not None]
             seg_stat_map = {seg.num: seg for seg in matched_seg_states}
+
+            matched_req_segments = [seg for seg in sorted_req_segments if seg.num in matched_nums]
             for i, req_seg in enumerate(matched_req_segments):
                 seg_state = seg_stat_map.get(req_seg.num)
                 if seg_state is None:
@@ -77,7 +78,7 @@ class SegmentStateValidator:
                 if req_seg.duration != seg_state.duration:
                     log.error("Duration mismatch", self.__pair_attr(req_seg, seg_state))
                     return await self.__update_to_invalid_live()
-                if i == len(matched_seg_states) - 1:
+                if i == len(matched_req_segments) - 1:
                     req_b = await self.__seg_http.get_bytes(url=req_seg.url, retry_limit=self.__req_retry_limit)
                     if len(req_b) != seg_state.size:
                         log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, len(req_b)))
@@ -132,7 +133,7 @@ class SegmentStateValidator:
         attr["seg_state"] = seg.to_dict()
         attr["current_time"] = datetime.now().isoformat()
         return attr
-    
+
     def __error_attr(self, ex: BaseException):
         attr = self.__attr.copy()
         for k, v in error_dict(ex).items():
