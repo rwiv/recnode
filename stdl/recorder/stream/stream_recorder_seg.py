@@ -294,7 +294,7 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         inspected = await self.seg_state_validator.validate_segment(seg.num, self.success_nums_redis)
         if not inspected.ok:
-            log.warn("Detect duplicated segment", inspected.attr)
+            log.debug("Detect duplicated segment", inspected.attr)
             if inspected.critical:
                 log.error("Detect invalid segment", inspected.attr)
                 self.done_flag = True
