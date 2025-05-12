@@ -80,4 +80,8 @@ class MainController:
         if "resources" in field_elems:
             with_resources = True
 
-        return self.__scheduler.ger_status(with_stats=with_stats, full_stats=full_stats, with_resources=with_resources)
+        return self.__scheduler.ger_status(
+            with_stats=with_stats,
+            full_stats=full_stats,
+            with_resources=with_resources,
+        )

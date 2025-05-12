@@ -34,6 +34,7 @@ class RecordingScheduler:
         }
         if with_resources:
             result["thread_counts"] = len(threading.enumerate())
+            result["thread_names"] = [thread.name for thread in threading.enumerate()]
         return result
 
     def get_recorder_infos(self):

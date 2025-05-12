@@ -240,11 +240,12 @@ class SegmentedStreamRecorder(StreamRecorder):
             seg = Segment(num=raw_seg.num, url=url, duration=raw_seg.duration, limit=self.seg_parallel_retry_limit)
             segments.append(seg)
 
-        ok = await self.seg_state_validator.validate_segments(segments, self.success_nums_redis)
-        if not ok:
-            log.error("Invalid m3u8", self.ctx.to_dict())
-            self.done_flag = True
-            return
+        if is_init:
+            ok = await self.seg_state_validator.validate_segments(segments, self.success_nums_redis)
+            if not ok:
+                log.error("Invalid m3u8", self.ctx.to_dict())
+                self.done_flag = True
+                return
 
         if self.status != RecordingStatus.RECORDING:
             self.status = RecordingStatus.RECORDING

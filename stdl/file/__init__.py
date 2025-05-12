@@ -2,7 +2,7 @@ import os
 import sys
 
 from .fs_config import FsConfig
-from .object_writer import ObjectWriter, S3ObjectWriter, LocalObjectWriter
+from .object_writer import ObjectWriter, S3ObjectWriter, LocalObjectWriter, ProxyObjectWriter
 from .object_writer_utils import read_fs_config_by_file, create_fs_writer, create_proxy_fs_writer
 from .fs_types import FsType
 from .s3_utils import create_async_client

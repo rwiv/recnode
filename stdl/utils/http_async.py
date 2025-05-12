@@ -1,5 +1,4 @@
 import asyncio
-import time
 from typing import Any
 
 import aiohttp
@@ -37,10 +36,17 @@ class AsyncHttpClient:
         headers: dict | None = None,
         attr: dict | None = None,
         print_error: bool | None = None,
+        retry_limit: int | None = None,
     ) -> str:
-        if print_error is None:
-            print_error = self.print_error
-        return await self.fetch(method="GET", url=url, headers=headers, text=True, attr=attr, print_error=print_error)
+        return await self.fetch(
+            method="GET",
+            url=url,
+            headers=headers,
+            text=True,
+            attr=attr,
+            print_error=print_error,
+            retry_limit=retry_limit,
+        )
 
     async def get_json(
         self,
@@ -48,10 +54,17 @@ class AsyncHttpClient:
         headers: dict | None = None,
         attr: dict | None = None,
         print_error: bool | None = None,
+        retry_limit: int | None = None,
     ) -> Any:
-        if print_error is None:
-            print_error = self.print_error
-        return await self.fetch(method="GET", url=url, headers=headers, json=True, attr=attr, print_error=print_error)
+        return await self.fetch(
+            method="GET",
+            url=url,
+            headers=headers,
+            json=True,
+            attr=attr,
+            print_error=print_error,
+            retry_limit=retry_limit,
+        )
 
     async def get_bytes(
         self,
@@ -59,10 +72,17 @@ class AsyncHttpClient:
         headers: dict | None = None,
         attr: dict | None = None,
         print_error: bool | None = None,
+        retry_limit: int | None = None,
     ) -> bytes:
-        if print_error is None:
-            print_error = self.print_error
-        return await self.fetch(method="GET", url=url, headers=headers, raw=True, attr=attr, print_error=print_error)
+        return await self.fetch(
+            method="GET",
+            url=url,
+            headers=headers,
+            raw=True,
+            attr=attr,
+            print_error=print_error,
+            retry_limit=retry_limit,
+        )
 
     async def fetch(
         self,
@@ -73,7 +93,8 @@ class AsyncHttpClient:
         json: bool = False,
         raw: bool = False,
         attr: dict | None = None,
-        print_error: bool = True,
+        print_error: bool | None = None,
+        retry_limit: int | None = None,
     ) -> Any:
         req_headers = self.headers
         if headers is not None:
@@ -81,7 +102,10 @@ class AsyncHttpClient:
             for key, value in headers.items():
                 req_headers[key] = value
 
-        for retry_cnt in range(self.retry_limit + 1):
+        req_print_error = print_error if print_error is not None else self.print_error
+        req_retry_limit = retry_limit if retry_limit is not None else self.retry_limit
+
+        for retry_cnt in range(req_retry_limit + 1):
             start = asyncio.get_event_loop().time()
             try:
                 return await request(
@@ -107,15 +131,15 @@ class AsyncHttpClient:
                         err[k] = v
 
                 if self.retry_limit == 0:
-                    if print_error:
+                    if req_print_error:
                         log.error("Failed to request", err)
                     raise
                 if retry_cnt == self.retry_limit:
-                    if print_error:
+                    if req_print_error:
                         log.error("Failed to request: Retry Limit Exceeded", err)
                     raise
 
-                if print_error:
+                if req_print_error:
                     log.debug(f"Retry request", err)
 
                 if self.retry_delay_sec >= 0:
@@ -159,5 +183,6 @@ class AsyncHttpClientMock(AsyncHttpClient):
         headers: dict | None = None,
         attr: dict | None = None,
         print_error: bool | None = None,
+        retry_limit: int | None = None,
     ) -> bytes:
         return b"0" * self.b_size

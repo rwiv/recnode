@@ -39,7 +39,7 @@ def create_proxy_fs_writer(env: ProxyEnv, metric: MetricManager) -> ObjectWriter
     fs_conf_path = env.fs_config_path
 
     if fs_conf_path is None or not Path(fs_conf_path).exists():
-        return LocalObjectWriter(metric=metric)
+        raise ValueError("File system configuration path is not set")
     fs_conf = None
     for conf in read_fs_config_by_file(fs_conf_path):
         if conf.name == fs_name:
@@ -53,4 +53,4 @@ def create_proxy_fs_writer(env: ProxyEnv, metric: MetricManager) -> ObjectWriter
             raise ValueError(f"Cannot find S3 configuration with name {fs_name}")
         return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3, metric=metric)
     else:
-        return LocalObjectWriter(metric=metric)
+        raise ValueError(f"Unsupported file system type {fs_conf.type} for proxy writer")

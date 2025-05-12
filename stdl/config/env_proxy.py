@@ -4,7 +4,6 @@ from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .config_proxy import ProxyConfig, read_proxy_config
-from ..common import LOCAL_FS_NAME
 
 
 class ProxyEnv(BaseModel):
@@ -20,11 +19,11 @@ def get_proxy_env() -> ProxyEnv:
     if env is None:
         env = "dev"
     if env == "dev":
-        load_dotenv(path_join(find_project_root(), "dev", ".env"))
+        load_dotenv(path_join(find_project_root(), "dev", ".env-proxy"))
 
     fs_name = os.getenv("FS_NAME") or None
     if fs_name is None:
-        fs_name = LOCAL_FS_NAME
+        raise ValueError("FS_NAME is not set in the environment variables.")
 
     return ProxyEnv(
         env=env,
