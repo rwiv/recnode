@@ -52,19 +52,21 @@ async def test_validate_segments():
     await seg_service.set_nx(seg(5))
     await success_nums.set(5)
 
-    assert await validator.validate_segments([seg2(2), seg2(4)], success_nums)
-    assert not await validator.validate_segments([seg2(2), seg2(4, url="asd")], success_nums)
+    l = await success_nums.get_highest()
+
+    assert await validator.validate_segments([seg2(2), seg2(4)], l, success_nums)
+    assert not await validator.validate_segments([seg2(2), seg2(4, url="asd")], l, success_nums)
     await live_service.update_to_invalid_live(live_record_id, False)
-    assert not await validator.validate_segments([seg2(2), seg2(4, duration=5.3)], success_nums)
+    assert not await validator.validate_segments([seg2(2), seg2(4, duration=5.3)], l, success_nums)
     await live_service.update_to_invalid_live(live_record_id, False)
-    assert not await validator.validate_segments([seg2(2), seg2(3)], success_nums)
+    assert not await validator.validate_segments([seg2(2), seg2(3)], l, success_nums)
     await live_service.update_to_invalid_live(live_record_id, False)
     # Pass if there are segments with different sizes but they are not the last number
-    assert await validator.validate_segments([seg2(2), seg2(3), seg2(4)], success_nums)
+    assert await validator.validate_segments([seg2(2), seg2(3), seg2(4)], l, success_nums)
     await live_service.update_to_invalid_live(live_record_id, False)
 
-    assert await validator.validate_segments([seg2(100), seg2(101)], success_nums)
-    assert not await validator.validate_segments([seg2(160), seg2(162), seg2(164)], success_nums)
+    assert await validator.validate_segments([seg2(100), seg2(101)], l, success_nums)
+    assert not await validator.validate_segments([seg2(160), seg2(162), seg2(164)], l, success_nums)
 
     src_live = await live_service.get(live_record_id)
     if src_live is None:
@@ -103,9 +105,11 @@ async def test_validate_segment():
     await seg_service.set_nx(seg(3, created_at=now - timedelta(seconds=50)))
     await success_nums.set(3)
 
-    assert await validator.validate_segment(4, success_nums) == SegmentInspect(ok=True, critical=False)
-    assert await validator.validate_segment(3, success_nums) == SegmentInspect(ok=False, critical=False)
-    assert await validator.validate_segment(2, success_nums) == SegmentInspect(ok=False, critical=True)
+    l = await success_nums.get_highest()
+
+    assert await validator.validate_segment(seg2(4), l, success_nums) == SegmentInspect(ok=True, critical=False)
+    assert await validator.validate_segment(seg2(3), l, success_nums) == SegmentInspect(ok=False, critical=False)
+    assert await validator.validate_segment(seg2(2), l, success_nums) == SegmentInspect(ok=False, critical=True)
 
     src_live = await live_service.get(live_record_id)
     if src_live is None:

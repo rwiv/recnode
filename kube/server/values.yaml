@@ -48,7 +48,7 @@ redis:
     lockExpireMs: 2000
     lockWaitSec: 5
     liveExpireSec: 3600
-    segExpireSec: 10800
+    segExpireSec: 43200
 
 server:
   replicas: 1

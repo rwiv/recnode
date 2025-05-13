@@ -240,8 +240,10 @@ class SegmentedStreamRecorder(StreamRecorder):
             seg = Segment(num=raw_seg.num, url=url, duration=raw_seg.duration, limit=self.seg_parallel_retry_limit)
             segments.append(seg)
 
+        latest_num = await self.success_nums_redis.get_highest()
+
         if is_init:
-            ok = await self.seg_state_validator.validate_segments(segments, self.success_nums_redis)
+            ok = await self.seg_state_validator.validate_segments(segments, latest_num, self.success_nums_redis)
             if not ok:
                 log.error("Invalid m3u8", self.ctx.to_dict())
                 self.done_flag = True
@@ -254,12 +256,14 @@ class SegmentedStreamRecorder(StreamRecorder):
         for seg in segments:
             if self.__is_done_seg(seg.num) or self.processing_nums.contains(seg.num):
                 continue
-            _ = asyncio.create_task(self.__process_segment(seg), name=self.seg_tname("req", seg.num))
+            name = self.seg_tname("req", seg.num)
+            _ = asyncio.create_task(self.__process_segment(seg, latest_num), name=name)
 
         for _, failed in self.retrying_segments.items():
             if self.__is_done_seg(failed.num):
                 continue
-            _ = asyncio.create_task(self.__process_segment(failed), name=self.seg_tname("retry", failed.num))
+            name = self.seg_tname("retry", failed.num)
+            _ = asyncio.create_task(self.__process_segment(failed, latest_num), name=name)
 
         # Upload segments tar
         target_segments = await self.helper.check_segments(self.ctx)
@@ -279,7 +283,7 @@ class SegmentedStreamRecorder(StreamRecorder):
     def __is_done_seg(self, seg_num: int) -> bool:
         return self.success_nums.contains(seg_num) or self.failed_segments.contains(seg_num)
 
-    async def __process_segment(self, seg: Segment):
+    async def __process_segment(self, seg: Segment, latest_num: int | None):
         if seg.num == MAP_NUM:
             raise ValueError(f"{MAP_NUM} is not a valid segment number")
 
@@ -292,11 +296,13 @@ class SegmentedStreamRecorder(StreamRecorder):
                 # log.debug("Failed to acquire segment")
                 return
 
-        inspected = await self.seg_state_validator.validate_segment(seg.num, self.success_nums_redis)
+        inspected = await self.seg_state_validator.validate_segment(
+            seg=seg,
+            latest_num=latest_num,
+            success_nums=self.success_nums_redis,
+        )
         if not inspected.ok:
-            log.debug("Detect duplicated segment", inspected.attr)
             if inspected.critical:
-                log.error("Detect invalid segment", inspected.attr)
                 self.done_flag = True
             return
 
