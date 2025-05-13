@@ -2,6 +2,12 @@ APP_VERSION=0.6.3
 
 stage-run: helm-stage-server-run
 stage-rm: helm-stage-server-rm
+71-run: helm-prod-71-run
+71-rm: helm-prod-71-rm
+72-run: helm-prod-72-run
+72-rm: helm-prod-72-rm
+73-run: helm-prod-73-run
+73-rm: helm-prod-73-rm
 
 # infra
 ## argo
