@@ -17,7 +17,7 @@ def live(id: str = str(uuid.uuid4())):
         streamUrl="http://example.com/stream",
         headers=None,
         videoName="test_video",
-        isInvalid=None,
+        isInvalid=False,
     )
 
 

@@ -66,11 +66,10 @@ class SegmentStateValidator:
             sorted_req_segments = sorted(req_segments, key=lambda x: x.num)
             matched_nums = await success_nums.range(sorted_req_segments[0].num, sorted_req_segments[-1].num)
             if len(matched_nums) == 0 and self.__is_invalid_num(sorted_req_segments[-1].num, latest_num):
-                attr = self.__attr.copy()
-                attr["request_latest_num"] = sorted_req_segments[-1].num
-                attr["recorded_latest_num"] = latest_num
+                attr = self.__seg_attr(sorted_req_segments[-1])
+                attr["latest_num"] = latest_num
                 log.error("Segment number difference is too large", attr)
-                return await self.__update_to_invalid_live()
+                return await self.__set_live_to_invalid()
 
             res = await asyncio.gather(*[self.__seg_state_service.get(num) for num in matched_nums])
             matched_seg_states: list[SegmentState] = [seg for seg in res if seg is not None]
@@ -82,13 +81,13 @@ class SegmentStateValidator:
                 if seg_state is None:
                     log.error(f"ReqSegment not found for num {req_seg.num}", self.__attr)
                     return False
-                if not self.__check_segment_pair(req_seg, seg_state):
-                    return await self.__update_to_invalid_live()
+                if not self.__validate_segment_pair(req_seg, seg_state):
+                    return await self.__set_live_to_invalid()
                 if i == len(matched_req_segments) - 1:
                     req_b = await self.__seg_http.get_bytes(url=req_seg.url, retry_limit=self.__req_retry_limit)
                     if len(req_b) != seg_state.size:
                         log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, len(req_b)))
-                        return await self.__update_to_invalid_live()
+                        return await self.__set_live_to_invalid()
             return True
         except BaseException as ex:
             log.error("Validate segments failed", self.__error_attr(ex))
@@ -102,28 +101,27 @@ class SegmentStateValidator:
     ) -> SegmentInspect:
         try:
             if latest_num is None:
-                return SegmentInspect(ok=True, critical=False)  # init record
+                return SegmentInspect(ok=True, critical=False)  # init recording
 
             if self.__is_invalid_num(seg.num, latest_num):
-                log.error("Segment number difference is too large", self.__attr)
-                await self.__update_to_invalid_live()
-                return SegmentInspect(ok=False, critical=True)
+                attr = self.__seg_attr(seg)
+                attr["latest_num"] = latest_num
+                log.error("Segment number difference is too large", attr)
+                return await self.__set_live_to_invalid_and_return_critical()
 
             if not await success_nums.contains(seg.num):
                 return SegmentInspect(ok=True, critical=False)  # unsuccessful segment
 
-            log.debug("Detect duplicated segment", self.__attr)
-
             seg_state = await self.__seg_state_service.get(seg.num)
             if seg_state is None:
-                log.error(f"Segment {seg.num} not found", self.__attr)
-                return SegmentInspect(ok=False, critical=True)
+                log.error(f"Segment {seg.num} not found", self.__seg_attr(seg))
+                return await self.__set_live_to_invalid_and_return_critical()
 
-            if not self.__check_segment_pair(seg, seg_state):
-                log.error("Invalid duplicated segment", self.__state_attr(seg_state))
-                await self.__update_to_invalid_live()
-                return SegmentInspect(ok=False, critical=True)
+            if not self.__validate_segment_pair(seg, seg_state):
+                log.error("Invalid duplicated segment", self.__pair_attr(seg, seg_state))
+                return await self.__set_live_to_invalid_and_return_critical()
             else:
+                log.debug("Duplicated segment", self.__seg_attr(seg))
                 return SegmentInspect(ok=False, critical=False)
         except BaseException as ex:
             log.error("Failed to validate segment", self.__error_attr(ex))
@@ -132,7 +130,7 @@ class SegmentStateValidator:
     def __is_invalid_num(self, num: int, latest_num: int) -> bool:
         return abs(num - latest_num) > self.__invalid_seg_num_diff_threshold
 
-    def __check_segment_pair(self, req_seg: Segment, seg_state: SegmentState) -> bool:
+    def __validate_segment_pair(self, req_seg: Segment, seg_state: SegmentState) -> bool:
         if req_seg.url != seg_state.url:
             log.error("URL mismatch", self.__pair_attr(req_seg, seg_state))
             return False
@@ -142,12 +140,14 @@ class SegmentStateValidator:
 
         diff = datetime.now() - seg_state.created_at
         if diff.seconds > self.__invalid_seg_time_diff_threshold_sec:
-            log.error("created_at mismatch", self.__pair_attr(req_seg, seg_state))
+            attr = self.__pair_attr(req_seg, seg_state)
+            attr["current_time"] = datetime.now().isoformat()
+            log.error("created_at mismatch", attr)
             return False
 
         return True
 
-    async def __update_to_invalid_live(self) -> bool:  # only return False
+    async def __set_live_to_invalid(self) -> bool:  # only return False
         await self.__live_state_service.update_to_invalid_live(
             record_id=self.__seg_state_service.live_record_id,
             is_invalid=True,
@@ -155,17 +155,27 @@ class SegmentStateValidator:
         log.error("LiveState marked as invalid", self.__attr)
         return False
 
+    async def __set_live_to_invalid_and_return_critical(self) -> SegmentInspect:
+        await self.__set_live_to_invalid()
+        return SegmentInspect(ok=False, critical=True)
+
     def __pair_attr(self, req_seg: Segment, seg_state: SegmentState, req_size: int | None = None) -> dict[str, Any]:
         attr = self.__attr.copy()
-        attr["req_seg"] = req_seg.to_dict()
+        attr["seg_request"] = req_seg.to_dict()
         if req_size is not None:
-            attr["req_seg"]["size"] = req_size
+            attr["seg_request"]["size"] = req_size
         attr["seg_state"] = seg_state.to_dict()
         return attr
 
     def __state_attr(self, seg: SegmentState) -> dict[str, Any]:
         attr = self.__attr.copy()
         attr["seg_state"] = seg.to_dict()
+        attr["current_time"] = datetime.now().isoformat()
+        return attr
+
+    def __seg_attr(self, seg: Segment) -> dict[str, Any]:
+        attr = self.__attr.copy()
+        attr["seg_request"] = seg.to_dict()
         attr["current_time"] = datetime.now().isoformat()
         return attr
 
