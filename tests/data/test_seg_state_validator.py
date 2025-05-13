@@ -24,7 +24,7 @@ lw = 2
 @pytest.mark.asyncio
 async def test_validate_segments():
     live_record_id = "cc23b367-bc45-40cd-9523-e334b1bcd52d"
-    success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw)
+    success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw, {})
     http_mock = AsyncHttpClientMock(b_size=100)
     invalid_seg_num_diff_threshold = 150
     live_service = LiveStateService(client)
@@ -54,13 +54,17 @@ async def test_validate_segments():
 
     assert await validator.validate_segments([seg2(2), seg2(4)], success_nums)
     assert not await validator.validate_segments([seg2(2), seg2(4, url="asd")], success_nums)
+    await live_service.update_to_invalid_live(live_record_id, False)
     assert not await validator.validate_segments([seg2(2), seg2(4, duration=5.3)], success_nums)
+    await live_service.update_to_invalid_live(live_record_id, False)
     assert not await validator.validate_segments([seg2(2), seg2(3)], success_nums)
+    await live_service.update_to_invalid_live(live_record_id, False)
     # Pass if there are segments with different sizes but they are not the last number
     assert await validator.validate_segments([seg2(2), seg2(3), seg2(4)], success_nums)
+    await live_service.update_to_invalid_live(live_record_id, False)
 
     assert await validator.validate_segments([seg2(100), seg2(101)], success_nums)
-    assert not await validator.validate_segments([seg2(160), seg2(161)], success_nums)
+    assert not await validator.validate_segments([seg2(160), seg2(162), seg2(164)], success_nums)
 
     src_live = await live_service.get(live_record_id)
     if src_live is None:
@@ -74,7 +78,7 @@ async def test_validate_segments():
 @pytest.mark.asyncio
 async def test_validate_segment():
     live_record_id = "31cad56f-3d77-41d6-85b1-0cc77272aac0"
-    success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw)
+    success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw, {})
     http_mock = AsyncHttpClientMock(b_size=100)
     invalid_seg_time_diff_threshold_sec = 2 * 60
     live_service = LiveStateService(client)

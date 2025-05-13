@@ -1,3 +1,6 @@
+import asyncio
+
+from pyutils import log, error_dict
 from redis.asyncio import Redis
 
 from ..redis import RedisSortedSet, RedisPubSubLock
@@ -12,6 +15,7 @@ class SegmentNumberSet:
         expire_ms: int,
         lock_expire_ms: int,
         lock_wait_timeout_sec: float,
+        attr: dict,
     ):
         self.__client = client
         self.__sorted_set = RedisSortedSet(client)
@@ -20,9 +24,15 @@ class SegmentNumberSet:
         self.__expire_ms = expire_ms
         self.__lock_expire_ms = lock_expire_ms
         self.__lock_wait_timeout_sec = lock_wait_timeout_sec
+        self.__attr = attr
 
     async def renew(self):
-        await self.__sorted_set.set_pexpire(self.__get_key(), self.__expire_ms)
+        start_time = asyncio.get_event_loop().time()
+        try:
+            await self.__sorted_set.set_pexpire(self.__get_key(), self.__expire_ms)
+        except Exception as ex:
+            extra = {"duration": asyncio.get_event_loop().time() - start_time}
+            log.error("Renew failed", self.__error_attr(ex, extra))
 
     async def set(self, num: int):
         await self.__sorted_set.set(self.__get_key(), str(num), num)
@@ -69,3 +79,12 @@ class SegmentNumberSet:
 
     def __get_key(self):
         return f"live:{self.__live_record_id}:segments:{self.__key_suffix}"
+
+    def __error_attr(self, ex: Exception, extra: dict | None = None):
+        attr = self.__attr.copy()
+        for k, v in error_dict(ex):
+            attr[k] = v
+        if extra:
+            for k, v in extra.items():
+                attr[k] = v
+        return attr

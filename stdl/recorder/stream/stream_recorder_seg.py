@@ -399,6 +399,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             expire_ms=self.redis_data_conf.live_expire_sec * 1000,
             lock_expire_ms=self.redis_data_conf.lock_expire_ms,
             lock_wait_timeout_sec=self.redis_data_conf.lock_wait_sec,
+            attr=self.ctx.to_dict(),
         )
 
     def seg_tname(self, sub_name: str, num: int) -> str:

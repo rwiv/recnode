@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 
 from pydantic import BaseModel
+from pyutils import error_dict, log
 from redis.asyncio import Redis
 
 from .seg_num_set import SegmentNumberSet
@@ -93,7 +94,12 @@ class SegmentStateService:
         self.live_record_id = live_record_id
 
     async def renew(self, num: int):
-        await self.__str.set_pexpire(self.__get_key(num), self.__expire_ms)
+        start_time = asyncio.get_event_loop().time()
+        try:
+            await self.__str.set_pexpire(self.__get_key(num), self.__expire_ms)
+        except Exception as ex:
+            extra = {"duration": asyncio.get_event_loop().time() - start_time}
+            log.error("Renew failed", self.__error_attr(ex, extra))
 
     async def get(self, num: int) -> SegmentState | None:
         txt = await self.__str.get(self.__get_key(num))
@@ -134,3 +140,12 @@ class SegmentStateService:
 
     def __get_key(self, num: int) -> str:
         return f"live:{self.live_record_id}:segment:{num}"
+
+    def __error_attr(self, ex: Exception, extra: dict | None = None) -> dict:
+        attr = self.__attr.copy()
+        for k, v in error_dict(ex):
+            attr[k] = v
+        if extra:
+            for k, v in extra.items():
+                attr[k] = v
+        return attr

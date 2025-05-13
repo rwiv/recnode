@@ -52,6 +52,14 @@ class SegmentStateValidator:
             if latest_num is None:
                 return True  # init recording
 
+            live = await self.__live_state_service.get(self.__seg_state_service.live_record_id)
+            if live is None:
+                log.error("LiveState not found", self.__attr)
+                return False
+            if live.is_invalid:
+                log.error("LiveState is invalid", self.__attr)
+                return False
+
             sorted_req_segments = sorted(req_segments, key=lambda x: x.num)
             matched_nums = await success_nums.range(sorted_req_segments[0].num, sorted_req_segments[-1].num)
             if len(matched_nums) == 0:
@@ -60,6 +68,10 @@ class SegmentStateValidator:
                     log.error("No segments found in success_nums", self.__attr)
                     return False
                 if sorted_req_segments[-1].num - highest_num > self.__invalid_seg_num_diff_threshold:
+                    attr = self.__attr.copy()
+                    attr["recorded_latest_num"] = latest_num
+                    attr["request_latest_num"] = sorted_req_segments[-1].num
+                    log.error("Segment number difference is too large", attr)
                     return await self.__update_to_invalid_live()
 
             res = await asyncio.gather(*[self.__seg_state_service.get(num) for num in matched_nums])
@@ -109,11 +121,11 @@ class SegmentStateValidator:
             return SegmentInspect(ok=False, critical=True, attr=attr)
 
     async def __update_to_invalid_live(self) -> bool:  # only return False
-        live = await self.__live_state_service.get(self.__seg_state_service.live_record_id)
-        if live is not None:
-            live.is_invalid = True
-            await self.__live_state_service.set(live, nx=False)
-            log.error("LiveState marked as invalid", self.__attr)
+        await self.__live_state_service.update_to_invalid_live(
+            record_id=self.__seg_state_service.live_record_id,
+            is_invalid=True,
+        )
+        log.error("LiveState marked as invalid", self.__attr)
         return False
 
     def __is_invalid_seg(self, seg: SegmentState) -> bool:
