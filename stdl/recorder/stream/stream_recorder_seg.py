@@ -379,15 +379,15 @@ class SegmentedStreamRecorder(StreamRecorder):
                 await seg.release()
 
     async def __close_recording(self):
-        await self.helper.check_tmp_dir(self.ctx)
         current_task = asyncio.current_task()
         tg_tasks = []
         for task in asyncio.all_tasks():
             if task == current_task:
                 continue
-            if task.get_name().startswith(f"seg:{self.live.id}"):
+            if task.get_name().startswith(f"{SEG_TASK_PREFIX}:{self.live.id}"):
                 tg_tasks.append(task)
         await asyncio.gather(*tg_tasks)
+        await self.helper.check_tmp_dir(self.ctx)
 
     def __error_attr(self, ex: BaseException, num: int | None = None):
         attr = self.ctx.to_dict()
