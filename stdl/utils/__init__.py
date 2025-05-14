@@ -4,14 +4,18 @@ import sys
 from .async_types import *
 from .http import FIREFOX_USER_AGENT
 from .http_async import AsyncHttpClient, AsyncHttpClientMock
-from .string import random_string
 from .errors import HttpError, HttpRequestError
 from .path import *
+from .streamlink import *
+from .string import random_string
 
 targets = [
     "async_types",
     "errors",
+    "http",
     "http_async",
+    "path",
+    "streamlink",
     "string",
 ]
 if os.getenv("PY_ENV") != "prod":

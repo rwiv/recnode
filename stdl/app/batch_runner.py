@@ -15,7 +15,8 @@ from ..data.redis import create_redis_pool
 from ..fetcher import PlatformFetcher
 from ..file import create_fs_writer
 from ..metric import MetricManager
-from ..recorder import RecorderResolver, disable_streamlink_log, StreamLinkSessionArgs, get_streams
+from ..recorder import RecorderResolver
+from ..utils import StreamLinkSessionArgs, get_streams, disable_streamlink_log
 
 
 class BatchConfig(BaseModel):

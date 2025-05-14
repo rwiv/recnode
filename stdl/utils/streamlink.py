@@ -1,12 +1,19 @@
 import logging
 
+from pydantic import BaseModel, constr
 from pyutils import CookieDict, to_cookie_dict
 from streamlink.options import Options
 from streamlink.session.session import Streamlink
 from streamlink.stream.hls.hls import HLSStream
 
-from ..schema.recording_arguments import StreamLinkSessionArgs
-from ..schema.recording_constants import DEFAULT_STREAM_TIMEOUT_SEC
+DEFAULT_STREAM_TIMEOUT_SEC = 30
+
+
+class StreamLinkSessionArgs(BaseModel):
+    cookie_header: constr(min_length=1) | None = None
+    options: dict[str, str] | None = None
+    # Read session timeout occurs when the internet connection is unstable
+    stream_timeout_sec: float | None = None
 
 
 def get_session(args: StreamLinkSessionArgs) -> Streamlink:

@@ -6,12 +6,6 @@ from pyutils import log
 from ...common import PlatformType
 
 
-class StreamInfo(BaseModel):
-    uid: str
-    url: str
-    platform: PlatformType
-
-
 class RecordingState(BaseModel):
     abort_flag: bool = False
     cancel_flag: bool = False

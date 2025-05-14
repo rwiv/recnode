@@ -1,11 +1,6 @@
 from pydantic import BaseModel, constr
 
-
-class StreamLinkSessionArgs(BaseModel):
-    cookie_header: constr(min_length=1) | None = None
-    options: dict[str, str] | None = None
-    # Read session timeout occurs when the internet connection is unstable
-    stream_timeout_sec: float | None = None
+from ...utils import StreamLinkSessionArgs
 
 
 class RecordingArgs(BaseModel):

@@ -1,7 +1,7 @@
 from pyutils import path_join
 from redis.asyncio import Redis
 
-from ..schema.recording_arguments import RecordingArgs, StreamLinkSessionArgs
+from ..schema.recording_arguments import RecordingArgs
 from ..stream.stream_recorder import StreamRecorder
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common import PlatformType
@@ -10,6 +10,7 @@ from ...data.live import LiveState
 from ...data.redis import create_redis_pool
 from ...file import ObjectWriter
 from ...metric import MetricManager
+from ...utils import StreamLinkSessionArgs
 
 
 class RecorderResolver:

@@ -11,12 +11,11 @@ from .stream_types import RequestContext
 from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_constants import DEFAULT_SEGMENT_SIZE_MB
 from ..schema.recording_schema import RecordingState
-from ..stream.streamlink_utils import get_streams
 from ...common import PlatformType
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher, LiveInfo
 from ...file import ObjectWriter
-from ...utils import random_string, FIREFOX_USER_AGENT, stem
+from ...utils import random_string, FIREFOX_USER_AGENT, stem, get_streams
 
 OBJECT_TASK_NAME = "object"
 FILE_WAIT_SEC = 2

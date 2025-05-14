@@ -12,7 +12,8 @@ from ..config import get_env
 from ..data.live import LiveStateService
 from ..data.redis import create_redis_pool
 from ..metric import MetricManager
-from ..recorder import RecordingScheduler, disable_streamlink_log
+from ..recorder import RecordingScheduler
+from ..utils import disable_streamlink_log
 
 
 async def handle_error(request: Request, call_next):
