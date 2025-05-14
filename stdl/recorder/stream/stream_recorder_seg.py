@@ -243,8 +243,10 @@ class SegmentedStreamRecorder(StreamRecorder):
         latest_num = await self.success_nums_redis.get_highest()
 
         if is_init:
-            ok = await self.seg_state_validator.validate_segments(segments, latest_num, self.success_nums_redis)
-            if not ok:
+            inspected = await self.seg_state_validator.validate_segments(segments, latest_num, self.success_nums_redis)
+            if not inspected.ok:
+                if inspected.critical:
+                    await self.live_state_service.update_is_invalid(record_id=self.live.id, is_invalid=True)
                 log.error("Invalid m3u8", self.ctx.to_dict())
                 self.done_flag = True
                 return
@@ -303,6 +305,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         )
         if not inspected.ok:
             if inspected.critical:
+                await self.live_state_service.update_is_invalid(record_id=self.live.id, is_invalid=True)
                 self.done_flag = True
             return
 
@@ -402,7 +405,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             client=self.redis,
             live_record_id=self.live.id,
             key_suffix=suffix,
-            expire_ms=self.redis_data_conf.live_expire_sec * 1000,
+            expire_ms=self.redis_data_conf.seg_expire_sec * 1000,
             lock_expire_ms=self.redis_data_conf.lock_expire_ms,
             lock_wait_timeout_sec=self.redis_data_conf.lock_wait_sec,
             attr=self.ctx.to_dict(),

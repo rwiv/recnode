@@ -3,7 +3,7 @@ import sys
 
 from .seg_num_set import SegmentNumberSet
 from .seg_state_service import SegmentStateService, SegmentState, Segment
-from .seg_state_validator import SegmentStateValidator, SegmentInspect
+from .seg_state_validator import SegmentStateValidator, SegmentInspect, ok, no, critical
 
 
 targets = [

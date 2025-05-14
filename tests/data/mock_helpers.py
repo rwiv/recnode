@@ -21,7 +21,16 @@ def live(id: str = str(uuid.uuid4())):
     )
 
 
-def seg(num: int, created_at: datetime = datetime.now(), size: int = 100):
+def s1(num: int, url: str = "https://example.com", duration: float = 2.0):
+    return Segment(
+        url=url,
+        num=num,
+        duration=duration,
+        limit=1,
+    )
+
+
+def s2(num: int, created_at: datetime = datetime.now(), size: int = 100):
     return SegmentState(
         url="https://example.com",
         num=num,
@@ -29,13 +38,4 @@ def seg(num: int, created_at: datetime = datetime.now(), size: int = 100):
         size=size,
         created_at=created_at,
         updated_at=datetime.now(),
-    )
-
-
-def seg2(num: int, url: str = "https://example.com", duration: float = 2.0):
-    return Segment(
-        url=url,
-        num=num,
-        duration=duration,
-        limit=1,
     )

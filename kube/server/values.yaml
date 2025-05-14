@@ -47,8 +47,8 @@ redis:
   data:
     lockExpireMs: 2000
     lockWaitSec: 5
-    liveExpireSec: 3600
-    segExpireSec: 43200
+    liveExpireSec: 604800
+    segExpireSec: 86400
 
 server:
   replicas: 1
@@ -62,7 +62,7 @@ server:
     fsNameKey: fs-name
   segSizeMb: 17
   reqConf:
-    m3u8RetryLimit: 4
+    m3u8RetryLimit: 5
     m3u8TimeoutSec: 10
     segTimeoutSec: 8
     segParallelRetryLimit: 4

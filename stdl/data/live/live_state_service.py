@@ -21,7 +21,7 @@ class LiveStateService:
             return None
         return LiveState.parse_raw(text)
 
-    async def update_to_invalid_live(self, record_id: str, is_invalid: bool) -> bool:
+    async def update_is_invalid(self, record_id: str, is_invalid: bool) -> bool:
         live = await self.get(record_id=record_id)
         if live is not None:
             live.is_invalid = is_invalid

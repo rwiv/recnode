@@ -98,4 +98,5 @@ class BatchRunner:
             streamUrl=stream_url,
             headers=headers,
             videoName=datetime.now().strftime("%Y%m%d_%H%M%S"),
+            isInvalid=False,
         )

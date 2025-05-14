@@ -45,23 +45,23 @@ class SegmentStateValidator:
         req_segments: list[Segment],
         latest_num: int | None,
         success_nums: SegmentNumberSet,
-    ) -> bool:
+    ) -> SegmentInspect:
         try:
             log.debug("Validate segments", self.__attr)
             if len(req_segments) == 0:
                 log.error("segments is empty", self.__attr)
-                return False
+                return no()
 
             if latest_num is None:
-                return True  # init recording
+                return ok()  # init recording
 
             live = await self.__live_state_service.get(self.__seg_state_service.live_record_id)
             if live is None:
                 log.error("LiveState not found", self.__attr)
-                return False
+                return no()
             if live.is_invalid:
                 log.error("LiveState is invalid", self.__attr)
-                return False
+                return no()
 
             sorted_req_segments = sorted(req_segments, key=lambda x: x.num)
             matched_nums = await success_nums.range(sorted_req_segments[0].num, sorted_req_segments[-1].num)
@@ -69,7 +69,7 @@ class SegmentStateValidator:
                 attr = self.__seg_attr(sorted_req_segments[-1])
                 attr["latest_num"] = latest_num
                 log.error("Segment number difference is too large", attr)
-                return await self.__set_live_to_invalid()
+                return critical()
 
             res = await asyncio.gather(*[self.__seg_state_service.get(num) for num in matched_nums])
             matched_seg_states: list[SegmentState] = [seg for seg in res if seg is not None]
@@ -80,18 +80,18 @@ class SegmentStateValidator:
                 seg_state = seg_stat_map.get(req_seg.num)
                 if seg_state is None:
                     log.error(f"ReqSegment not found for num {req_seg.num}", self.__attr)
-                    return False
+                    return no()
                 if not self.__validate_segment_pair(req_seg, seg_state):
-                    return await self.__set_live_to_invalid()
+                    return critical()
                 if i == len(matched_req_segments) - 1:
                     req_b = await self.__seg_http.get_bytes(url=req_seg.url, retry_limit=self.__req_retry_limit)
                     if len(req_b) != seg_state.size:
                         log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, len(req_b)))
-                        return await self.__set_live_to_invalid()
-            return True
+                        return critical()
+            return ok()
         except BaseException as ex:
             log.error("Validate segments failed", self.__error_attr(ex))
-            return False
+            return no()
 
     async def validate_segment(
         self,
@@ -101,31 +101,31 @@ class SegmentStateValidator:
     ) -> SegmentInspect:
         try:
             if latest_num is None:
-                return SegmentInspect(ok=True, critical=False)  # init recording
+                return ok()  # init recording
 
             if self.__is_invalid_num(seg.num, latest_num):
                 attr = self.__seg_attr(seg)
                 attr["latest_num"] = latest_num
                 log.error("Segment number difference is too large", attr)
-                return await self.__set_live_to_invalid_and_return_critical()
+                return critical()
 
             if not await success_nums.contains(seg.num):
-                return SegmentInspect(ok=True, critical=False)  # unsuccessful segment
+                return ok()  # unsuccessful segment
 
             seg_state = await self.__seg_state_service.get(seg.num)
             if seg_state is None:
                 log.error(f"Segment {seg.num} not found", self.__seg_attr(seg))
-                return await self.__set_live_to_invalid_and_return_critical()
+                return no()
 
             if not self.__validate_segment_pair(seg, seg_state):
                 log.error("Invalid duplicated segment", self.__pair_attr(seg, seg_state))
-                return await self.__set_live_to_invalid_and_return_critical()
+                return critical()
             else:
                 log.debug("Duplicated segment", self.__seg_attr(seg))
-                return SegmentInspect(ok=False, critical=False)
+                return no()
         except BaseException as ex:
             log.error("Failed to validate segment", self.__error_attr(ex))
-            return SegmentInspect(ok=False, critical=True)
+            return no()
 
     def __is_invalid_num(self, num: int, latest_num: int) -> bool:
         return abs(num - latest_num) > self.__invalid_seg_num_diff_threshold
@@ -146,18 +146,6 @@ class SegmentStateValidator:
             return False
 
         return True
-
-    async def __set_live_to_invalid(self) -> bool:  # only return False
-        await self.__live_state_service.update_to_invalid_live(
-            record_id=self.__seg_state_service.live_record_id,
-            is_invalid=True,
-        )
-        log.error("LiveState marked as invalid", self.__attr)
-        return False
-
-    async def __set_live_to_invalid_and_return_critical(self) -> SegmentInspect:
-        await self.__set_live_to_invalid()
-        return SegmentInspect(ok=False, critical=True)
 
     def __pair_attr(self, req_seg: Segment, seg_state: SegmentState, req_size: int | None = None) -> dict[str, Any]:
         attr = self.__attr.copy()
@@ -184,3 +172,15 @@ class SegmentStateValidator:
         for k, v in error_dict(ex).items():
             attr[k] = v
         return attr
+
+
+def ok():
+    return SegmentInspect(ok=True, critical=False)
+
+
+def no():
+    return SegmentInspect(ok=False, critical=False)
+
+
+def critical():
+    return SegmentInspect(ok=False, critical=True)
