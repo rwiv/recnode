@@ -143,7 +143,7 @@ class SegmentStateService:
 
     def __error_attr(self, ex: Exception, extra: dict | None = None) -> dict:
         attr = self.__attr.copy()
-        for k, v in error_dict(ex):
+        for k, v in error_dict(ex).items():
             attr[k] = v
         if extra:
             for k, v in extra.items():
