@@ -64,6 +64,14 @@ class BatchRunner:
             if recorder.recording_thread is not None:
                 recorder.recording_thread.join()
 
+        while True:
+            if recorder.is_done:
+                if recorder.recording_thread is not None:
+                    recorder.recording_thread.join()
+                log.info("Recording done")
+                break
+            await asyncio.sleep(1)
+
     async def get_state(self, conf: BatchConfig):
         streams = get_streams(url=conf.url, args=StreamLinkSessionArgs(cookie_header=conf.cookie))
         if streams is None:
