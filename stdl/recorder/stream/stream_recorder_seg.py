@@ -256,7 +256,11 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         # Process segments
         for new_seg in segments:
-            if await self.__is_done_seg(new_seg.num) or self.processing_nums.contains(new_seg.num):
+            if self.processing_nums.contains(new_seg.num):
+                continue
+            if await self.__is_done_seg(new_seg.num):
+                continue
+            if await self.retrying_nums.contains(new_seg.num):
                 continue
             if await self.seg_state_service.is_locked(seg_num=new_seg.num, lock_num=FIRST_SEG_LOCK_NUM):
                 continue
@@ -312,11 +316,15 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         lock = await self.seg_state_service.acquire_lock(seg)
         if lock is None:
-            # log.debug("Failed to acquire segment")
+            log.debug(f"Failed to acquire segment {seg.num}")
             return
+
+        if not seg.is_retrying:
+            await self.processing_nums.add(seg.num)
 
         req_start = asyncio.get_event_loop().time()
         try:
+            await self.seg_state_service.set(seg, nx=False)
             await self.seg_request_counter.increment()
             if seg.is_retrying:
                 await self.seg_state_service.increment_retry_count(seg.num)
@@ -328,9 +336,9 @@ class SegmentedStreamRecorder(StreamRecorder):
                 extra=self.seg_duration_hist,
             )
 
-            # await asyncio.sleep(2)
-            # if TEST_FLAG and not seg.is_failed:  # TODO: remove (only for test)
-            #     if random.random() < 0.8:
+            # await asyncio.sleep(4)
+            # if TEST_FLAG:  # TODO: remove (only for test)
+            #     if random.random() < 0.7:
             #         raise ValueError("Simulated error")
 
             if await self.success_nums.contains(seg.num):
@@ -343,8 +351,9 @@ class SegmentedStreamRecorder(StreamRecorder):
             seg.size = len(b)
 
             await self.success_nums.set(seg.num)
-            await self.seg_state_service.set_nx(seg)
+            await self.retrying_nums.remove(seg.num)
             await self.processing_nums.remove(seg.num)
+            await self.seg_state_service.set(seg, nx=False)
             if seg.is_retrying:
                 await self.retrying_nums.remove(seg.num)
             await self.failed_nums.remove(seg.num)

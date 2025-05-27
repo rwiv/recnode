@@ -66,7 +66,7 @@ class SegmentStateService:
         return SegmentState(**json.loads(txt))
 
     async def set_nx(self, state: SegmentState) -> bool:
-        return await self.__set(state=state, nx=True)
+        return await self.set(state=state, nx=True)
 
     async def update_to_retrying(self, num: int, parallel_limit: int) -> bool:
         state = await self.get(num)
@@ -75,7 +75,7 @@ class SegmentStateService:
         state.is_retrying = True
         state.parallel_limit = parallel_limit
         state.updated_at = datetime.now()
-        return await self.__set(state=state, nx=False)
+        return await self.set(state=state, nx=False)
 
     async def acquire_lock(self, state: SegmentState) -> SegmentLock | None:
         for lock_num in range(state.parallel_limit):
@@ -129,7 +129,7 @@ class SegmentStateService:
             return await self.__str.delete(key)
         return False
 
-    async def __set(self, state: SegmentState, nx: bool) -> bool:
+    async def set(self, state: SegmentState, nx: bool) -> bool:
         return await self.__str.set(
             key=self.__get_key(state.num),
             value=state.model_dump_json(by_alias=True, exclude_none=True),
