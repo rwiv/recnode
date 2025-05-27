@@ -42,7 +42,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         incomplete_dir_path: str,
     ):
         super().__init__(live, args, writer, metric, incomplete_dir_path)
-        self.min_delay_sec = 0.7
+        self.min_delay_sec = 1.0
         self.max_delay_sec = 1.2
         self.m3u8_retry_limit = req_conf.m3u8_retry_limit
         self.seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
@@ -58,6 +58,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.m3u8_duration_hist = metric.create_m3u8_request_duration_histogram()
         self.seg_duration_hist = metric.create_segment_request_duration_histogram()
         self.seg_retry_hist = metric.create_segment_request_retry_histogram()
+        self.seg_failure_counter = AsyncCounter()
         self.seg_request_counter = AsyncCounter()
         self.m3u8_retry_counter = AsyncCounter()
 
@@ -114,15 +115,9 @@ class SegmentedStreamRecorder(StreamRecorder):
     async def __get_stats(self, full: bool = False) -> dict:
         processing_nums = self.processing_nums.list()
 
-        retrying_cnt = await self.retrying_nums.size()
-        success_cnt = await self.success_nums.size()
-        failed_cnt = await self.failed_nums.size()
         result = {
             "processing_total": len(processing_nums),
-            "retrying_total": retrying_cnt,
-            "success_total": success_cnt,
-            "failed_total": failed_cnt,
-            "done_total": success_cnt + failed_cnt,
+            "failed_total": self.seg_failure_counter.get(),
             "segment_request_total": self.seg_request_counter.get(),
             "segment_request_retry_total": self.seg_retry_hist.total_sum,
             "segment_request_retry_avg": round(self.seg_retry_hist.avg(), 3),
@@ -130,12 +125,9 @@ class SegmentedStreamRecorder(StreamRecorder):
             "m3u8_request_duration_avg": round(self.m3u8_duration_hist.avg(), 3),
         }
         if full:
+            result["processing_nums"] = ",".join(processing_nums)
             result["redis_using_connection_count"] = len(self.redis.connection_pool._in_use_connections)
             result["redis_available_connection_count"] = len(self.redis.connection_pool._available_connections)
-            result["processing_nums"] = processing_nums
-            result["retrying_nums"] = retrying_cnt
-            result["failed_nums"] = await self.failed_nums.all()
-            result["success_nums"] = await self.success_nums.all()
         return result
 
     async def __check_status(self):
@@ -380,6 +372,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                     async with self.success_nums.lock():
                         if not await self.success_nums.contains(seg.num):
                             await self.failed_nums.set(seg.num)
+                            await self.seg_failure_counter.increment()
                     await self.metric.inc_segment_request_failures(
                         platform=self.ctx.live.platform,
                     )

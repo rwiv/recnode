@@ -1,33 +1,17 @@
 import asyncio
 import logging
-import uuid
-from datetime import datetime
 
-import yaml
-from pydantic import BaseModel
 from pyutils import log
 from redis.asyncio import Redis
-from streamlink.stream.hls.hls import HLSStream
 
+from .stream_utils import get_state, read_conf
 from ..config import get_env
-from ..data.live import LiveState, LiveStateService
+from ..data.live import LiveStateService
 from ..data.redis import create_redis_pool
-from ..fetcher import PlatformFetcher
 from ..file import create_fs_writer
 from ..metric import MetricManager
 from ..recorder import RecorderResolver
-from ..utils import StreamLinkSessionArgs, get_streams, disable_streamlink_log
-
-
-class BatchConfig(BaseModel):
-    url: str
-    cookie: str | None = None
-
-
-def read_conf(config_path: str) -> BatchConfig:
-    with open(config_path, "r") as file:
-        text = file.read()
-    return BatchConfig(**yaml.load(text, Loader=yaml.FullLoader))
+from ..utils import disable_streamlink_log
 
 
 async def async_input(prompt: str) -> str:
@@ -38,10 +22,9 @@ async def async_input(prompt: str) -> str:
 class BatchRunner:
     def __init__(self):
         self.env = get_env()
-        metric = MetricManager()
-        writer = create_fs_writer(self.env, metric)
-        self.fetcher = PlatformFetcher(metric)
-        self.recorder_resolver = RecorderResolver(self.env, writer, metric)
+        self.metric = MetricManager()
+        self.writer = create_fs_writer(self.env, self.metric)
+        self.recorder_resolver = RecorderResolver(self.env, self.writer, self.metric)
 
     async def run(self):
         log.set_level(logging.DEBUG)
@@ -53,8 +36,9 @@ class BatchRunner:
 
         live_state_service = LiveStateService(Redis(connection_pool=create_redis_pool(self.env.redis)))
 
-        state = await self.get_state(conf)
+        state = await get_state(url=conf.url, cookie_header=conf.cookie, metric=self.metric)
         await live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
+
         recorder = self.recorder_resolver.create_recorder(state=state)
         recorder.record()
 
@@ -71,44 +55,3 @@ class BatchRunner:
                 log.info("Recording done")
                 break
             await asyncio.sleep(1)
-
-    async def get_state(self, conf: BatchConfig):
-        streams = get_streams(url=conf.url, args=StreamLinkSessionArgs(cookie_header=conf.cookie))
-        if streams is None:
-            log.error("Failed to get live streams")
-            raise ValueError("Failed to get live streams")
-
-        stream: HLSStream | None = streams.get("best")
-        if stream is None:
-            raise ValueError("Failed to get best stream")
-
-        # Set http session context
-        stream_url = stream.url
-        headers = {}
-        for k, v in stream.session.http.headers.items():
-            headers[k] = v
-        if conf.cookie is not None:
-            headers["Cookie"] = conf.cookie
-
-        if len(self.fetcher.headers) == 0:
-            self.fetcher.set_headers(headers)
-
-        live = await self.fetcher.fetch_live_info(conf.url)
-        if live is None:
-            raise ValueError("Channel not live")
-
-        now = datetime.now()
-        return LiveState(
-            id=str(uuid.uuid4()),
-            platform=live.platform,
-            channelId=live.channel_id,
-            channelName=live.channel_name,
-            liveId=live.live_id,
-            liveTitle=live.live_title,
-            streamUrl=stream_url,
-            headers=headers,
-            videoName=now.strftime("%Y%m%d_%H%M%S"),
-            isInvalid=False,
-            createdAt=now,
-            updatedAt=now,
-        )

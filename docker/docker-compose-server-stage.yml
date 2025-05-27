@@ -11,14 +11,105 @@ services:
       FS_CONFIG_PATH: /app/fs_conf.yaml
 
       TMP_DIR_PATH: /app/tmp
+      OUT_DIR_PATH: /app/out
+
+      M3U8_RETRY_LIMIT: "${M3U8_RETRY_LIMIT}"
+      M3U8_TIMEOUT_SEC: "${M3U8_TIMEOUT_SEC}"
+      SEG_TIMEOUT_SEC: "${SEG_TIMEOUT_SEC}"
+      SEG_PARALLEL_RETRY_LIMIT: "${SEG_PARALLEL_RETRY_LIMIT}"
+      SEG_FAILURE_THRESHOLD_RATIO: "${SEG_FAILURE_THRESHOLD_RATIO}"
 
       REDIS_HOST: "${REDIS_HOST}"
       REDIS_PORT: "${REDIS_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
       REDIS_CA_PATH: /app/ca.crt
+      REDIS_POOL_SIZE_LIMIT: "${REDIS_POOL_SIZE_LIMIT}"
+
+      REDIS_LOCK_EXPIRE_MS: "${REDIS_LOCK_EXPIRE_MS}"
+      REDIS_LOCK_WAIT_SEC: "${REDIS_LOCK_WAIT_SEC}"
+      REDIS_SEG_EXPIRE_SEC: "${REDIS_SEG_EXPIRE_SEC}"
+      REDIS_LIVE_EXPIRE_SEC: "${REDIS_LIVE_EXPIRE_SEC}"
     entrypoint: python -m stdl server
     ports:
       - "13201:${SERVER_PORT}"
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${OUT_DIR_PATH}:/app/out"
+      - "${REDIS_CA_PATH}:/app/ca.crt"
+      - "../stdl:/app/stdl"
+  stdl-server2:
+    image: stdl:latest
+    container_name: stdl-server2
+    environment:
+      PY_ENV: prod
+      SERVER_PORT: "${SERVER_PORT}"
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
+
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+
+      TMP_DIR_PATH: /app/tmp
+      OUT_DIR_PATH: /app/out
+
+      M3U8_RETRY_LIMIT: "${M3U8_RETRY_LIMIT}"
+      M3U8_TIMEOUT_SEC: "${M3U8_TIMEOUT_SEC}"
+      SEG_TIMEOUT_SEC: "${SEG_TIMEOUT_SEC}"
+      SEG_PARALLEL_RETRY_LIMIT: "${SEG_PARALLEL_RETRY_LIMIT}"
+      SEG_FAILURE_THRESHOLD_RATIO: "${SEG_FAILURE_THRESHOLD_RATIO}"
+
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_CA_PATH: /app/ca.crt
+      REDIS_POOL_SIZE_LIMIT: "${REDIS_POOL_SIZE_LIMIT}"
+
+      REDIS_LOCK_EXPIRE_MS: "${REDIS_LOCK_EXPIRE_MS}"
+      REDIS_LOCK_WAIT_SEC: "${REDIS_LOCK_WAIT_SEC}"
+      REDIS_SEG_EXPIRE_SEC: "${REDIS_SEG_EXPIRE_SEC}"
+      REDIS_LIVE_EXPIRE_SEC: "${REDIS_LIVE_EXPIRE_SEC}"
+    entrypoint: python -m stdl server
+    ports:
+      - "13202:${SERVER_PORT}"
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${OUT_DIR_PATH}:/app/out"
+      - "${REDIS_CA_PATH}:/app/ca.crt"
+      - "../stdl:/app/stdl"
+  stdl-server3:
+    image: stdl:latest
+    container_name: stdl-server3
+    environment:
+      PY_ENV: prod
+      SERVER_PORT: "${SERVER_PORT}"
+      SEG_SIZE_MB: "${SEG_SIZE_MB}"
+
+      FS_NAME: "${FS_NAME}"
+      FS_CONFIG_PATH: /app/fs_conf.yaml
+
+      TMP_DIR_PATH: /app/tmp
+      OUT_DIR_PATH: /app/out
+
+      M3U8_RETRY_LIMIT: "${M3U8_RETRY_LIMIT}"
+      M3U8_TIMEOUT_SEC: "${M3U8_TIMEOUT_SEC}"
+      SEG_TIMEOUT_SEC: "${SEG_TIMEOUT_SEC}"
+      SEG_PARALLEL_RETRY_LIMIT: "${SEG_PARALLEL_RETRY_LIMIT}"
+      SEG_FAILURE_THRESHOLD_RATIO: "${SEG_FAILURE_THRESHOLD_RATIO}"
+
+      REDIS_HOST: "${REDIS_HOST}"
+      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
+      REDIS_CA_PATH: /app/ca.crt
+      REDIS_POOL_SIZE_LIMIT: "${REDIS_POOL_SIZE_LIMIT}"
+
+      REDIS_LOCK_EXPIRE_MS: "${REDIS_LOCK_EXPIRE_MS}"
+      REDIS_LOCK_WAIT_SEC: "${REDIS_LOCK_WAIT_SEC}"
+      REDIS_SEG_EXPIRE_SEC: "${REDIS_SEG_EXPIRE_SEC}"
+      REDIS_LIVE_EXPIRE_SEC: "${REDIS_LIVE_EXPIRE_SEC}"
+    entrypoint: python -m stdl server
+    ports:
+      - "13203:${SERVER_PORT}"
+    volumes:
+      - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
+      - "${OUT_DIR_PATH}:/app/out"
+      - "${REDIS_CA_PATH}:/app/ca.crt"
       - "../stdl:/app/stdl"
