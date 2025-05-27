@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from pyutils import log, error_dict
 
 from .seg_num_set import SegmentNumberSet
-from .seg_state_service import SegmentState, Segment, SegmentStateService
+from .seg_state_service import SegmentState, SegmentStateService
 from ..live import LiveStateService
 from ...utils import AsyncHttpClient
 
@@ -42,7 +42,7 @@ class SegmentStateValidator:
 
     async def validate_segments(
         self,
-        req_segments: list[Segment],
+        req_segments: list[SegmentState],
         latest_num: int | None,
         success_nums: SegmentNumberSet,
     ) -> SegmentInspect:
@@ -95,7 +95,7 @@ class SegmentStateValidator:
 
     async def validate_segment(
         self,
-        seg: Segment,
+        seg: SegmentState,
         latest_num: int | None,
         success_nums: SegmentNumberSet,
     ) -> SegmentInspect:
@@ -130,24 +130,26 @@ class SegmentStateValidator:
     def __is_invalid_num(self, num: int, latest_num: int) -> bool:
         return abs(num - latest_num) > self.__invalid_seg_num_diff_threshold
 
-    def __validate_segment_pair(self, req_seg: Segment, seg_state: SegmentState) -> bool:
-        if req_seg.url != seg_state.url:
-            log.error("URL mismatch", self.__pair_attr(req_seg, seg_state))
+    def __validate_segment_pair(self, req_seg: SegmentState, old_seg: SegmentState) -> bool:
+        if req_seg.url != old_seg.url:
+            log.error("URL mismatch", self.__pair_attr(req_seg, old_seg))
             return False
-        if req_seg.duration != seg_state.duration:
-            log.error("Duration mismatch", self.__pair_attr(req_seg, seg_state))
+        if req_seg.duration != old_seg.duration:
+            log.error("Duration mismatch", self.__pair_attr(req_seg, old_seg))
             return False
 
-        diff = datetime.now() - seg_state.created_at
+        diff = datetime.now() - old_seg.created_at
         if diff.seconds > self.__invalid_seg_time_diff_threshold_sec:
-            attr = self.__pair_attr(req_seg, seg_state)
+            attr = self.__pair_attr(req_seg, old_seg)
             attr["current_time"] = datetime.now().isoformat()
             log.error("created_at mismatch", attr)
             return False
 
         return True
 
-    def __pair_attr(self, req_seg: Segment, seg_state: SegmentState, req_size: int | None = None) -> dict[str, Any]:
+    def __pair_attr(
+        self, req_seg: SegmentState, seg_state: SegmentState, req_size: int | None = None
+    ) -> dict[str, Any]:
         attr = self.__attr.copy()
         attr["seg_request"] = req_seg.to_dict()
         if req_size is not None:
@@ -155,15 +157,9 @@ class SegmentStateValidator:
         attr["seg_state"] = seg_state.to_dict()
         return attr
 
-    def __state_attr(self, seg: SegmentState) -> dict[str, Any]:
+    def __seg_attr(self, seg: SegmentState) -> dict[str, Any]:
         attr = self.__attr.copy()
         attr["seg_state"] = seg.to_dict()
-        attr["current_time"] = datetime.now().isoformat()
-        return attr
-
-    def __seg_attr(self, seg: Segment) -> dict[str, Any]:
-        attr = self.__attr.copy()
-        attr["seg_request"] = seg.to_dict()
         attr["current_time"] = datetime.now().isoformat()
         return attr
 

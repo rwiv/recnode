@@ -1,77 +1,35 @@
 import asyncio
 import json
+import uuid
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pyutils import error_dict, log
 from redis.asyncio import Redis
 
 from .seg_num_set import SegmentNumberSet
-from ..redis import RedisString, RedisPubSubLock
+from ..redis import RedisString
+
+
+class SegmentLock(BaseModel):
+    token: UUID
+    seg_num: int
+    lock_num: int
 
 
 class SegmentState(BaseModel):
     num: int
     url: str
     duration: float
-    size: int
-    # parallel_limit: int
-    # retry_count: int
+    size: int | None = Field(default=None)
+    parallel_limit: int
+    is_retrying: bool = Field(default=False)
     created_at: datetime
     updated_at: datetime
 
     def to_dict(self):
         return self.model_dump(mode="json", by_alias=True)
-
-
-class Segment:
-    def __init__(self, num: int, url: str, duration: float, limit: int):
-        self.num = num
-        self.url = url
-        self.duration = duration
-        self.limit = limit
-        self.retry_count = 0
-
-        self.is_failed = False
-        self.__lock = asyncio.Lock()
-
-    def to_dict(self, full: bool = False):
-        result = {
-            "num": self.num,
-            "url": self.url,
-            "duration": self.duration,
-        }
-        if full:
-            result["limit"] = self.limit
-            result["retry_count"] = self.retry_count
-            result["is_failed"] = self.is_failed
-        return result
-
-    async def acquire(self) -> bool:
-        async with self.__lock:
-            if self.limit <= 0:
-                return False
-            self.limit -= 1
-            return True
-
-    async def release(self):
-        async with self.__lock:
-            self.limit += 1
-
-    async def increment_retry_count(self):
-        async with self.__lock:
-            self.retry_count += 1
-            return self.retry_count
-
-    def to_new_state(self, size: int) -> SegmentState:
-        return SegmentState(
-            url=self.url,
-            num=self.num,
-            duration=self.duration,
-            size=size,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-        )
 
 
 class SegmentStateService:
@@ -108,17 +66,74 @@ class SegmentStateService:
         return SegmentState(**json.loads(txt))
 
     async def set_nx(self, state: SegmentState) -> bool:
-        return await self.__str.set(
-            key=self.__get_key(state.num),
-            value=state.model_dump_json(by_alias=True, exclude_none=True),
-            nx=True,
-            px=self.__expire_ms,
-        )
+        return await self.__set(state=state, nx=True)
 
-    async def update(self, state: SegmentState) -> bool:
+    async def update_to_retrying(self, num: int, parallel_limit: int) -> bool:
+        state = await self.get(num)
+        if state is None:
+            return False
+        state.is_retrying = True
+        state.parallel_limit = parallel_limit
+        state.updated_at = datetime.now()
+        return await self.__set(state=state, nx=False)
+
+    async def acquire_lock(self, state: SegmentState) -> SegmentLock | None:
+        for lock_num in range(state.parallel_limit):
+            lock = await self._acquire_lock(seg_num=state.num, lock_num=lock_num)
+            if lock is not None:
+                return lock
+        return None
+
+    async def _acquire_lock(self, seg_num: int, lock_num: int) -> SegmentLock | None:
+        token = uuid.uuid4()
+        result = await self.__str.set(
+            key=self.__get_lock_key(seg_num=seg_num, lock_num=lock_num),
+            value=str(token),
+            nx=True,
+            px=self.__lock_expire_ms,
+        )
+        if result:
+            return SegmentLock(token=token, seg_num=seg_num, lock_num=lock_num)
+        else:
+            return None
+
+    async def release_lock(self, lock: SegmentLock):
+        key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
+        current_token = await self.__str.get(key)
+        if current_token is None:
+            raise ValueError("Cannot release lock: lock does not exist")
+        if current_token != str(lock.token):
+            raise ValueError("Cannot release lock: token mismatch")
+        result = await self.__str.delete(key)
+        if not result:
+            raise ValueError("Failed to release lock")
+
+    async def is_locked(self, seg_num: int, lock_num: int) -> bool:
+        key = self.__get_lock_key(seg_num=seg_num, lock_num=lock_num)
+        return await self.__str.contains(key)
+
+    async def increment_retry_count(self, seg_num: int):
+        key = self.__get_retry_key(seg_num=seg_num)
+        return await self.__str.incr(key)
+
+    async def get_retry_count(self, seg_num: int) -> int:
+        key = self.__get_retry_key(seg_num=seg_num)
+        count = await self.__str.get(key)
+        if count is None:
+            return 0
+        return int(count)
+
+    async def clear_retry_count(self, seg_num: int) -> bool:
+        key = self.__get_retry_key(seg_num=seg_num)
+        if await self.__str.contains(key):
+            return await self.__str.delete(key)
+        return False
+
+    async def __set(self, state: SegmentState, nx: bool) -> bool:
         return await self.__str.set(
             key=self.__get_key(state.num),
             value=state.model_dump_json(by_alias=True, exclude_none=True),
+            nx=nx,
             px=self.__expire_ms,
         )
 
@@ -130,16 +145,14 @@ class SegmentStateService:
             await self.delete(num)
         await nums.clear()
 
-    def lock(self, num: int) -> RedisPubSubLock:
-        return RedisPubSubLock(
-            client=self.__client,
-            key=f"{self.__get_key(num)}:lock",
-            expire_ms=self.__lock_expire_ms,
-            timeout_sec=self.__lock_wait_timeout_sec,
-        )
-
     def __get_key(self, num: int) -> str:
         return f"live:{self.live_record_id}:segment:{num}"
+
+    def __get_lock_key(self, seg_num: int, lock_num: int) -> str:
+        return f"{self.__get_key(seg_num)}:lock:{lock_num}"
+
+    def __get_retry_key(self, seg_num: int) -> str:
+        return f"{self.__get_key(seg_num)}:retry"
 
     def __error_attr(self, ex: Exception, extra: dict | None = None) -> dict:
         attr = self.__attr.copy()

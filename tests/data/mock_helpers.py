@@ -3,7 +3,7 @@ from datetime import datetime
 
 from stdl.common import PlatformType
 from stdl.data.live import LiveState
-from stdl.data.segment import SegmentState, Segment
+from stdl.data.segment import SegmentState
 
 
 def live(id: str = str(uuid.uuid4())):
@@ -18,24 +18,24 @@ def live(id: str = str(uuid.uuid4())):
         headers=None,
         videoName="test_video",
         isInvalid=False,
+        createdAt=datetime.now(),
+        updatedAt=datetime.now(),
     )
 
 
-def s1(num: int, url: str = "https://example.com", duration: float = 2.0):
-    return Segment(
+def seg(
+    num: int,
+    created_at: datetime = datetime.now(),
+    url: str = "https://example.com",
+    duration: float = 2.0,
+    size: int = 100,
+):
+    return SegmentState(
         url=url,
         num=num,
         duration=duration,
-        limit=1,
-    )
-
-
-def s2(num: int, created_at: datetime = datetime.now(), size: int = 100):
-    return SegmentState(
-        url="https://example.com",
-        num=num,
-        duration=2.0,
         size=size,
+        parallel_limit=1,
         created_at=created_at,
         updated_at=datetime.now(),
     )

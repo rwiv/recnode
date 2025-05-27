@@ -28,6 +28,12 @@ class RedisString:
     async def get(self, key: str) -> str | None:
         return await self.__redis.get(key)
 
+    async def mget(self, keys: list[str]) -> list[str | None]:
+        results = await self.__redis.mget(keys=keys)
+        if not isinstance(results, list):
+            raise RedisError("Expected list data", 500)
+        return results
+
     async def delete(self, key: str) -> bool:  # return True if deleted
         deleted = await self.__redis.delete(key)
         if not isinstance(deleted, int):
@@ -39,3 +45,9 @@ class RedisString:
         if not isinstance(result, int):
             raise RedisError("Expected integer data", 500)
         return result == 1
+
+    async def incr(self, key: str, amount: int = 1) -> int:
+        result = await self.__redis.incr(name=key, amount=amount)
+        if not isinstance(result, int):
+            raise RedisError("Expected integer data", 500)
+        return result

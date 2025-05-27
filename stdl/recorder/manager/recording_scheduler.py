@@ -24,9 +24,9 @@ class RecordingScheduler:
         self.__check_thread: threading.Thread | None = None
         self.__start_monitoring_states()
 
-    def ger_status(self, with_stats: bool = False, full_stats: bool = False, with_resources: bool = False):
+    async def get_status(self, with_stats: bool = False, full_stats: bool = False, with_resources: bool = False):
         recorders = [
-            recorder.get_status(with_stats=with_stats, full_stats=full_stats)
+            await recorder.get_status(with_stats=with_stats, full_stats=full_stats)
             for recorder in self.__recorder_map.values()
         ]
         result: dict = {

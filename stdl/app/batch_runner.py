@@ -97,6 +97,7 @@ class BatchRunner:
         if live is None:
             raise ValueError("Channel not live")
 
+        now = datetime.now()
         return LiveState(
             id=str(uuid.uuid4()),
             platform=live.platform,
@@ -106,6 +107,8 @@ class BatchRunner:
             liveTitle=live.live_title,
             streamUrl=stream_url,
             headers=headers,
-            videoName=datetime.now().strftime("%Y%m%d_%H%M%S"),
+            videoName=now.strftime("%Y%m%d_%H%M%S"),
             isInvalid=False,
+            createdAt=now,
+            updatedAt=now,
         )

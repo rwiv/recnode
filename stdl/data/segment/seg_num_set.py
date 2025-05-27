@@ -3,7 +3,10 @@ import asyncio
 from pyutils import log, error_dict
 from redis.asyncio import Redis
 
-from ..redis import RedisSortedSet, RedisPubSubLock
+from ..redis import RedisSortedSet, RedisSpinLock
+
+
+LOCK_RETRY_INTERVAL_SEC = 0.1
 
 
 class SegmentNumberSet:
@@ -58,10 +61,11 @@ class SegmentNumberSet:
         return [int(i) for i in result]
 
     async def remove(self, num: int):
-        await self.__sorted_set.remove_by_score(self.__get_key(), num, num)
+        if await self.contains(num):
+            await self.__sorted_set.remove_by_value(self.__get_key(), str(num))
 
     async def contains(self, num: int) -> bool:
-        return await self.__sorted_set.contains_by_score(self.__get_key(), num)
+        return await self.__sorted_set.contains_by_value(self.__get_key(), str(num))
 
     async def size(self) -> int:
         return await self.__sorted_set.size(self.__get_key())
@@ -69,12 +73,13 @@ class SegmentNumberSet:
     async def clear(self):
         await self.__sorted_set.clear(self.__get_key())
 
-    def lock(self) -> RedisPubSubLock:
-        return RedisPubSubLock(
+    def lock(self) -> RedisSpinLock:
+        return RedisSpinLock(
             client=self.__client,
             key=f"{self.__get_key()}:lock",
             expire_ms=self.__lock_expire_ms,
             timeout_sec=self.__lock_wait_timeout_sec,
+            retry_sec=LOCK_RETRY_INTERVAL_SEC,
         )
 
     def __get_key(self):

@@ -54,7 +54,7 @@ class StreamRecorder(ABC):
         pass
 
     @abstractmethod
-    def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
+    async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         pass
 
     async def check_tmp_dir(self):

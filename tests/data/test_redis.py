@@ -35,6 +35,17 @@ async def test_redis_str():
     assert await redis_str.delete(key)
     assert not await redis_str.delete(key)
 
+    assert await redis_str.get(key) is None
+    assert await redis_str.incr(key, 2) == 2
+    assert await redis_str.incr(key, 1) == 3
+    assert await redis_str.get(key) == "3"
+    assert await redis_str.delete(key)
+
+    keys = [f"{key}:1", f"{key}:2", f"{key}:3"]
+    await redis_str.set(f"{key}:1", "ok")
+    await redis_str.set(f"{key}:3", "ok")
+    assert await redis_str.mget(keys) == ["ok", None, "ok"]
+
 
 @pytest.mark.asyncio
 async def test_redis_queue():
@@ -52,7 +63,7 @@ async def test_redis_queue():
 
 
 @pytest.mark.asyncio
-async def test_redis_sroted_set():
+async def test_redis_sorted_set():
     key = "test3"
     await test_clear()
     assert await redis_sorted_set.get_highest(key) is None
@@ -63,6 +74,7 @@ async def test_redis_sroted_set():
     assert await redis_sorted_set.get_highest(key) == "c"
     assert not await redis_sorted_set.contains_by_score(key, 2)
     assert await redis_sorted_set.contains_by_score(key, 3)
+    assert await redis_sorted_set.contains_by_value(key, "c")
     assert await redis_sorted_set.range_by_score(key, 1, 2) == []
     assert await redis_sorted_set.range_by_score(key, 3, 5) == ["a", "b"]
     assert await redis_sorted_set.remove_by_score(key, 2, 5) == 2

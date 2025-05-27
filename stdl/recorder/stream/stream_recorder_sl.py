@@ -37,7 +37,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
     def wait_for_live(self) -> dict[str, HLSStream] | None:
         return self.helper.wait_for_live()
 
-    def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
+    async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         info = self.ctx.to_status(
             fs_name=self.writer.fs_name,
             num=self.idx,

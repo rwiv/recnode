@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 from ...common import PlatformType
@@ -14,3 +16,5 @@ class LiveState(BaseModel):
     headers: dict[str, str] | None = None
     video_name: str = Field(alias="videoName")
     is_invalid: bool = Field(alias="isInvalid")
+    created_at: datetime = Field(alias="createdAt")
+    updated_at: datetime = Field(alias="updatedAt")

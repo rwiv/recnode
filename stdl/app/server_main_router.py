@@ -64,7 +64,7 @@ class MainController:
         self.__scheduler.cancel(state)
         return "ok"
 
-    def get_status(self, fields: str | None = None):
+    async def get_status(self, fields: str | None = None):
         field_elems = fields.split(",") if fields else []
 
         with_stats = False
@@ -80,7 +80,7 @@ class MainController:
         if "resources" in field_elems:
             with_resources = True
 
-        return self.__scheduler.ger_status(
+        return await self.__scheduler.get_status(
             with_stats=with_stats,
             full_stats=full_stats,
             with_resources=with_resources,
