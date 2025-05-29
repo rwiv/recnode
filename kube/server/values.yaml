@@ -36,8 +36,8 @@ nodeName: ~
 gateway: istio-system/internal-gateway
 
 redis:
-  host: stdl-redis.rwiv.xyz
-  port: 30211
+  host: stdl-redis-master.media.svc.cluster.local
+  port: 6379
   auth:
     secretName: stdl-redis-auth
     passwordKey: password

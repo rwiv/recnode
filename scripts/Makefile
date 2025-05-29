@@ -255,7 +255,7 @@ helm-stage-server-run:
 		--set vpn.hostName=stdl-vpn-521.home.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy.stage.svc.cluster.local \
 		--set gateway=istio-system/internal-gateway \
-		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.host=stdl-redis-master.stage.svc.cluster.local \
 		--set redis.port=6379 \
 		--set redis.data.liveExpireSec=60 \
 		--set redis.data.segExpireSec=60 \
@@ -269,7 +269,7 @@ helm-stage-server-run:
 		--set plain.hostName=stdl-plain-522.home.rwiv.xyz \
 		--set vpn.enabled=false \
 		--set gateway=istio-system/internal-gateway \
-		--set redis.host=stdl-redis-stage.rwiv.xyz \
+		--set redis.host=stdl-redis-master.stage.svc.cluster.local \
 		--set redis.port=6379 \
 		--set redis.data.liveExpireSec=60 \
 		--set redis.data.segExpireSec=60 \
