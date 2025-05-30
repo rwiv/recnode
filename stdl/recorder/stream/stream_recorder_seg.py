@@ -382,7 +382,10 @@ class SegmentedStreamRecorder(StreamRecorder):
                     await self.seg_state_service.clear_retry_count(seg.num)
                     log.error("Failed to process segment", self.__error_attr(ex, num=seg.num))
         finally:
-            await self.seg_state_service.release_lock(lock)
+            try:
+                await self.seg_state_service.release_lock(lock)
+            except BaseException as ex:
+                log.error("Failed to release segment lock", self.__error_attr(ex, num=seg.num))
 
     async def __close_recording(self):
         current_task = asyncio.current_task()

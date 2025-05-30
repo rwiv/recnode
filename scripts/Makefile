@@ -1,4 +1,4 @@
-APP_VERSION=0.6.5
+APP_VERSION=0.6.6
 
 stage-run: helm-stage-server-run
 stage-rm: helm-stage-server-rm

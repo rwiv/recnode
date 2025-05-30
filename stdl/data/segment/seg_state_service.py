@@ -101,9 +101,10 @@ class SegmentStateService:
         key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
         current_token = await self.__str.get(key)
         if current_token is None:
-            raise ValueError("Cannot release lock: lock does not exist")
+            log.debug("Lock does not exist")
+            return
         if current_token != str(lock.token):
-            raise ValueError("Cannot release lock: token mismatch")
+            raise ValueError("Lock Token mismatch")
         result = await self.__str.delete(key)
         if not result:
             raise ValueError("Failed to release lock")
