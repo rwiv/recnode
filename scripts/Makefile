@@ -257,8 +257,6 @@ helm-stage-server-run:
 		--set gateway=istio-system/internal-gateway \
 		--set redis.host=stdl-redis-master.stage.svc.cluster.local \
 		--set redis.port=6379 \
-		--set redis.data.liveExpireSec=60 \
-		--set redis.data.segExpireSec=60 \
 		--set nodeName=vm-52
 	-@helm install stdl-server-522 ../kube/server -n stage \
 		--set metadata.namespace=stage \
@@ -271,8 +269,6 @@ helm-stage-server-run:
 		--set gateway=istio-system/internal-gateway \
 		--set redis.host=stdl-redis-master.stage.svc.cluster.local \
 		--set redis.port=6379 \
-		--set redis.data.liveExpireSec=60 \
-		--set redis.data.segExpireSec=60 \
 		--set nodeName=vm-52
 
 helm-stage-server-rm:
