@@ -12,15 +12,24 @@ redis:
     existingSecret: stdl-redis-auth
     existingSecretPasswordKey: password
   master:
-    count: 1
     service:
       type: NodePort
+      ports:
+        redis: 6379
       nodePorts:
         redis: 30211
     persistence:
       enabled: true
   replica:
-    replicaCount: 0
+    replicaCount: 3
+    service:
+      type: NodePort
+      ports:
+        redis: 6379
+      nodePorts:
+        redis: 30212
+    persistence:
+      enabled: false
   tls:
     enabled: true
     authClients: false
