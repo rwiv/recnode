@@ -79,10 +79,14 @@ class SegmentStateService:
     async def set_nx(self, state: SegmentState) -> bool:
         return await self.set(state=state, nx=True)
 
-    async def update_to_retrying(self, num: int, parallel_limit: int) -> bool:
-        state = await self.get(num)
-        if state is None:
-            return False
+    async def update_to_success(self, state: SegmentState, size: int, parallel_limit: int) -> bool:
+        state.is_retrying = False
+        state.size = size
+        state.parallel_limit = parallel_limit
+        state.updated_at = datetime.now()
+        return await self.set(state=state, nx=False)
+
+    async def update_to_retrying(self, state: SegmentState, parallel_limit: int) -> bool:
         state.is_retrying = True
         state.parallel_limit = parallel_limit
         state.updated_at = datetime.now()
@@ -112,7 +116,7 @@ class SegmentStateService:
         key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
         current_token = await self.__str.get(key)
         if current_token is None:
-            log.debug("Lock does not exist")
+            log.debug("Lock does not exist", {"key": key})
             return
         if current_token != str(lock.token):
             raise ValueError("Lock Token mismatch")
