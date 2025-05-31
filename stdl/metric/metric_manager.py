@@ -50,8 +50,8 @@ class MetricManager:
             buckets=segment_request_duration_buckets,
         )
         self.segment_request_retry_hist = PromHistogram(
-            "segment_request_retry",
-            "Retry counts of HLS segment requests in seconds",
+            "segment_request_retries",
+            "Count of HLS segment request retries",
             ["platform"],
             buckets=segment_request_retry_buckets,
         )
