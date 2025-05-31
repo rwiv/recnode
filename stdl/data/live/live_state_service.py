@@ -38,7 +38,7 @@ class LiveStateService:
         text = state.model_dump_json(by_alias=True, exclude_none=True)
         return await self.__str.set(key, text, nx=nx, px=req_px)
 
-    async def delete(self, record_id: str) -> bool:
+    async def delete(self, record_id: str) -> int:
         return await self.__str.delete(self.__get_key(record_id))
 
     def __get_key(self, record_id: str) -> str:

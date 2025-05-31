@@ -63,7 +63,7 @@ server:
   segSizeMb: 17
   reqConf:
     m3u8RetryLimit: 5
-    m3u8TimeoutSec: 10
+    m3u8TimeoutSec: 7
     segTimeoutSec: 8
     segParallelRetryLimit: 4
     segFailureThresholdRatio: 4

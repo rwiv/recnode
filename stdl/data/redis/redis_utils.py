@@ -1,3 +1,6 @@
+import functools
+import time
+
 from redis.asyncio import Redis, ConnectionPool, SSLConnection
 
 from ...config import RedisConfig
@@ -37,3 +40,15 @@ async def get_keys(client: Redis, match: str = "*", cnt: int = 100) -> list[str]
         if cursor == 0:
             break
     return keys
+
+
+def redis_metric(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = await func(*args, **kwargs)
+        duration = time.perf_counter() - start
+        print(duration)
+        return result
+
+    return wrapper

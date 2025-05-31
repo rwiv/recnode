@@ -34,11 +34,8 @@ class RedisString:
             raise RedisError("Expected list data", 500)
         return results
 
-    async def delete(self, key: str) -> bool:  # return True if deleted
-        deleted = await self.__redis.delete(key)
-        if not isinstance(deleted, int):
-            raise RedisError("Expected integer data", 500)
-        return deleted > 0
+    async def delete(self, key: str) -> int:  # return True if deleted
+        return await self.__redis.delete(key)
 
     async def contains(self, key: str) -> bool:
         result = await self.__redis.exists(key)

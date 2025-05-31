@@ -6,6 +6,7 @@ from .buckets import (
     m3u8_request_duration_buckets,
     segment_request_retry_buckets,
     object_write_duration_buckets,
+    interval_duration_buckets,
 )
 from .histogram import Histogram
 from ..common import PlatformType
@@ -19,6 +20,17 @@ class MetricManager:
             "Duration of HTTP API requests in seconds",
             ["platform"],
             buckets=api_request_duration_buckets,
+        )
+        self.redis_request_duration_hist = PromHistogram(
+            "redis_request_duration_seconds",
+            "Duration of Redis requests in seconds",
+            buckets=api_request_duration_buckets,
+        )
+        self.interval_duration_hist = PromHistogram(
+            "interval_duration_seconds",
+            "Duration of interval in seconds",
+            ["platform"],
+            buckets=interval_duration_buckets,
         )
         self.m3u8_request_duration_hist = PromHistogram(
             "m3u8_request_duration_seconds",
@@ -54,6 +66,12 @@ class MetricManager:
         if extra is not None:
             await extra.observe(duration)
 
+    def set_redis_request_duration(self, duration: float):
+        self.redis_request_duration_hist.observe(duration)
+
+    def set_interval_duration(self, duration: float, platform: PlatformType):
+        self.interval_duration_hist.labels(platform=platform.value).observe(duration)
+
     async def set_m3u8_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
         self.m3u8_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
@@ -87,3 +105,6 @@ class MetricManager:
 
     def create_segment_request_retry_histogram(self):
         return Histogram(segment_request_retry_buckets)
+
+
+metric = MetricManager()

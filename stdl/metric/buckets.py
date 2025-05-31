@@ -16,6 +16,23 @@ api_request_duration_buckets = [
     float("inf"),
 ]
 
+interval_duration_buckets = [
+    0.01,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    2.5,
+    5.0,
+    7.5,
+    10.0,
+    13.0,
+    17.0,
+    20.0,
+    float("inf"),
+]
+
 m3u8_request_duration_buckets = [
     0.005,
     0.01,

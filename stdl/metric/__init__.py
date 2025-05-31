@@ -2,7 +2,7 @@ import os
 import sys
 
 from .histogram import Histogram
-from .metric_manager import MetricManager
+from .metric_manager import MetricManager, metric
 
 targets = [
     "histogram",

@@ -26,6 +26,8 @@ TEST_FLAG = False
 MAP_NUM = -1
 INIT_PARALLEL_LIMIT = 1
 FIRST_SEG_LOCK_NUM = 0
+INTERVAL_MIN_DURATION_SEC = 1
+INTERVAL_WAIT_WEIGHT_SEC = 0.2
 SEG_TASK_PREFIX = "seg"
 
 
@@ -42,8 +44,6 @@ class SegmentedStreamRecorder(StreamRecorder):
         incomplete_dir_path: str,
     ):
         super().__init__(live, args, writer, metric, incomplete_dir_path)
-        self.min_delay_sec = 1.0
-        self.max_delay_sec = 1.2
         self.m3u8_retry_limit = req_conf.m3u8_retry_limit
         self.seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio
@@ -169,11 +169,12 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.is_done = True
 
     async def __interval(self, is_init: bool = False):
+        start_time = asyncio.get_event_loop().time()
         await self.__renew()
 
         # Fetch m3u8
+        req_start_time = asyncio.get_event_loop().time()
         try:
-            start_time = asyncio.get_event_loop().time()
             m3u8_text = await self.m3u8_http.get_text(
                 url=self.ctx.stream_url,
                 headers=self.ctx.headers,
@@ -182,12 +183,17 @@ class SegmentedStreamRecorder(StreamRecorder):
             )
             await self.m3u8_retry_counter.reset()
             await self.metric.set_m3u8_request_duration(
-                duration=asyncio.get_event_loop().time() - start_time,
+                duration=asyncio.get_event_loop().time() - req_start_time,
                 platform=self.ctx.live.platform,
                 extra=self.m3u8_duration_hist,
             )
         except Exception as ex:
             await self.m3u8_retry_counter.increment()
+            await self.metric.set_m3u8_request_duration(
+                duration=asyncio.get_event_loop().time() - req_start_time,
+                platform=self.ctx.live.platform,
+                extra=self.m3u8_duration_hist,
+            )
             live_info = await self.fetcher.fetch_live_info(self.ctx.live_url)
             if live_info is None:
                 self.done_flag = True
@@ -282,7 +288,13 @@ class SegmentedStreamRecorder(StreamRecorder):
             return
 
         # to prevent segment requests from being concentrated on a specific node
-        await asyncio.sleep(random.uniform(self.min_delay_sec, self.max_delay_sec))
+        wait_sec = random.uniform(0, INTERVAL_WAIT_WEIGHT_SEC)
+        duration = asyncio.get_event_loop().time() - start_time
+        self.metric.set_interval_duration(duration, self.ctx.live.platform)
+        if duration < INTERVAL_MIN_DURATION_SEC:
+            # if the duration is less than the threshold, wait for the remaining time
+            wait_sec += INTERVAL_MIN_DURATION_SEC - duration
+        await asyncio.sleep(wait_sec)
 
     async def __is_done_seg(self, seg_num: int) -> bool:
         return await self.success_nums.contains(seg_num) or await self.failed_nums.contains(seg_num)

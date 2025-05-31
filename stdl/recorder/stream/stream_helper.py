@@ -121,17 +121,10 @@ class StreamHelper:
             retry_cnt += 1
 
     async def check_segments(self, ctx: RequestContext):
-        segment_names = [
-            file_name for file_name in await aos.listdir(ctx.tmp_dir_path) if not file_name.endswith(".tar")
-        ]
-        segment_paths = [
-            path_join(ctx.tmp_dir_path, seg_name) for seg_name in sorted(segment_names, key=lambda x: int(stem(x)))
-        ]
-
         current_time = time.time()  # do not use asyncio.get_event_loop().time() here
         result = []
         size_sum = 0
-        for seg_path in segment_paths:
+        for seg_path in await _get_seg_paths(ctx):
             stat = await aos.stat(seg_path)
             if current_time - stat.st_mtime <= self.threshold_sec:
                 continue
@@ -159,7 +152,7 @@ class StreamHelper:
         await asyncio.gather(*tg_tasks)
 
         # Write remaining segments
-        target_segments = [path_join(ctx.tmp_dir_path, file_name) for file_name in await aos.listdir(ctx.tmp_dir_path)]
+        target_segments = await _get_seg_paths(ctx)
         await asyncio.sleep(FILE_WAIT_SEC)
         if len(target_segments) > 0:
             tar_path = await asyncio.to_thread(self.archive_files, target_segments, ctx.tmp_dir_path)
@@ -209,3 +202,8 @@ class StreamHelper:
         for target_segment in target_segments:
             os.remove(target_segment)
         return tar_path
+
+
+async def _get_seg_paths(ctx: RequestContext) -> list[str]:
+    segment_names = [file_name for file_name in await aos.listdir(ctx.tmp_dir_path) if not file_name.endswith(".tar")]
+    return [path_join(ctx.tmp_dir_path, seg_name) for seg_name in sorted(segment_names, key=lambda x: int(stem(x)))]

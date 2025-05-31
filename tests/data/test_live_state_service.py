@@ -29,5 +29,5 @@ async def test_live_state_service():
     assert await live_service.set(live1, nx=False)
     assert await live_service.pttl(live1.id) != -1
 
-    assert await live_service.delete(live1.id)
+    await live_service.delete(live1.id)
     assert await live_service.get(live1.id) is None

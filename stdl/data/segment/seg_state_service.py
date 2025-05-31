@@ -105,9 +105,7 @@ class SegmentStateService:
             return
         if current_token != str(lock.token):
             raise ValueError("Lock Token mismatch")
-        result = await self.__str.delete(key)
-        if not result:
-            raise ValueError("Failed to release lock")
+        await self.__str.delete(key)
 
     async def is_locked(self, seg_num: int, lock_num: int) -> bool:
         key = self.__get_lock_key(seg_num=seg_num, lock_num=lock_num)
@@ -124,11 +122,10 @@ class SegmentStateService:
             return 0
         return int(count)
 
-    async def clear_retry_count(self, seg_num: int) -> bool:
+    async def clear_retry_count(self, seg_num: int):
         key = self.__get_retry_key(seg_num=seg_num)
         if await self.__str.contains(key):
-            return await self.__str.delete(key)
-        return False
+            await self.__str.delete(key)
 
     async def set(self, state: SegmentState, nx: bool) -> bool:
         return await self.__str.set(
@@ -138,7 +135,7 @@ class SegmentStateService:
             px=self.__expire_ms,
         )
 
-    async def delete(self, num: int) -> bool:
+    async def delete(self, num: int) -> int:
         return await self.__str.delete(self.__get_key(num))
 
     async def delete_mapped(self, nums: SegmentNumberSet):
