@@ -1,5 +1,4 @@
 import asyncio
-import time
 
 from .fetcher import LiveInfo
 from .live_url_resolver import resolve_live_url
@@ -7,15 +6,14 @@ from .platform.chzzk_fetcher import ChzzkFetcher
 from .platform.soop_fetcher import SoopFetcher
 from .platform.twitch_fetcher import TwitchFetcher
 from ..common import PlatformType
-from ..metric import MetricManager
+from ..metric import metric
 
 
 class PlatformFetcher:
-    def __init__(self, metric: MetricManager):
+    def __init__(self):
         self.__chzzk = ChzzkFetcher()
         self.__soop = SoopFetcher()
         self.__twitch = TwitchFetcher()
-        self.__metric = metric
         self.headers = {}
 
     def set_headers(self, headers: dict):
@@ -36,5 +34,5 @@ class PlatformFetcher:
         else:
             raise ValueError("Unsupported platform")
         duration = asyncio.get_event_loop().time() - start_time
-        await self.__metric.set_api_request_duration(duration=duration, platform=url_info.platform)
+        await metric.set_api_request_duration(duration=duration, platform=url_info.platform)
         return result

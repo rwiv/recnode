@@ -10,7 +10,6 @@ from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingStatus
 from ...data.live import LiveState
 from ...file import ObjectWriter
-from ...metric import MetricManager
 from ...utils import AsyncHttpClient
 
 
@@ -20,10 +19,9 @@ class StreamlinkStreamRecorder(StreamRecorder):
         live: LiveState,
         args: RecordingArgs,
         writer: ObjectWriter,
-        metric: MetricManager,
         incomplete_dir_path: str,
     ):
-        super().__init__(live, args, writer, metric, incomplete_dir_path)
+        super().__init__(live, args, writer, incomplete_dir_path)
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
         self.read_buf_size = 4 * 1024 * 1024

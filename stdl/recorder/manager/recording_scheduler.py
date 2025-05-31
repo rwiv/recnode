@@ -10,15 +10,13 @@ from ...common import PlatformType
 from ...config import Env
 from ...data.live import LiveState
 from ...file import create_fs_writer
-from ...metric import MetricManager
 
 
 class RecordingScheduler:
-    def __init__(self, env: Env, metric: MetricManager):
+    def __init__(self, env: Env):
         self.__env = env
-        self.__metric = metric
-        self.__writer = create_fs_writer(self.__env, self.__metric)
-        self.__resolver = RecorderResolver(self.__env, self.__writer, self.__metric)
+        self.__writer = create_fs_writer(self.__env)
+        self.__resolver = RecorderResolver(self.__env, self.__writer)
 
         self.__recorder_map: dict[str, StreamRecorder] = {}
         self.__check_thread: threading.Thread | None = None

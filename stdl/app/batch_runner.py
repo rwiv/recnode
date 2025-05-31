@@ -9,7 +9,6 @@ from ..config import get_env
 from ..data.live import LiveStateService
 from ..data.redis import create_redis_pool
 from ..file import create_fs_writer
-from ..metric import MetricManager
 from ..recorder import RecorderResolver
 from ..utils import disable_streamlink_log
 
@@ -22,9 +21,8 @@ async def async_input(prompt: str) -> str:
 class BatchRunner:
     def __init__(self):
         self.env = get_env()
-        self.metric = MetricManager()
-        self.writer = create_fs_writer(self.env, self.metric)
-        self.recorder_resolver = RecorderResolver(self.env, self.writer, self.metric)
+        self.writer = create_fs_writer(self.env)
+        self.recorder_resolver = RecorderResolver(self.env, self.writer)
 
     async def run(self):
         log.set_level(logging.DEBUG)
@@ -36,7 +34,7 @@ class BatchRunner:
 
         live_state_service = LiveStateService(Redis(connection_pool=create_redis_pool(self.env.redis)))
 
-        state = await get_state(url=conf.url, cookie_header=conf.cookie, metric=self.metric)
+        state = await get_state(url=conf.url, cookie_header=conf.cookie)
         await live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
 
         recorder = self.recorder_resolver.create_recorder(state=state)

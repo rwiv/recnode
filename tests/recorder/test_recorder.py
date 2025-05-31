@@ -9,12 +9,10 @@ from stdl.app import get_state, read_conf
 from stdl.config import get_env
 from stdl.data.live import LiveStateService
 from stdl.data.redis import create_redis_pool
-from stdl.metric import MetricManager
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 
 env = get_env()
-metric = MetricManager()
 live_state_service = LiveStateService(Redis(connection_pool=create_redis_pool(env.redis)))
 
 if env.config_path is None:
@@ -31,7 +29,7 @@ record_id = ""
 @pytest.mark.asyncio
 async def test_post_record():
     print()
-    state = await get_state(url=conf.url, cookie_header=conf.cookie, metric=metric)
+    state = await get_state(url=conf.url, cookie_header=conf.cookie)
     await live_state_service.set(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
     print(state.id)
 

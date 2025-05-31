@@ -9,7 +9,6 @@ from ..stream.stream_helper import StreamHelper
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
-from ...metric import MetricManager
 
 
 class StreamRecorder(ABC):
@@ -18,16 +17,14 @@ class StreamRecorder(ABC):
         live: LiveState,
         args: RecordingArgs,
         writer: ObjectWriter,
-        metric: MetricManager,
         incomplete_dir_path: str,
     ):
         self.live = live
         self.writer = writer
-        self.metric = metric
 
         self.state = RecordingState()
         self.status: RecordingStatus = RecordingStatus.WAIT
-        self.fetcher = PlatformFetcher(metric)
+        self.fetcher = PlatformFetcher()
         self.helper = StreamHelper(
             live=live,
             args=args,

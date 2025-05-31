@@ -8,11 +8,10 @@ from streamlink.stream.hls.hls import HLSStream
 
 from ..data.live import LiveState
 from ..fetcher import PlatformFetcher
-from ..metric import MetricManager
 from ..utils import StreamLinkSessionArgs, get_streams
 
 
-async def get_state(url: str, cookie_header: str | None, metric: MetricManager):
+async def get_state(url: str, cookie_header: str | None):
     streams = get_streams(url=url, args=StreamLinkSessionArgs(cookie_header=cookie_header))
     if streams is None:
         log.error("Failed to get live streams")
@@ -30,7 +29,7 @@ async def get_state(url: str, cookie_header: str | None, metric: MetricManager):
     if cookie_header is not None:
         headers["Cookie"] = cookie_header
 
-    fetcher = PlatformFetcher(metric)
+    fetcher = PlatformFetcher()
     if len(fetcher.headers) == 0:
         fetcher.set_headers(headers)
 

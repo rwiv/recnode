@@ -17,7 +17,7 @@ from ...config import RequestConfig, RedisDataConfig
 from ...data.live import LiveState, LiveStateService
 from ...data.segment import SegmentNumberSet, SegmentStateService, SegmentStateValidator, SegmentState
 from ...file import ObjectWriter
-from ...metric import MetricManager
+from ...metric import metric
 from ...utils import AsyncHttpClient, AsyncCounter
 
 TEST_FLAG = False
@@ -40,10 +40,9 @@ class SegmentedStreamRecorder(StreamRecorder):
         redis: Redis,
         redis_data_conf: RedisDataConfig,
         req_conf: RequestConfig,
-        metric: MetricManager,
         incomplete_dir_path: str,
     ):
-        super().__init__(live, args, writer, metric, incomplete_dir_path)
+        super().__init__(live, args, writer, incomplete_dir_path)
         self.m3u8_retry_limit = req_conf.m3u8_retry_limit
         self.seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio
@@ -182,14 +181,14 @@ class SegmentedStreamRecorder(StreamRecorder):
                 print_error=False,
             )
             await self.m3u8_retry_counter.reset()
-            await self.metric.set_m3u8_request_duration(
+            await metric.set_m3u8_request_duration(
                 duration=asyncio.get_event_loop().time() - req_start_time,
                 platform=self.ctx.live.platform,
                 extra=self.m3u8_duration_hist,
             )
         except Exception as ex:
             await self.m3u8_retry_counter.increment()
-            await self.metric.set_m3u8_request_duration(
+            await metric.set_m3u8_request_duration(
                 duration=asyncio.get_event_loop().time() - req_start_time,
                 platform=self.ctx.live.platform,
                 extra=self.m3u8_duration_hist,
@@ -290,7 +289,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         # to prevent segment requests from being concentrated on a specific node
         wait_sec = random.uniform(0, INTERVAL_WAIT_WEIGHT_SEC)
         duration = asyncio.get_event_loop().time() - start_time
-        self.metric.set_interval_duration(duration, self.ctx.live.platform)
+        metric.set_interval_duration(duration, self.ctx.live.platform)
         if duration < INTERVAL_MIN_DURATION_SEC:
             # if the duration is less than the threshold, wait for the remaining time
             wait_sec += INTERVAL_MIN_DURATION_SEC - duration
@@ -333,7 +332,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                 await self.seg_state_service.increment_retry_count(seg.num)
 
             b = await self.seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
-            await self.metric.set_segment_request_duration(
+            await metric.set_segment_request_duration(
                 duration=asyncio.get_event_loop().time() - req_start,
                 platform=self.ctx.live.platform,
                 extra=self.seg_duration_hist,
@@ -359,15 +358,9 @@ class SegmentedStreamRecorder(StreamRecorder):
             if seg.is_retrying:
                 await self.retrying_nums.remove(seg.num)
             await self.failed_nums.remove(seg.num)
-
-            await self.metric.set_segment_request_retry(
-                retry_cnt=await self.seg_state_service.get_retry_count(seg.num),
-                platform=self.ctx.live.platform,
-                extra=self.seg_retry_hist,
-            )
             await self.seg_state_service.clear_retry_count(seg.num)
         except Exception as ex:
-            await self.metric.set_segment_request_duration(
+            await metric.set_segment_request_duration(
                 duration=asyncio.get_event_loop().time() - req_start,
                 platform=self.ctx.live.platform,
                 extra=self.seg_duration_hist,
@@ -383,10 +376,10 @@ class SegmentedStreamRecorder(StreamRecorder):
                         if not await self.success_nums.contains(seg.num):
                             await self.failed_nums.set(seg.num)
                             await self.seg_failure_counter.increment()
-                    await self.metric.inc_segment_request_failures(
+                    await metric.inc_segment_request_failures(
                         platform=self.ctx.live.platform,
                     )
-                    await self.metric.set_segment_request_retry(
+                    await metric.set_segment_request_retry(
                         retry_cnt=retry_count,
                         platform=self.ctx.live.platform,
                         extra=self.seg_retry_hist,

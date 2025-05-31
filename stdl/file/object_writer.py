@@ -11,15 +11,14 @@ from .fs_config import S3Config
 from .fs_types import FsType
 from .s3_utils import create_async_client
 from ..common import LOCAL_FS_NAME
-from ..metric import MetricManager
+from ..metric import metric
 from ..utils import HttpRequestError
 
 
 class ObjectWriter(ABC):
-    def __init__(self, fs_type: FsType, fs_name: str, metric: MetricManager):
+    def __init__(self, fs_type: FsType, fs_name: str):
         self.fs_type = fs_type
         self.fs_name = fs_name
-        self.metric = metric
         self.write_retry_limit = 8
         self.write_retry_delay_sec = 0.5
 
@@ -35,7 +34,7 @@ class ObjectWriter(ABC):
                     raise
                 log.error(f"Write Segment: cnt={retry_cnt}", error_dict(e))
                 await asyncio.sleep(self.write_retry_delay_sec * (2**retry_cnt))
-        self.metric.set_object_write_duration(asyncio.get_event_loop().time() - start)
+        metric.set_object_write_duration(asyncio.get_event_loop().time() - start)
 
     @abstractmethod
     async def _write(self, path: str, data: bytes) -> None:
@@ -43,8 +42,8 @@ class ObjectWriter(ABC):
 
 
 class LocalObjectWriter(ObjectWriter):
-    def __init__(self, metric: MetricManager):
-        super().__init__(FsType.LOCAL, LOCAL_FS_NAME, metric)
+    def __init__(self):
+        super().__init__(FsType.LOCAL, LOCAL_FS_NAME)
 
     async def _write(self, path: str, data: bytes) -> None:
         if not await aos.path.exists(dirpath(path)):
@@ -54,8 +53,8 @@ class LocalObjectWriter(ObjectWriter):
 
 
 class S3ObjectWriter(ObjectWriter):
-    def __init__(self, fs_name: str, conf: S3Config, metric: MetricManager):
-        super().__init__(FsType.S3, fs_name, metric)
+    def __init__(self, fs_name: str, conf: S3Config):
+        super().__init__(FsType.S3, fs_name)
         self.conf = conf
         self.bucket_name = conf.bucket_name
 
@@ -68,8 +67,8 @@ class S3ObjectWriter(ObjectWriter):
 
 
 class ProxyObjectWriter(ObjectWriter):
-    def __init__(self, endpoint: str, fs_name: str, metric: MetricManager):
-        super().__init__(FsType.PROXY, fs_name, metric)
+    def __init__(self, endpoint: str, fs_name: str):
+        super().__init__(FsType.PROXY, fs_name)
         self.__endpoint = endpoint
 
     async def _write(self, path: str, data: bytes) -> None:
