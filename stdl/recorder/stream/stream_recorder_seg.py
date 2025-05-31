@@ -26,7 +26,7 @@ TEST_FLAG = False
 MAP_NUM = -1
 INIT_PARALLEL_LIMIT = 1
 FIRST_SEG_LOCK_NUM = 0
-INTERVAL_MIN_DURATION_SEC = 1
+INTERVAL_MIN_TIME_SEC = 1
 INTERVAL_WAIT_WEIGHT_SEC = 0.2
 SEG_TASK_PREFIX = "seg"
 
@@ -275,14 +275,14 @@ class SegmentedStreamRecorder(StreamRecorder):
             self.done_flag = True
             return
 
-        # to prevent segment requests from being concentrated on a specific node
-        wait_sec = random.uniform(0, INTERVAL_WAIT_WEIGHT_SEC)
         duration = asyncio.get_event_loop().time() - start_time
-        metric.set_interval_duration(duration, self.ctx.live.platform)
-        if duration < INTERVAL_MIN_DURATION_SEC:
-            # if the duration is less than the threshold, wait for the remaining time
-            wait_sec += INTERVAL_MIN_DURATION_SEC - duration
+        wait_sec = 0
+        if duration < INTERVAL_MIN_TIME_SEC:
+            wait_sec += INTERVAL_MIN_TIME_SEC - duration
+        # to prevent segment requests from being concentrated on a specific node
+        wait_sec += random.uniform(0, INTERVAL_WAIT_WEIGHT_SEC)
         await asyncio.sleep(wait_sec)
+        metric.set_interval_duration(asyncio.get_event_loop().time() - start_time, self.ctx.live.platform)
 
     async def __is_done_seg(self, seg_num: int) -> bool:
         return await self.success_nums.contains(seg_num) or await self.failed_nums.contains(seg_num)
