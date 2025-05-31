@@ -300,22 +300,6 @@ class SegmentedStreamRecorder(StreamRecorder):
             if await self.seg_state_service.is_locked(seg_num=seg.num, lock_num=FIRST_SEG_LOCK_NUM):
                 return
 
-        inspected = await self.seg_state_validator.validate_segment(
-            seg=seg,
-            latest_num=latest_num,
-            success_nums=self.success_nums,
-        )
-        if not inspected.ok:
-            if inspected.critical:
-                await self.live_state_service.update_is_invalid(record_id=self.live.id, is_invalid=True)
-                self.done_flag = True
-            return
-
-        if "preloading" in seg.url:
-            # this is used to check the logic implemented inside `SoopHLSStreamWriter`.
-            # if this log is not printed for a long time, this code will be removed.
-            log.debug("Preloading Segment", self.ctx.to_dict())
-
         lock = await self.seg_state_service.acquire_lock(seg)
         if lock is None:
             # log.debug(f"Failed to acquire segment {seg.num}")
@@ -324,6 +308,17 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         req_start = asyncio.get_event_loop().time()
         try:
+            inspected = await self.seg_state_validator.validate_segment(
+                seg=seg,
+                latest_num=latest_num,
+                success_nums=self.success_nums,
+            )
+            if not inspected.ok:
+                if inspected.critical:
+                    await self.live_state_service.update_is_invalid(record_id=self.live.id, is_invalid=True)
+                    self.done_flag = True
+                return
+
             if not seg.is_retrying:
                 await self.seg_state_service.set(seg, nx=False)
             else:
