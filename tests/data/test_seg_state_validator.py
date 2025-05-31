@@ -45,10 +45,12 @@ async def test_validate_segments():
     await success_nums.set(302)
     await seg_service.set_nx(seg(303, size=200))
     await success_nums.set(303)
-    await seg_service.set_nx(seg(304))
+    await seg_service.set_nx(seg(304, size=None))
     await success_nums.set(304)
     await seg_service.set_nx(seg(305, created_at=now - timedelta(seconds=200)))
     await success_nums.set(305)
+    await seg_service.set_nx(seg(306))
+    await success_nums.set(306)
 
     l = await success_nums.get_highest()
 
@@ -57,9 +59,9 @@ async def test_validate_segments():
 
     assert await validator.validate_segments([seg(302), seg(304, duration=5.3)], l, success_nums) == crit()
 
-    assert await validator.validate_segments([seg(302), seg(303)], l, success_nums) == crit()
+    assert await validator.validate_segments([seg(303), seg(304)], l, success_nums) == crit()
+    assert await validator.validate_segments([seg(304), seg(306)], l, success_nums) == no()
 
-    # Pass if there are segments with different sizes but they are not the last number
     assert await validator.validate_segments([seg(302), seg(303), seg(304)], l, success_nums) == ok()
 
     assert await validator.validate_segments([seg(302), seg(305)], l, success_nums) == crit()

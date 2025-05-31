@@ -81,11 +81,14 @@ class SegmentStateValidator:
                     return no()
                 if not self.__validate_segment_pair(req_seg, seg_state):
                     return critical()
-                if i == len(matched_req_segments) - 1:
+                if i == 0:
                     req_b = await self.__seg_http.get_bytes(url=req_seg.url, retry_limit=self.__req_retry_limit)
                     if len(req_b) != seg_state.size:
                         log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, len(req_b)))
-                        return critical()
+                        if seg_state.size is None:
+                            return no()
+                        else:
+                            return critical()
             return ok()
         except BaseException as ex:
             log.error("Validate segments failed", self.__error_attr(ex))

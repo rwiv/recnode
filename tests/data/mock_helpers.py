@@ -28,7 +28,7 @@ def seg(
     created_at: datetime = datetime.now(),
     url: str = "https://example.com",
     duration: float = 2.0,
-    size: int = 100,
+    size: int | None = 100,
 ):
     return SegmentState(
         url=url,
