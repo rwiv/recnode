@@ -60,6 +60,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.seg_failure_counter = AsyncCounter()
         self.seg_request_counter = AsyncCounter()
         self.m3u8_retry_counter = AsyncCounter()
+        self.m3u8_retry_counter_total = AsyncCounter()
 
         self.m3u8_http = AsyncHttpClient(
             timeout_sec=req_conf.m3u8_timeout_sec,
@@ -114,10 +115,11 @@ class SegmentedStreamRecorder(StreamRecorder):
         result = {
             "failed_total": self.seg_failure_counter.get(),
             "segment_request_total": self.seg_request_counter.get(),
-            "segment_request_retry_total": self.seg_retry_hist.total_sum,
-            "segment_request_retry_avg": round(self.seg_retry_hist.avg(), 3),
+            "segment_request_retries_total": self.seg_retry_hist.total_sum,
+            "segment_request_retries_avg": round(self.seg_retry_hist.avg(), 3),
             "segment_request_duration_avg": round(self.seg_duration_hist.avg(), 3),
             "m3u8_request_duration_avg": round(self.m3u8_duration_hist.avg(), 3),
+            "m3u8_request_retries_total": self.m3u8_retry_counter_total.get(),
         }
         if full:
             result["redis_using_connection_count"] = len(self.redis.connection_pool._in_use_connections)
@@ -188,6 +190,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             )
         except Exception as ex:
             await self.m3u8_retry_counter.increment()
+            await metric.inc_m3u8_request_retry(platform=self.ctx.live.platform, extra=self.m3u8_retry_counter_total)
             await metric.set_m3u8_request_duration(
                 duration=asyncio.get_event_loop().time() - req_start_time,
                 platform=self.ctx.live.platform,
@@ -197,14 +200,11 @@ class SegmentedStreamRecorder(StreamRecorder):
             if live_info is None:
                 self.done_flag = True
                 return
-            else:
-                log.error("Failed to get playlist", self.ctx.to_err(ex))
-                return
-        finally:
+            # log.debug("Failed to get playlist", self.ctx.to_err(ex))
             if self.m3u8_retry_counter.get() >= self.m3u8_retry_limit:
-                log.error("Max retry limit reached for m3u8", self.ctx.to_dict())
+                log.error("Max retry limit reached for m3u8", self.ctx.to_err(ex))
                 self.done_flag = True
-                return
+            return
 
         playlist: M3U8 = M3U8Parser().parse(m3u8_text)
         if playlist.is_master:

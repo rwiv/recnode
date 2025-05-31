@@ -38,6 +38,11 @@ class MetricManager:
             ["platform"],
             buckets=m3u8_request_duration_buckets,
         )
+        self.m3u8_request_retry_counter = Counter(
+            "m3u8_request_retries",
+            "Count of HLS m3u8 request retries",
+            ["platform"],
+        )
         self.segment_request_duration_hist = PromHistogram(
             "segment_request_duration_seconds",
             "Duration of HLS segment requests in seconds",
@@ -76,6 +81,11 @@ class MetricManager:
         self.m3u8_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)
+
+    async def inc_m3u8_request_retry(self, platform: PlatformType, extra: AsyncCounter | None = None):
+        self.m3u8_request_retry_counter.labels(platform=platform.value).inc()
+        if extra is not None:
+            await extra.increment()
 
     async def set_segment_request_duration(
         self, duration: float, platform: PlatformType, extra: Histogram | None = None
