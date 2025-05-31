@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 from typing import Any
 
@@ -71,8 +70,7 @@ class SegmentStateValidator:
                 log.error("Segment number difference is too large", attr)
                 return critical()
 
-            res = await asyncio.gather(*[self.__seg_state_service.get(num) for num in matched_nums])
-            matched_seg_states: list[SegmentState] = [seg for seg in res if seg is not None]
+            matched_seg_states = await self.__seg_state_service.get_batch(matched_nums)
             seg_stat_map = {seg.num: seg for seg in matched_seg_states}
 
             matched_req_segments = [seg for seg in sorted_req_segments if seg.num in matched_nums]

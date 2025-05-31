@@ -256,21 +256,11 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         # Process segments
         for new_seg in segments:
-            if await self.__is_done_seg(new_seg.num):
-                continue
-            if await self.retrying_nums.contains(new_seg.num):
-                continue
-            if await self.seg_state_service.is_locked(seg_num=new_seg.num, lock_num=FIRST_SEG_LOCK_NUM):
-                continue
             task_name = self.seg_task_name("req", new_seg.num)
             _ = asyncio.create_task(self.__process_segment(new_seg, latest_num), name=task_name)
 
-        for num in await self.retrying_nums.all():
-            if await self.__is_done_seg(num):
-                continue
-            retrying = await self.seg_state_service.get(num)
-            if retrying is None:
-                raise ValueError(f"Retrying segment {num} not found in Redis")
+        # If the first segment is not MAP_NUM, it means it is a valid segment
+        for retrying in await self.seg_state_service.get_batch(await self.retrying_nums.all()):
             task_name = self.seg_task_name("retry", retrying.num)
             _ = asyncio.create_task(self.__process_segment(retrying, latest_num), name=task_name)
 
@@ -302,6 +292,15 @@ class SegmentedStreamRecorder(StreamRecorder):
         if seg.num == MAP_NUM:
             raise ValueError(f"{MAP_NUM} is not a valid segment number")
 
+        if await self.__is_done_seg(seg.num):
+            return
+
+        if not seg.is_retrying:
+            if await self.retrying_nums.contains(seg.num):
+                return
+            if await self.seg_state_service.is_locked(seg_num=seg.num, lock_num=FIRST_SEG_LOCK_NUM):
+                return
+
         inspected = await self.seg_state_validator.validate_segment(
             seg=seg,
             latest_num=latest_num,
@@ -326,10 +325,11 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         req_start = asyncio.get_event_loop().time()
         try:
-            await self.seg_state_service.set(seg, nx=False)
-            await self.seg_request_counter.increment()
-            if seg.is_retrying:
+            if not seg.is_retrying:
+                await self.seg_state_service.set(seg, nx=False)
+            else:
                 await self.seg_state_service.increment_retry_count(seg.num)
+            await self.seg_request_counter.increment()
 
             b = await self.seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
             await metric.set_segment_request_duration(

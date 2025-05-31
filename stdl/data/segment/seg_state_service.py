@@ -65,6 +65,17 @@ class SegmentStateService:
             return None
         return SegmentState(**json.loads(txt))
 
+    async def get_batch(self, nums: list[int]) -> list[SegmentState]:
+        keys = [self.__get_key(num) for num in nums]
+        texts = await self.__str.mget(keys)
+        result: list[SegmentState] = []
+        for i, txt in enumerate(texts):
+            if txt is not None:
+                result.append(SegmentState(**json.loads(txt)))
+            else:
+                log.error("SegmentState not found", {"key": keys[i]})
+        return result
+
     async def set_nx(self, state: SegmentState) -> bool:
         return await self.set(state=state, nx=True)
 
