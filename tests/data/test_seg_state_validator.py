@@ -30,7 +30,7 @@ async def test_validate_segments():
     http_mock = AsyncHttpClientMock(b_size=100)
     invalid_seg_num_diff_threshold = 150
     live_service = LiveStateService(client)
-    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, {})
+    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, 3, {})
     validator = SegmentStateValidator(live_service, seg_service, http_mock, {}, 120, invalid_seg_num_diff_threshold)
 
     await seg_service.delete_mapped(success_nums)
@@ -83,7 +83,7 @@ async def test_validate_segment():
     http_mock = AsyncHttpClientMock(b_size=100)
     invalid_seg_time_diff_threshold_sec = 2 * 60
     live_service = LiveStateService(client)
-    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, {})
+    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, 3, {})
     validator = SegmentStateValidator(live_service, seg_service, http_mock, {}, invalid_seg_time_diff_threshold_sec)
 
     await seg_service.delete_mapped(success_nums)

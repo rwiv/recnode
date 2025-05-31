@@ -11,6 +11,8 @@ from redis.asyncio import Redis
 from .seg_num_set import SegmentNumberSet
 from ..redis import RedisString
 
+INIT_PARALLEL_LIMIT = 1
+
 
 class SegmentLock(BaseModel):
     token: UUID
@@ -40,6 +42,7 @@ class SegmentStateService:
         expire_ms: int,
         lock_expire_ms: int,
         lock_wait_timeout_sec: float,
+        retry_parallel_retry_limit: int,
         attr: dict,
     ):
         self.__client = client
@@ -47,6 +50,7 @@ class SegmentStateService:
         self.__expire_ms = expire_ms
         self.__lock_expire_ms = lock_expire_ms
         self.__lock_wait_timeout_sec = lock_wait_timeout_sec
+        self.__retry_parallel_retry_limit = retry_parallel_retry_limit
         self.__attr = attr
 
         self.live_record_id = live_record_id
@@ -79,18 +83,20 @@ class SegmentStateService:
     async def set_nx(self, state: SegmentState) -> bool:
         return await self.set(state=state, nx=True)
 
-    async def update_to_success(self, state: SegmentState, size: int, parallel_limit: int) -> bool:
-        state.is_retrying = False
-        state.size = size
-        state.parallel_limit = parallel_limit
-        state.updated_at = datetime.now()
-        return await self.set(state=state, nx=False)
+    async def update_to_success(self, state: SegmentState, size: int) -> bool:
+        new_state = state.copy()
+        new_state.is_retrying = False
+        new_state.size = size
+        new_state.parallel_limit = INIT_PARALLEL_LIMIT
+        new_state.updated_at = datetime.now()
+        return await self.set(state=new_state, nx=False)
 
-    async def update_to_retrying(self, state: SegmentState, parallel_limit: int) -> bool:
-        state.is_retrying = True
-        state.parallel_limit = parallel_limit
-        state.updated_at = datetime.now()
-        return await self.set(state=state, nx=False)
+    async def update_to_retrying(self, state: SegmentState) -> bool:
+        new_state = state.copy()
+        new_state.is_retrying = True
+        new_state.parallel_limit = self.__retry_parallel_retry_limit
+        new_state.updated_at = datetime.now()
+        return await self.set(state=new_state, nx=False)
 
     async def acquire_lock(self, state: SegmentState) -> SegmentLock | None:
         for lock_num in range(state.parallel_limit):
