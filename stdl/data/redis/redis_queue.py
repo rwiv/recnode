@@ -1,36 +1,48 @@
 from redis.asyncio import Redis
 
+from .redis_utils import redis_metric
+
 
 class RedisQueue:
     def __init__(self, redis: Redis):
         self.__redis = redis
 
+    @redis_metric
     async def set_pexpire(self, key: str, px_ms: int) -> bool:  # return True if set
         return await self.__redis.pexpire(name=key, time=px_ms)
 
+    @redis_metric
     async def push(self, key: str, value: str) -> int:  # return size
         return await self.__redis.lpush(key, value)  # type: ignore
 
+    @redis_metric
     async def pop(self, key: str) -> str | None:
         return await self.__redis.rpop(key)  # type: ignore
 
+    @redis_metric
     async def get(self, key: str):
         return await self.__redis.lindex(key, -1)  # type: ignore
 
+    @redis_metric
     async def get_by_index(self, key: str, idx: int) -> str | None:
         return await self.__redis.lindex(key, idx)  # type: ignore
 
+    @redis_metric
     async def list_items(self, key: str) -> list[str]:
         return await self.__redis.lrange(key, 0, -1)  # type: ignore
 
+    @redis_metric
     async def remove_by_value(self, key: str, value: str):
         return await self.__redis.lrem(key, 1, value)  # type: ignore
 
+    @redis_metric
     async def empty(self, key: str) -> bool:
         return await self.size(key) == 0
 
+    @redis_metric
     async def size(self, key: str) -> int:
         return await self.__redis.llen(key)  # type: ignore
 
+    @redis_metric
     async def clear(self, key: str) -> int:  # deleted count
         return await self.__redis.delete(key)

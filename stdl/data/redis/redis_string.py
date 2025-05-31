@@ -1,15 +1,18 @@
 from redis.asyncio import Redis
 
 from .redis_errors import RedisError
+from .redis_utils import redis_metric
 
 
 class RedisString:
     def __init__(self, client: Redis):
         self.__redis = client
 
+    @redis_metric
     async def set_pexpire(self, key: str, px_ms: int) -> bool:  # return True if set
         return await self.__redis.pexpire(name=key, time=px_ms)
 
+    @redis_metric
     async def set(
         self,
         key: str,
@@ -25,9 +28,11 @@ class RedisString:
             raise RedisError("Expected boolean data", 500)
         return ok
 
+    @redis_metric
     async def get(self, key: str) -> str | None:
         return await self.__redis.get(key)
 
+    @redis_metric
     async def mget(self, keys: list[str]) -> list[str | None]:
         results = await self.__redis.mget(keys=keys)
         if not isinstance(results, list):
@@ -37,12 +42,14 @@ class RedisString:
     async def delete(self, key: str) -> int:  # return True if deleted
         return await self.__redis.delete(key)
 
+    @redis_metric
     async def contains(self, key: str) -> bool:
         result = await self.__redis.exists(key)
         if not isinstance(result, int):
             raise RedisError("Expected integer data", 500)
         return result == 1
 
+    @redis_metric
     async def incr(self, key: str, amount: int = 1) -> int:
         result = await self.__redis.incr(name=key, amount=amount)
         if not isinstance(result, int):

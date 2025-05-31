@@ -4,6 +4,7 @@ import time
 from redis.asyncio import Redis, ConnectionPool, SSLConnection
 
 from ...config import RedisConfig
+from ...metric import metric
 
 
 def create_redis_pool(conf: RedisConfig) -> ConnectionPool:
@@ -48,7 +49,7 @@ def redis_metric(func):
         start = time.perf_counter()
         result = await func(*args, **kwargs)
         duration = time.perf_counter() - start
-        print(duration)
+        metric.set_redis_request_duration(duration=duration)
         return result
 
     return wrapper
