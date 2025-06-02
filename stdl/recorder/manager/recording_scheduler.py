@@ -53,7 +53,7 @@ class RecordingScheduler:
     def cancel(self, state: LiveState):
         recorder = self.__recorder_map.get(_parse_key(state))
         if recorder is not None:
-            recorder.state.cancel()
+            recorder.cancel()
         else:
             log.error(f"Not found recorder", state.model_dump(mode="json"))
 

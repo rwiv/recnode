@@ -45,7 +45,7 @@ class BatchRunner:
 
         if self.env.env == "dev":
             await async_input("Press any key to exit")
-            recorder.state.cancel()
+            recorder.cancel()
             if recorder.recording_thread is not None:
                 recorder.recording_thread.join()
 

@@ -8,15 +8,9 @@ from ...common import PlatformType
 
 class RecordingState(BaseModel):
     abort_flag: bool = False
-    cancel_flag: bool = False
 
     def cancel(self):
         log.info("Cancel Request")
-        self.abort_flag = True
-        self.cancel_flag = True
-
-    def finish(self):
-        log.info("Finish Request")
         self.abort_flag = True
 
 

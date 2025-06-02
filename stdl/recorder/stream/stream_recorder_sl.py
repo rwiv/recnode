@@ -33,11 +33,11 @@ class StreamlinkStreamRecorder(StreamRecorder):
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
 
     def wait_for_live(self) -> dict[str, HLSStream] | None:
-        return self.helper.wait_for_live()
+        return self.__helper.wait_for_live()
 
     async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         info = self.ctx.to_status(
-            fs_name=self.writer.fs_name,
+            fs_name=self.__writer.fs_name,
             num=self.idx,
             status=self.status,
         )
@@ -48,7 +48,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
 
         # Start recording
-        streams = self.helper.wait_for_live()
+        streams = self.__helper.wait_for_live()
         if streams is None:
             log.error("Failed to get live streams")
             raise ValueError("Failed to get live streams")
@@ -63,7 +63,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         self.idx = 0
 
         while True:
-            if self.state.abort_flag:
+            if self.__state.abort_flag:
                 log.debug("Abort Stream", self.ctx.to_dict())
                 break
 
@@ -102,10 +102,10 @@ class StreamlinkStreamRecorder(StreamRecorder):
                 f.write(data)
             self.idx += 1
 
-            target_segments = await self.helper.check_segments(self.ctx)
+            target_segments = await self.__helper.check_segments(self.ctx)
             if target_segments is not None:
-                tar_path = await asyncio.to_thread(self.helper.archive_files, target_segments, self.ctx.tmp_dir_path)
-                self.helper.start_write_segment_task(tar_path, self.ctx)
+                tar_path = await asyncio.to_thread(self.__helper.archive_files, target_segments, self.ctx.tmp_dir_path)
+                self.__helper.start_write_segment_task(tar_path, self.ctx)
 
         await self.__close_recording()
         log.info("Finish Recording", self.ctx.to_dict())
@@ -117,4 +117,4 @@ class StreamlinkStreamRecorder(StreamRecorder):
             stream.close()
             stream.worker.join()
             stream.writer.join()
-        await self.helper.check_tmp_dir(self.ctx)
+        await self.__helper.check_tmp_dir(self.ctx)
