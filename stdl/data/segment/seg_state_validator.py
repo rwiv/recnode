@@ -152,9 +152,7 @@ class SegmentStateValidator:
 
         return True
 
-    def __pair_attr(
-        self, req_seg: SegmentState, seg_state: SegmentState, req_size: int | None = None
-    ) -> dict[str, Any]:
+    def __pair_attr(self, req_seg: SegmentState, seg_state: SegmentState, req_size: int | None = None) -> dict[str, Any]:
         attr = self.__attr.copy()
         attr["seg_request"] = req_seg.to_dict()
         if req_size is not None:

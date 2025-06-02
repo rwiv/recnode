@@ -87,9 +87,7 @@ class MetricManager:
         if extra is not None:
             await extra.increment()
 
-    async def set_segment_request_duration(
-        self, duration: float, platform: PlatformType, extra: Histogram | None = None
-    ):
+    async def set_segment_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
         self.segment_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)

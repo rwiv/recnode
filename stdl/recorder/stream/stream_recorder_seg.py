@@ -194,11 +194,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         except Exception as ex:
             await self.m3u8_retry_counter.increment()
             await metric.inc_m3u8_request_retry(platform=self.ctx.live.platform, extra=self.m3u8_retry_counter_total)
-            await metric.set_m3u8_request_duration(
-                duration=asyncio.get_event_loop().time() - req_start_time,
-                platform=self.ctx.live.platform,
-                extra=self.m3u8_duration_hist,
-            )
+            duration = asyncio.get_event_loop().time() - req_start_time
+            await metric.set_m3u8_request_duration(duration, self.ctx.live.platform, self.m3u8_duration_hist)
             live_info = await self.fetcher.fetch_live_info(self.ctx.live_url)
             if live_info is None:
                 self.done_flag = True
@@ -299,9 +296,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         ]
         if not seg.is_retrying:
             coroutines.append(self.retrying_nums.contains(seg.num, use_master=False))
-            coroutines.append(
-                self.seg_service.is_locked(seg_num=seg.num, lock_num=FIRST_SEG_LOCK_NUM, use_master=False)
-            )
+            coroutines.append(self.seg_service.is_locked(seg_num=seg.num, lock_num=FIRST_SEG_LOCK_NUM, use_master=False))
         if any(await asyncio.gather(*coroutines)):
             return
 
