@@ -163,7 +163,10 @@ class SegmentedStreamRecorder(StreamRecorder):
         result_attr = self.ctx.to_dict()
         for k, v in (await self.__get_stats()).items():
             result_attr[k] = v
-        result_attr["failed_total"] = await self.__failed_nums.size(use_master=False)
+        del result_attr["failed_total"]
+        result_attr["success_total"] = await self.__success_nums.size(use_master=True)
+        result_attr["failed_total"] = await self.__failed_nums.size(use_master=True)
+        result_attr["retrying_total"] = await self.__retrying_nums.size(use_master=True)
         log.info("Finish Recording", result_attr)
         self.is_done = True
 
