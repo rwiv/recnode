@@ -98,11 +98,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         )
 
     async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
-        status = self.ctx.to_status(
-            fs_name=self.__writer.fs_name,
-            num=self.__idx,
-            status=self.status,
-        )
+        status = self.ctx.to_status(fs_name=self._writer.fs_name, num=self.__idx, status=self._status)
         status.stream_url = None
         dct = status.model_dump(mode="json", by_alias=True, exclude_none=True)
 
@@ -150,18 +146,18 @@ class SegmentedStreamRecorder(StreamRecorder):
 
             while True:
                 if self.__done_flag:
-                    self.status = RecordingStatus.DONE
+                    self._status = RecordingStatus.DONE
                     log.debug("Finish Stream", self.ctx.to_dict())
                     break
-                if self.__state.abort_flag:
-                    self.status = RecordingStatus.DONE
+                if self._state.abort_flag:
+                    self._status = RecordingStatus.DONE
                     log.debug("Abort Stream", self.ctx.to_dict())
                     break
 
                 await self.__interval()
         except Exception as e:
             log.error("Error during recording", self.ctx.to_err(e))
-            self.status = RecordingStatus.FAILED
+            self._status = RecordingStatus.FAILED
 
         await self.__close_recording()
         result_attr = self.ctx.to_dict()
@@ -195,7 +191,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             await metric.inc_m3u8_request_retry(platform=self.ctx.live.platform, extra=self.__m3u8_retry_counter_total)
             duration = asyncio.get_event_loop().time() - req_start_time
             await metric.set_m3u8_request_duration(duration, self.ctx.live.platform, self.__m3u8_duration_hist)
-            live_info = await self.__fetcher.fetch_live_info(self.ctx.live_url)
+            live_info = await self._fetcher.fetch_live_info(self.ctx.live_url)
             if live_info is None:
                 self.__done_flag = True
                 return
@@ -245,13 +241,13 @@ class SegmentedStreamRecorder(StreamRecorder):
             inspected = await self.__seg_validator.validate_segments(segments, latest_num, self.__success_nums)
             if not inspected.ok:
                 if inspected.critical:
-                    await self.__live_service.update_is_invalid(record_id=self.__live.id, is_invalid=True)
+                    await self.__live_service.update_is_invalid(record_id=self._live.id, is_invalid=True)
                 log.error("Invalid m3u8", self.ctx.to_dict())
                 self.__done_flag = True
                 return
 
-        if self.status != RecordingStatus.RECORDING:
-            self.status = RecordingStatus.RECORDING
+        if self._status != RecordingStatus.RECORDING:
+            self._status = RecordingStatus.RECORDING
 
         # Process segments
         for new_seg in segments:
@@ -265,10 +261,10 @@ class SegmentedStreamRecorder(StreamRecorder):
             _ = asyncio.create_task(self.__process_segment(retrying, latest_num), name=task_name)
 
         # Upload segments tar
-        target_segments = await self.__helper.check_segments(self.ctx)
+        target_segments = await self._helper.check_segments(self.ctx)
         if target_segments is not None and len(target_segments) > 0:
-            tar_path = await asyncio.to_thread(self.__helper.archive_files, target_segments, self.ctx.tmp_dir_path)
-            self.__helper.start_write_segment_task(tar_path, self.ctx)
+            tar_path = await asyncio.to_thread(self._helper.archive_files, target_segments, self.ctx.tmp_dir_path)
+            self._helper.start_write_segment_task(tar_path, self.ctx)
 
         self.__idx = raw_segments[-1].num
 
@@ -302,7 +298,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         inspected = await self.__seg_validator.validate_segment(seg, latest_num, self.__success_nums)
         if not inspected.ok:
             if inspected.critical:
-                await self.__live_service.update_is_invalid(record_id=self.__live.id, is_invalid=True)
+                await self.__live_service.update_is_invalid(record_id=self._live.id, is_invalid=True)
                 self.__done_flag = True
             return
 
@@ -401,10 +397,10 @@ class SegmentedStreamRecorder(StreamRecorder):
         for task in asyncio.all_tasks():
             if task == current_task:
                 continue
-            if task.get_name().startswith(f"{SEG_TASK_PREFIX}:{self.__live.id}"):
+            if task.get_name().startswith(f"{SEG_TASK_PREFIX}:{self._live.id}"):
                 tg_tasks.append(task)
         await asyncio.gather(*tg_tasks)
-        await self.__helper.check_tmp_dir(self.ctx)
+        await self._helper.check_tmp_dir(self.ctx)
 
     def __error_attr(self, ex: BaseException, num: int | None = None):
         attr = self.ctx.to_dict()
@@ -418,7 +414,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         return SegmentNumberSet(
             master=self.__redis_master,
             replica=self.__redis_replica,
-            live_record_id=self.__live.id,
+            live_record_id=self._live.id,
             key_suffix=suffix,
             expire_ms=self.__redis_data_conf.seg_expire_sec * 1000,
             lock_expire_ms=self.__redis_data_conf.lock_expire_ms,
@@ -433,4 +429,4 @@ class SegmentedStreamRecorder(StreamRecorder):
         await asyncio.gather(co1, co2, co3)
 
     def seg_task_name(self, sub_name: str, num: int) -> str:
-        return f"{SEG_TASK_PREFIX}:{self.__live.id}:{sub_name}:{num}"
+        return f"{SEG_TASK_PREFIX}:{self._live.id}:{sub_name}:{num}"

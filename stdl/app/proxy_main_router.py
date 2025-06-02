@@ -7,11 +7,11 @@ from ..utils import HttpRequestError
 
 class ProxyMainController:
     def __init__(self, writer: ObjectWriter):
-        self.write_retry_limit = 8
-        self.write_retry_delay_sec = 0.5
+        self.__write_retry_limit = 8
+        self.__write_retry_delay_sec = 0.5
 
-        self.writer = writer
-        if self.writer.fs_type == FsType.LOCAL:
+        self.__writer = writer
+        if self.__writer.fs_type == FsType.LOCAL:
             raise ValueError("local fs_type is not supported")
 
         self.router = APIRouter(prefix="/api")
@@ -30,4 +30,4 @@ class ProxyMainController:
                 return await res.text()
 
     async def upload(self, file: UploadFile = File(...), path: str = File(...)):
-        await self.writer.write(path, await file.read())
+        await self.__writer.write(path, await file.read())

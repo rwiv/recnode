@@ -14,8 +14,8 @@ from ...utils import StreamLinkSessionArgs
 
 class RecorderResolver:
     def __init__(self, env: Env, writer: ObjectWriter):
-        self.env = env
-        self.writer = writer
+        self.__env = env
+        self.__writer = writer
 
     def create_recorder(self, state: LiveState) -> StreamRecorder:
         if state.platform == PlatformType.CHZZK:
@@ -64,15 +64,15 @@ class RecorderResolver:
                 live_url=url,
                 session_args=StreamLinkSessionArgs(
                     cookie_header=cookie_header,
-                    stream_timeout_sec=self.env.stream.stream_timeout_sec,
+                    stream_timeout_sec=self.__env.stream.stream_timeout_sec,
                 ),
-                tmp_dir_path=self.env.tmp_dir_path,
-                seg_size_mb=self.env.stream.seg_size_mb,
+                tmp_dir_path=self.__env.tmp_dir_path,
+                seg_size_mb=self.__env.stream.seg_size_mb,
             ),
-            incomplete_dir_path=path_join(self.env.out_dir_path, "incomplete"),
-            writer=self.writer,
-            redis_master=Redis(connection_pool=create_redis_pool(self.env.redis_master)),
-            redis_replica=Redis(connection_pool=create_redis_pool(self.env.redis_replica)),
-            redis_data_conf=self.env.redis_data,
-            req_conf=self.env.req_conf,
+            incomplete_dir_path=path_join(self.__env.out_dir_path, "incomplete"),
+            writer=self.__writer,
+            redis_master=Redis(connection_pool=create_redis_pool(self.__env.redis_master)),
+            redis_replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
+            redis_data_conf=self.__env.redis_data,
+            req_conf=self.__env.req_conf,
         )

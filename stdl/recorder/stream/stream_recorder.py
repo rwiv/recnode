@@ -19,35 +19,35 @@ class StreamRecorder(ABC):
         writer: ObjectWriter,
         incomplete_dir_path: str,
     ):
-        self.__live = live
-        self.__state = RecordingState()
-        self.__status: RecordingStatus = RecordingStatus.WAIT
+        self._live = live
+        self._state = RecordingState()
+        self._status: RecordingStatus = RecordingStatus.WAIT
 
-        self.__writer = writer
-        self.__fetcher = PlatformFetcher()
-        self.__helper = StreamHelper(
+        self._writer = writer
+        self._fetcher = PlatformFetcher()
+        self._helper = StreamHelper(
             live=live,
             args=args,
-            state=self.__state,
+            state=self._state,
             writer=writer,
-            fetcher=self.__fetcher,
+            fetcher=self._fetcher,
             incomplete_dir_path=incomplete_dir_path,
         )
 
-        self.ctx: RequestContext = self.__helper.get_ctx(live)
+        self.ctx: RequestContext = self._helper.get_ctx(live)
         self.is_done = False
         self.recording_thread: threading.Thread | None = None
 
     def record(self):
         self.recording_thread = threading.Thread(target=self.__record_with_thread)
-        self.recording_thread.name = f"recording:{self.__live.id}"
+        self.recording_thread.name = f"recording:{self._live.id}"
         self.recording_thread.start()
 
     def __record_with_thread(self):
         asyncio.run(self._record())
 
     def cancel(self):
-        self.__state.cancel()
+        self._state.cancel()
 
     @abstractmethod
     async def _record(self):
