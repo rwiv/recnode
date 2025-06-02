@@ -5,8 +5,8 @@ from .live_state import LiveState
 from .live_state_service import LiveStateService
 
 targets = [
-    "live_service",
     "live_state",
+    "live_state_service",
 ]
 if os.getenv("PY_ENV") != "prod":
     for name in list(sys.modules.keys()):

@@ -5,7 +5,7 @@ import pytest
 from pyutils import load_dotenv, path_join, find_project_root
 from redis.asyncio import Redis
 
-from stdl.app import get_state, read_conf
+from stdl.app import get_live_state, read_conf
 from stdl.config import get_env
 from stdl.data.live import LiveStateService
 from stdl.data.redis import create_redis_pool
@@ -13,7 +13,7 @@ from stdl.data.redis import create_redis_pool
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 
 env = get_env()
-live_state_service = LiveStateService(
+live_service = LiveStateService(
     master=Redis(connection_pool=create_redis_pool(env.redis_master)),
     replica=Redis(connection_pool=create_redis_pool(env.redis_replica)),
 )
@@ -32,8 +32,8 @@ record_id = ""
 @pytest.mark.asyncio
 async def test_post_record():
     print()
-    state = await get_state(url=conf.url, cookie_header=conf.cookie)
-    await live_state_service.set_live(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
+    state = await get_live_state(url=conf.url, cookie_header=conf.cookie)
+    await live_service.set_live(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
     print(state.id)
 
     await start(f"{worker_url1}/{state.id}")

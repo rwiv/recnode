@@ -11,7 +11,7 @@ from ..fetcher import PlatformFetcher
 from ..utils import StreamLinkSessionArgs, get_streams
 
 
-async def get_state(url: str, cookie_header: str | None):
+async def get_live_state(url: str, cookie_header: str | None):
     streams = get_streams(url=url, args=StreamLinkSessionArgs(cookie_header=cookie_header))
     if streams is None:
         log.error("Failed to get live streams")
@@ -33,18 +33,18 @@ async def get_state(url: str, cookie_header: str | None):
     if len(fetcher.headers) == 0:
         fetcher.set_headers(headers)
 
-    live = await fetcher.fetch_live_info(url)
-    if live is None:
+    liveInfo = await fetcher.fetch_live_info(url)
+    if liveInfo is None:
         raise ValueError("Channel not live")
 
     now = datetime.now()
     return LiveState(
         id=str(uuid.uuid4()),
-        platform=live.platform,
-        channelId=live.channel_id,
-        channelName=live.channel_name,
-        liveId=live.live_id,
-        liveTitle=live.live_title,
+        platform=liveInfo.platform,
+        channelId=liveInfo.channel_id,
+        channelName=liveInfo.channel_name,
+        liveId=liveInfo.live_id,
+        liveTitle=liveInfo.live_title,
         streamUrl=stream_url,
         headers=headers,
         videoName=now.strftime("%Y%m%d_%H%M%S"),

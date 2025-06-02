@@ -91,8 +91,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         )
         self.__live_service = LiveStateService(master=redis_master, replica=redis_replica)
         self.__seg_validator = SegmentStateValidator(
-            live_state_service=self.__live_service,
-            seg_state_service=self.__seg_service,
+            live_service=self.__live_service,
+            seg_service=self.__seg_service,
             seg_http=self.__seg_http,
             attr=self.ctx.to_dict(),
         )

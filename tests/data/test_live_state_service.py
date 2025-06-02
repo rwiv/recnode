@@ -14,7 +14,7 @@ replica = Redis(connection_pool=create_redis_pool(env.redis_replica))
 
 
 @pytest.mark.asyncio
-async def test_live_state_service():
+async def test_live_service():
     live_service = LiveStateService(master=master, replica=replica)
     live1 = live(id="2f208071-d46f-4632-b962-d69034321b23")
     await live_service.delete(live1.id)

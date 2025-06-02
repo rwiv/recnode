@@ -4,7 +4,7 @@ import logging
 from pyutils import log
 from redis.asyncio import Redis
 
-from .stream_utils import get_state, read_conf
+from .stream_utils import get_live_state, read_conf
 from ..config import get_env
 from ..data.live import LiveStateService
 from ..data.redis import create_redis_pool
@@ -32,15 +32,15 @@ class BatchRunner:
             raise ValueError("Config path not set")
         conf = read_conf(self.__env.config_path)
 
-        live_state_service = LiveStateService(
+        live_service = LiveStateService(
             master=Redis(connection_pool=create_redis_pool(self.__env.redis_master)),
             replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
         )
 
-        state = await get_state(url=conf.url, cookie_header=conf.cookie)
-        await live_state_service.set_live(state, nx=False, px=int(self.__env.redis_data.live_expire_sec * 1000))
+        liveState = await get_live_state(url=conf.url, cookie_header=conf.cookie)
+        await live_service.set_live(liveState, nx=False, px=int(self.__env.redis_data.live_expire_sec * 1000))
 
-        recorder = self.__recorder_resolver.create_recorder(state=state)
+        recorder = self.__recorder_resolver.create_recorder(state=liveState)
         recorder.record()
 
         if self.__env.env == "dev":

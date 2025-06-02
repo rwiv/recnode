@@ -23,16 +23,16 @@ class SegmentInspect(BaseModel):
 class SegmentStateValidator:
     def __init__(
         self,
-        live_state_service: LiveStateService,
-        seg_state_service: SegmentStateService,
+        live_service: LiveStateService,
+        seg_service: SegmentStateService,
         seg_http: AsyncHttpClient,
         attr: dict,
         invalid_seg_time_diff_threshold_sec=2 * 60,  # 2 minutes
         invalid_seg_num_diff_threshold=150,  # 5 minutes (150 segments == 300 seconds)
         req_retry_limit=2,
     ):
-        self.__live_state_service = live_state_service
-        self.__seg_state_service = seg_state_service
+        self.__live_service = live_service
+        self.__seg_service = seg_service
         self.__seg_http = seg_http
         self.__attr = attr
         self.__invalid_seg_time_diff_threshold_sec = invalid_seg_time_diff_threshold_sec
@@ -54,7 +54,7 @@ class SegmentStateValidator:
             if latest_num is None:
                 return ok()  # init recording
 
-            live = await self.__live_state_service.get_live(self.__seg_state_service.live_record_id, use_master=False)
+            live = await self.__live_service.get_live(self.__seg_service.live_record_id, use_master=False)
             if live is None:
                 log.error("LiveState not found", self.__attr)
                 return no()
@@ -74,7 +74,7 @@ class SegmentStateValidator:
                 log.error("Segment number difference is too large", attr)
                 return critical()
 
-            matched_seg_states = await self.__seg_state_service.get_batch(matched_nums, use_master=False)
+            matched_seg_states = await self.__seg_service.get_batch(matched_nums, use_master=False)
             seg_stat_map = {seg.num: seg for seg in matched_seg_states}
 
             matched_req_segments = [seg for seg in sorted_req_segments if seg.num in matched_nums]
@@ -117,7 +117,7 @@ class SegmentStateValidator:
             if not await success_nums.contains(seg.num, use_master=False):
                 return ok()  # unsuccessful segment
 
-            seg_state = await self.__seg_state_service.get_seg(seg.num, use_master=False)
+            seg_state = await self.__seg_service.get_seg(seg.num, use_master=False)
             if seg_state is None:
                 log.error(f"Segment {seg.num} not found", self.__seg_attr(seg))
                 return no()

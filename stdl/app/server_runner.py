@@ -40,10 +40,11 @@ def run_server():
 
     scheduler = RecordingScheduler(env)
 
-    router_redis_master = Redis(connection_pool=create_redis_pool(env.redis_master))
-    router_redis_replica = Redis(connection_pool=create_redis_pool(env.redis_replica))
-    live_state_service = LiveStateService(master=router_redis_master, replica=router_redis_replica)
-    main_controller = MainController(scheduler, live_state_service)
+    live_service = LiveStateService(
+        master=Redis(connection_pool=create_redis_pool(env.redis_master)),
+        replica=Redis(connection_pool=create_redis_pool(env.redis_replica)),
+    )
+    main_controller = MainController(scheduler, live_service)
 
     app = FastAPI()
     app.add_middleware(BaseHTTPMiddleware, dispatch=handle_error)
