@@ -302,7 +302,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                 self.__done_flag = True
             return
 
-        lock = await self.__seg_service.acquire_lock(seg)
+        lock = await self.__seg_service.acquire_lock(seg)  # master +1
         if lock is None:
             # log.debug(f"Failed to acquire segment {seg.num}")
             return
@@ -311,12 +311,12 @@ class SegmentedStreamRecorder(StreamRecorder):
         req_start = asyncio.get_event_loop().time()
         try:
             if not seg.is_retrying:
-                ok = await self.__seg_service.set_seg(seg, nx=True)
+                ok = await self.__seg_service.set_seg(seg, nx=True)  # master +1
                 if not ok:
                     log.error("Segment already exists", self.ctx.to_dict({"num": seg.num}))
                     return
             else:
-                await self.__seg_service.increment_retry_count(seg.num)
+                await self.__seg_service.increment_retry_count(seg.num)  # master +1~2
             await self.__seg_request_counter.increment()
 
             b = await self.__seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
@@ -345,7 +345,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                 log.error("Failed to failure process", self.__error_attr(ex, num=seg.num))
         finally:
             try:
-                await self.__seg_service.release_lock(lock)
+                await self.__seg_service.release_lock(lock)  # master +1
             except BaseException as ex:
                 log.error("Failed to release segment lock", self.__error_attr(ex, num=seg.num))
 
@@ -353,41 +353,39 @@ class SegmentedStreamRecorder(StreamRecorder):
         if seg.is_retrying:
             retry_count = await self.__seg_service.get_retry_count(seg.num, use_master=False)
             await metric.set_segment_request_retry(retry_count, self.ctx.live.platform, self.__seg_retry_hist)
-        async with self.__success_nums.lock():
-            await self.__success_nums.set_num(seg.num)
+        async with self.__success_nums.lock():  # master +2
+            await self.__success_nums.set_num(seg.num)  # master +1
         await asyncio.gather(
-            self.__retrying_nums.remove(seg.num),
-            self.__failed_nums.remove(seg.num),
-            self.__seg_service.update_to_success(state=seg, size=size),
-            self.__seg_service.clear_retry_count(seg.num),
+            self.__seg_service.update_to_success(state=seg, size=size),  # master +1
+            self.__seg_service.clear_retry_count(seg.num),  # master +0~1
+            self.__retrying_nums.remove(seg.num),  # master +0~1
+            self.__failed_nums.remove(seg.num),  # master +0~1
         )
 
     async def __on_segment_request_failure(self, seg: SegmentState, req_start: float, ex: BaseException):
-        await metric.set_segment_request_duration(
-            duration=asyncio.get_event_loop().time() - req_start,
-            platform=self.ctx.live.platform,
-            extra=self.__seg_duration_hist,
-        )
+        duration = asyncio.get_event_loop().time() - req_start
+        await metric.set_segment_request_duration(duration, self.ctx.live.platform, self.__seg_duration_hist)
+
         if not seg.is_retrying:  # failed to first request:
-            async with self.__success_nums.lock():
-                if not await self.__success_nums.contains(seg.num, use_master=True):
+            async with self.__success_nums.lock():  # master +2
+                if not await self.__success_nums.contains(seg.num, use_master=True):  # master +1
                     await asyncio.gather(
-                        self.__seg_service.update_to_retrying(seg),
-                        self.__retrying_nums.set_num(seg.num),
+                        self.__seg_service.update_to_retrying(seg),  # master +1
+                        self.__retrying_nums.set_num(seg.num),  # master +1
                     )
         else:  # failed to retry request:
             retry_count = await self.__seg_service.get_retry_count(seg.num, use_master=False)
             if retry_count >= (self.__seg_parallel_retry_limit * self.__seg_failure_threshold_ratio):
-                async with self.__success_nums.lock():
-                    if not await self.__success_nums.contains(seg.num, use_master=True):
+                async with self.__success_nums.lock():  # master +2
+                    if not await self.__success_nums.contains(seg.num, use_master=True):  # master +1
                         await asyncio.gather(
-                            self.__failed_nums.set_num(seg.num),
+                            self.__failed_nums.set_num(seg.num),  # master +1
                             metric.inc_segment_request_failures(self.ctx.live.platform, self.__seg_failure_counter),
                         )
                         log.error("Failed to process segment", self.__error_attr(ex, num=seg.num))
                 await asyncio.gather(
-                    self.__retrying_nums.remove(seg.num),
-                    self.__seg_service.clear_retry_count(seg.num),
+                    self.__retrying_nums.remove(seg.num),  # master +1
+                    self.__seg_service.clear_retry_count(seg.num),  # master +1
                     metric.set_segment_request_retry(retry_count, self.ctx.live.platform, self.__seg_retry_hist),
                 )
 

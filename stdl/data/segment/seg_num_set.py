@@ -3,8 +3,7 @@ import asyncio
 from pyutils import log, error_dict
 from redis.asyncio import Redis
 
-from ..redis import RedisSortedSet, RedisSpinLock
-
+from ..redis import RedisSortedSet, RedisSpinLock, inc_count
 
 LOCK_RETRY_INTERVAL_SEC = 0.1
 RENEW_THRESHOLD_MS = 60 * 1000  # 1 minute
@@ -35,11 +34,13 @@ class SegmentNumberSet:
 
     async def renew(self):
         key = self.__get_key()
+        inc_count(use_master=False)
         ttl = await self.__replica.pttl(key)
         if ttl is None or ttl == -2 or ttl > RENEW_THRESHOLD_MS:
             return
 
         start_time = asyncio.get_event_loop().time()
+        inc_count(use_master=True)
         try:
             await self.__sorted_set_master.set_pexpire(key, self.__expire_ms)
         except Exception as ex:
@@ -47,36 +48,45 @@ class SegmentNumberSet:
             log.error("Renew failed", self.__error_attr(ex, extra))
 
     async def set_num(self, num: int):
+        inc_count(use_master=True)
         await self.__sorted_set_master.set(self.__get_key(), str(num), num)
 
     async def all(self, use_master: bool) -> list[int]:
+        inc_count(use_master=use_master)
         result = await self.__get_sorted_set(use_master).list(self.__get_key())
         return [int(i) for i in result]
 
     async def get_highest(self, use_master: bool) -> int | None:
+        inc_count(use_master=use_master)
         result = await self.__get_sorted_set(use_master).get_highest(self.__get_key())
         if result is None:
             return None
         return int(result)
 
     async def range(self, start: int, end: int, use_master: bool) -> list[int]:
+        inc_count(use_master=use_master)
         result = await self.__get_sorted_set(use_master).range_by_score(self.__get_key(), start, end)
         return [int(i) for i in result]
 
     async def remove(self, num: int):
         if await self.contains(num, use_master=False):
+            inc_count(use_master=False)
             await self.__sorted_set_master.remove_by_value(self.__get_key(), str(num))
 
     async def contains(self, num: int, use_master: bool) -> bool:
+        inc_count(use_master=use_master)
         return await self.__get_sorted_set(use_master).contains_by_value(self.__get_key(), str(num))
 
     async def size(self, use_master: bool) -> int:
+        inc_count(use_master=use_master)
         return await self.__get_sorted_set(use_master).size(self.__get_key())
 
     async def clear(self):
+        inc_count(use_master=True)
         await self.__sorted_set_master.clear(self.__get_key())
 
     def lock(self) -> RedisSpinLock:
+        inc_count(use_master=True, amount=2)
         return RedisSpinLock(
             client=self.__master,
             key=f"{self.__get_key()}:lock",

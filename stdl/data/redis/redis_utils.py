@@ -53,3 +53,10 @@ def redis_metric(func):
         return result
 
     return wrapper
+
+
+def inc_count(use_master: bool, amount: float = 1):
+    if use_master:
+        metric.inc_redis_master_request_count(amount=amount)
+    else:
+        metric.inc_redis_replica_request_count(amount=amount)

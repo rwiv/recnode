@@ -8,7 +8,7 @@ from pyutils import error_dict, log
 from redis.asyncio import Redis
 
 from .seg_num_set import SegmentNumberSet
-from ..redis import RedisString
+from ..redis import RedisString, inc_count
 
 INIT_PARALLEL_LIMIT = 1
 
@@ -58,12 +58,14 @@ class SegmentStateService:
         self.live_record_id = live_record_id
 
     async def get_seg(self, num: int, use_master: bool) -> SegmentState | None:
+        inc_count(use_master=use_master)
         txt = await self.__get_str_redis(use_master).get(self.__get_key(num))
         if txt is None:
             return None
         return SegmentState(**json.loads(txt))
 
     async def get_batch(self, nums: list[int], use_master: bool) -> list[SegmentState]:
+        inc_count(use_master=use_master)
         keys = [self.__get_key(num) for num in nums]
         texts = await self.__get_str_redis(use_master).mget(keys)
         result: list[SegmentState] = []
@@ -75,6 +77,7 @@ class SegmentStateService:
         return result
 
     async def set_seg(self, state: SegmentState, nx: bool) -> bool:
+        inc_count(use_master=True)
         return await self.__str_master.set(
             key=self.__get_key(state.num),
             value=state.model_dump_json(by_alias=True, exclude_none=True),
@@ -108,6 +111,7 @@ class SegmentStateService:
         return None
 
     async def _acquire_lock(self, seg_num: int, lock_num: int) -> SegmentLock | None:
+        inc_count(use_master=True)
         token = uuid.uuid4()
         result = await self.__str_master.set(
             key=self.__get_lock_key(seg_num=seg_num, lock_num=lock_num),
@@ -122,23 +126,31 @@ class SegmentStateService:
 
     async def release_lock(self, lock: SegmentLock):
         key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
+        inc_count(use_master=False)
         current_token = await self.__str_replica.get(key)
         if current_token is None:
             log.debug("Lock does not exist", {"key": key})
             return
         if current_token != str(lock.token):
             raise ValueError("Lock Token mismatch")
+        inc_count(use_master=True)
         await self.__str_master.delete(key)
 
     async def is_locked(self, seg_num: int, lock_num: int, use_master: bool) -> bool:
+        inc_count(use_master=use_master)
         key = self.__get_lock_key(seg_num=seg_num, lock_num=lock_num)
         return await self.__get_str_redis(use_master).exists(key)
 
-    async def increment_retry_count(self, seg_num: int):
+    async def increment_retry_count(self, seg_num: int) -> int:
+        inc_count(use_master=True)
         key = self.__get_retry_key(seg_num=seg_num)
-        return await self.__str_master.incr(key, px=self.__expire_ms)
+        result = await self.__str_master.incr(key, px=self.__expire_ms)
+        if result == 1:
+            inc_count(use_master=True)
+        return result
 
     async def get_retry_count(self, seg_num: int, use_master: bool) -> int:
+        inc_count(use_master=use_master)
         key = self.__get_retry_key(seg_num=seg_num)
         count = await self.__get_str_redis(use_master).get(key)
         if count is None:
@@ -147,12 +159,16 @@ class SegmentStateService:
 
     async def clear_retry_count(self, seg_num: int):
         key = self.__get_retry_key(seg_num=seg_num)
+        inc_count(use_master=False)
         if await self.__str_replica.exists(key):
+            inc_count(use_master=True)
             await self.__str_master.delete(key)
 
     async def delete(self, num: int):
         key = self.__get_key(num)
+        inc_count(use_master=False)
         if await self.__str_replica.exists(key):
+            inc_count(use_master=True)
             return await self.__str_master.delete(key)
 
     async def delete_mapped(self, nums: SegmentNumberSet):

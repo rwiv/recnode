@@ -15,95 +15,109 @@ from ..utils import AsyncCounter
 
 class MetricManager:
     def __init__(self):
-        self.api_request_duration_hist = PromHistogram(
+        self.__api_request_duration_hist = PromHistogram(
             "api_request_duration_seconds",
             "Duration of HTTP API requests in seconds",
             ["platform"],
             buckets=api_request_duration_buckets,
         )
-        self.redis_request_duration_hist = PromHistogram(
+        self.__redis_request_duration_hist = PromHistogram(
             "redis_request_duration_seconds",
             "Duration of Redis requests in seconds",
             buckets=api_request_duration_buckets,
         )
-        self.interval_duration_hist = PromHistogram(
+        self.__redis_master_request_counter = Counter(
+            "redis_master_requests",
+            "Count of Redis master requests",
+        )
+        self.__redis_replica_request_counter = Counter(
+            "redis_replica_requests",
+            "Count of Redis replica requests",
+        )
+        self.__interval_duration_hist = PromHistogram(
             "interval_duration_seconds",
             "Duration of interval in seconds",
             ["platform"],
             buckets=interval_duration_buckets,
         )
-        self.m3u8_request_duration_hist = PromHistogram(
+        self.__m3u8_request_duration_hist = PromHistogram(
             "m3u8_request_duration_seconds",
             "Duration of HLS m3u8 requests in seconds",
             ["platform"],
             buckets=m3u8_request_duration_buckets,
         )
-        self.m3u8_request_retry_counter = Counter(
+        self.__m3u8_request_retry_counter = Counter(
             "m3u8_request_retries",
             "Count of HLS m3u8 request retries",
             ["platform"],
         )
-        self.segment_request_duration_hist = PromHistogram(
+        self.__segment_request_duration_hist = PromHistogram(
             "segment_request_duration_seconds",
             "Duration of HLS segment requests in seconds",
             ["platform"],
             buckets=segment_request_duration_buckets,
         )
-        self.segment_request_retry_hist = PromHistogram(
+        self.__segment_request_retry_hist = PromHistogram(
             "segment_request_retries",
             "Count of HLS segment request retries",
             ["platform"],
             buckets=segment_request_retry_buckets,
         )
-        self.segment_request_failures_counter = Counter(
+        self.__segment_request_failures_counter = Counter(
             "segment_request_failures",
             "Count of HLS segment request failures",
             ["platform"],
         )
-        self.object_write_duration_hist = PromHistogram(
+        self.__object_write_duration_hist = PromHistogram(
             "object_write_duration_seconds",
             "Duration of object write requests in seconds",
             buckets=object_write_duration_buckets,
         )
 
     async def set_api_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
-        self.api_request_duration_hist.labels(platform=platform.value).observe(duration)
+        self.__api_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)
 
     def set_redis_request_duration(self, duration: float):
-        self.redis_request_duration_hist.observe(duration)
+        self.__redis_request_duration_hist.observe(duration)
+
+    def inc_redis_master_request_count(self, amount: float = 1):
+        self.__redis_master_request_counter.inc(amount=amount)
+
+    def inc_redis_replica_request_count(self, amount: float = 1):
+        self.__redis_replica_request_counter.inc(amount=amount)
 
     def set_interval_duration(self, duration: float, platform: PlatformType):
-        self.interval_duration_hist.labels(platform=platform.value).observe(duration)
+        self.__interval_duration_hist.labels(platform=platform.value).observe(duration)
 
     async def set_m3u8_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
-        self.m3u8_request_duration_hist.labels(platform=platform.value).observe(duration)
+        self.__m3u8_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)
 
     async def inc_m3u8_request_retry(self, platform: PlatformType, extra: AsyncCounter | None = None):
-        self.m3u8_request_retry_counter.labels(platform=platform.value).inc()
+        self.__m3u8_request_retry_counter.labels(platform=platform.value).inc()
         if extra is not None:
             await extra.increment()
 
     async def set_segment_request_duration(self, duration: float, platform: PlatformType, extra: Histogram | None = None):
-        self.segment_request_duration_hist.labels(platform=platform.value).observe(duration)
+        self.__segment_request_duration_hist.labels(platform=platform.value).observe(duration)
         if extra is not None:
             await extra.observe(duration)
 
     async def set_segment_request_retry(self, retry_cnt: int, platform: PlatformType, extra: Histogram | None = None):
-        self.segment_request_retry_hist.labels(platform=platform.value).observe(retry_cnt)
+        self.__segment_request_retry_hist.labels(platform=platform.value).observe(retry_cnt)
         if extra is not None:
             await extra.observe(retry_cnt)
 
     async def inc_segment_request_failures(self, platform: PlatformType, extra: AsyncCounter | None = None):
-        self.segment_request_failures_counter.labels(platform=platform.value).inc()
+        self.__segment_request_failures_counter.labels(platform=platform.value).inc()
         if extra is not None:
             await extra.increment()
 
     def set_object_write_duration(self, duration: float):
-        self.object_write_duration_hist.observe(duration)
+        self.__object_write_duration_hist.observe(duration)
 
     def create_m3u8_request_duration_histogram(self):
         return Histogram(m3u8_request_duration_buckets)
