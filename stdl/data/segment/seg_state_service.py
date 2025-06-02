@@ -58,23 +58,15 @@ class SegmentStateService:
 
         self.live_record_id = live_record_id
 
-    async def renew(self, num: int):
-        start_time = asyncio.get_event_loop().time()
-        try:
-            await self.__str_master.set_pexpire(self.__get_key(num), self.__expire_ms)
-        except Exception as ex:
-            extra = {"duration": asyncio.get_event_loop().time() - start_time}
-            log.error("Renew failed", self.__error_attr(ex, extra))
-
-    async def get(self, num: int) -> SegmentState | None:
-        txt = await self.__str_master.get(self.__get_key(num))
+    async def get_seg(self, num: int, use_master: bool) -> SegmentState | None:
+        txt = await self.__get_str_redis(use_master).get(self.__get_key(num))
         if txt is None:
             return None
         return SegmentState(**json.loads(txt))
 
-    async def get_batch(self, nums: list[int]) -> list[SegmentState]:
+    async def get_batch(self, nums: list[int], use_master: bool) -> list[SegmentState]:
         keys = [self.__get_key(num) for num in nums]
-        texts = await self.__str_master.mget(keys)
+        texts = await self.__get_str_redis(use_master).mget(keys)
         result: list[SegmentState] = []
         for i, txt in enumerate(texts):
             if txt is not None:
@@ -83,8 +75,16 @@ class SegmentStateService:
                 log.error("SegmentState not found", {"key": keys[i]})
         return result
 
-    async def set_nx(self, state: SegmentState) -> bool:
-        return await self.set(state=state, nx=True)
+    async def set_seg(self, state: SegmentState, nx: bool) -> bool:
+        return await self.__str_master.set(
+            key=self.__get_key(state.num),
+            value=state.model_dump_json(by_alias=True, exclude_none=True),
+            nx=nx,
+            px=self.__expire_ms,
+        )
+
+    async def set_seg_nx(self, state: SegmentState) -> bool:
+        return await self.set_seg(state=state, nx=True)
 
     async def update_to_success(self, state: SegmentState, size: int) -> bool:
         new_state = state.copy()
@@ -92,14 +92,14 @@ class SegmentStateService:
         new_state.size = size
         new_state.parallel_limit = INIT_PARALLEL_LIMIT
         new_state.updated_at = datetime.now()
-        return await self.set(state=new_state, nx=False)
+        return await self.set_seg(state=new_state, nx=False)
 
     async def update_to_retrying(self, state: SegmentState) -> bool:
         new_state = state.copy()
         new_state.is_retrying = True
         new_state.parallel_limit = self.__retry_parallel_retry_limit
         new_state.updated_at = datetime.now()
-        return await self.set(state=new_state, nx=False)
+        return await self.set_seg(state=new_state, nx=False)
 
     async def acquire_lock(self, state: SegmentState) -> SegmentLock | None:
         for lock_num in range(state.parallel_limit):
@@ -123,7 +123,7 @@ class SegmentStateService:
 
     async def release_lock(self, lock: SegmentLock):
         key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
-        current_token = await self.__str_master.get(key)
+        current_token = await self.__str_replica.get(key)
         if current_token is None:
             log.debug("Lock does not exist", {"key": key})
             return
@@ -131,36 +131,30 @@ class SegmentStateService:
             raise ValueError("Lock Token mismatch")
         await self.__str_master.delete(key)
 
-    async def is_locked(self, seg_num: int, lock_num: int) -> bool:
+    async def is_locked(self, seg_num: int, lock_num: int, use_master: bool) -> bool:
         key = self.__get_lock_key(seg_num=seg_num, lock_num=lock_num)
-        return await self.__str_master.contains(key)
+        return await self.__get_str_redis(use_master).exists(key)
 
     async def increment_retry_count(self, seg_num: int):
         key = self.__get_retry_key(seg_num=seg_num)
-        return await self.__str_master.incr(key)
+        return await self.__str_master.incr(key, px=self.__expire_ms)
 
-    async def get_retry_count(self, seg_num: int) -> int:
+    async def get_retry_count(self, seg_num: int, use_master: bool) -> int:
         key = self.__get_retry_key(seg_num=seg_num)
-        count = await self.__str_master.get(key)
+        count = await self.__get_str_redis(use_master).get(key)
         if count is None:
             return 0
         return int(count)
 
     async def clear_retry_count(self, seg_num: int):
         key = self.__get_retry_key(seg_num=seg_num)
-        if await self.__str_master.contains(key):
+        if await self.__str_replica.exists(key):
             await self.__str_master.delete(key)
 
-    async def set(self, state: SegmentState, nx: bool) -> bool:
-        return await self.__str_master.set(
-            key=self.__get_key(state.num),
-            value=state.model_dump_json(by_alias=True, exclude_none=True),
-            nx=nx,
-            px=self.__expire_ms,
-        )
-
-    async def delete(self, num: int) -> int:
-        return await self.__str_master.delete(self.__get_key(num))
+    async def delete(self, num: int):
+        key = self.__get_key(num)
+        if await self.__str_replica.exists(key):
+            return await self.__str_master.delete(key)
 
     async def delete_mapped(self, nums: SegmentNumberSet):
         for num in await nums.all(use_master=True):
@@ -184,3 +178,6 @@ class SegmentStateService:
             for k, v in extra.items():
                 attr[k] = v
         return attr
+
+    def __get_str_redis(self, use_master: bool = True) -> RedisString:
+        return self.__str_master if use_master else self.__str_replica

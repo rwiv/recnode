@@ -50,30 +50,28 @@ class SegmentNumberSet:
         await self.__sorted_set_master.set(self.__get_key(), str(num), num)
 
     async def all(self, use_master: bool) -> list[int]:
-        sorted_set = self.__sorted_set_master if use_master else self.__sorted_set_replica
-        result = await sorted_set.list(self.__get_key())
+        result = await self.__get_sorted_set(use_master).list(self.__get_key())
         return [int(i) for i in result]
 
     async def get_highest(self, use_master: bool) -> int | None:
-        sorted_set = self.__sorted_set_master if use_master else self.__sorted_set_replica
-        result = await sorted_set.get_highest(self.__get_key())
+        result = await self.__get_sorted_set(use_master).get_highest(self.__get_key())
         if result is None:
             return None
         return int(result)
 
-    async def range(self, start: int, end: int) -> list[int]:
-        result = await self.__sorted_set_master.range_by_score(self.__get_key(), start, end)
+    async def range(self, start: int, end: int, use_master: bool) -> list[int]:
+        result = await self.__get_sorted_set(use_master).range_by_score(self.__get_key(), start, end)
         return [int(i) for i in result]
 
     async def remove(self, num: int):
-        if await self.contains(num):
+        if await self.contains(num, use_master=False):
             await self.__sorted_set_master.remove_by_value(self.__get_key(), str(num))
 
-    async def contains(self, num: int) -> bool:
-        return await self.__sorted_set_master.contains_by_value(self.__get_key(), str(num))
+    async def contains(self, num: int, use_master: bool) -> bool:
+        return await self.__get_sorted_set(use_master).contains_by_value(self.__get_key(), str(num))
 
-    async def size(self) -> int:
-        return await self.__sorted_set_master.size(self.__get_key())
+    async def size(self, use_master: bool) -> int:
+        return await self.__get_sorted_set(use_master).size(self.__get_key())
 
     async def clear(self):
         await self.__sorted_set_master.clear(self.__get_key())
@@ -98,3 +96,6 @@ class SegmentNumberSet:
             for k, v in extra.items():
                 attr[k] = v
         return attr
+
+    def __get_sorted_set(self, use_master: bool) -> RedisSortedSet:
+        return self.__sorted_set_master if use_master else self.__sorted_set_replica

@@ -43,15 +43,17 @@ class RedisString:
         return await self.__redis.delete(key)
 
     @redis_metric
-    async def contains(self, key: str) -> bool:
+    async def exists(self, key: str) -> bool:
         result = await self.__redis.exists(key)
         if not isinstance(result, int):
             raise RedisError("Expected integer data", 500)
         return result == 1
 
     @redis_metric
-    async def incr(self, key: str, amount: int = 1) -> int:
+    async def incr(self, key: str, amount: int = 1, px: int | None = None) -> int:
         result = await self.__redis.incr(name=key, amount=amount)
         if not isinstance(result, int):
             raise RedisError("Expected integer data", 500)
+        if px is not None and result == 1:
+            await self.set_pexpire(key, px)
         return result

@@ -15,8 +15,7 @@ class LiveStateService:
         self.__str_replica = RedisString(self.__replica)
 
     async def get_live(self, record_id: str, use_master: bool) -> LiveState | None:
-        str_redis = self.__str_master if use_master else self.__str_replica
-        text = await str_redis.get(self.__get_key(record_id))
+        text = await self.__get_str_redis(use_master).get(self.__get_key(record_id))
         if text is None:
             return None
         return LiveState.parse_raw(text)
@@ -40,8 +39,11 @@ class LiveStateService:
 
     async def delete(self, record_id: str):
         key = self.__get_key(record_id)
-        if await self.__str_replica.contains(key):
+        if await self.__str_replica.exists(key):
             await self.__str_master.delete(key)
 
     def __get_key(self, record_id: str) -> str:
         return f"{KEY_PREFIX}:{record_id}"
+
+    def __get_str_redis(self, use_master: bool = True) -> RedisString:
+        return self.__str_master if use_master else self.__str_replica

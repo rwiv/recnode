@@ -26,12 +26,12 @@ async def test_redis_str():
     await test_clear()
     assert not await redis_str.set_pexpire(key, 10_000)
     assert await redis_str.get(key) is None
-    assert not await redis_str.contains(key)
+    assert not await redis_str.exists(key)
     assert await redis_str.set(key, "test", nx=True)
     assert not await redis_str.set(key, "test", nx=True)
     assert await redis_str.set_pexpire(key, 10_000)
     assert await redis_str.get(key) == "test"
-    assert await redis_str.contains(key)
+    assert await redis_str.exists(key)
     assert await redis_str.delete(key)
     assert not await redis_str.delete(key)
 

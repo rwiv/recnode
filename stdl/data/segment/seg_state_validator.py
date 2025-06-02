@@ -63,14 +63,18 @@ class SegmentStateValidator:
                 return no()
 
             sorted_req_segments = sorted(req_segments, key=lambda x: x.num)
-            matched_nums = await success_nums.range(sorted_req_segments[0].num, sorted_req_segments[-1].num)
+            matched_nums = await success_nums.range(
+                start=sorted_req_segments[0].num,
+                end=sorted_req_segments[-1].num,
+                use_master=False,
+            )
             if len(matched_nums) == 0 and self.__is_invalid_num(sorted_req_segments[-1].num, latest_num):
                 attr = self.__seg_attr(sorted_req_segments[-1])
                 attr["latest_num"] = latest_num
                 log.error("Segment number difference is too large", attr)
                 return critical()
 
-            matched_seg_states = await self.__seg_state_service.get_batch(matched_nums)
+            matched_seg_states = await self.__seg_state_service.get_batch(matched_nums, use_master=False)
             seg_stat_map = {seg.num: seg for seg in matched_seg_states}
 
             matched_req_segments = [seg for seg in sorted_req_segments if seg.num in matched_nums]
@@ -110,10 +114,10 @@ class SegmentStateValidator:
                 log.error("Segment number difference is too large", attr)
                 return critical()
 
-            if not await success_nums.contains(seg.num):
+            if not await success_nums.contains(seg.num, use_master=False):
                 return ok()  # unsuccessful segment
 
-            seg_state = await self.__seg_state_service.get(seg.num)
+            seg_state = await self.__seg_state_service.get_seg(seg.num, use_master=False)
             if seg_state is None:
                 log.error(f"Segment {seg.num} not found", self.__seg_attr(seg))
                 return no()
