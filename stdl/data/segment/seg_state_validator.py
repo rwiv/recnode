@@ -126,7 +126,7 @@ class SegmentStateValidator:
                 log.error("Invalid duplicated segment", self.__pair_attr(seg, seg_state))
                 return critical()
             else:
-                log.debug("Duplicated segment", self.__seg_attr(seg))
+                # log.debug("Duplicated segment", self.__seg_attr(seg))
                 return no()
         except BaseException as ex:
             log.error("Failed to validate segment", self.__error_attr(ex))

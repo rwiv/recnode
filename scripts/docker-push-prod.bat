@@ -1,5 +1,5 @@
 cd ..
-set IMG=harbor.rwiv.xyz/private/stdl:0.7.4
+set IMG=harbor.rwiv.xyz/private/stdl:0.7.5
 set DOCKERFILE=./docker/Dockerfile
 
 docker buildx build --platform linux/amd64,linux/arm64 -t %IMG% -f %DOCKERFILE% --push .

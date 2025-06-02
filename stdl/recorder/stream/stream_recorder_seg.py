@@ -297,7 +297,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             if not seg.is_retrying:
                 ok = await self.__seg_service.set_seg(seg, nx=True)  # master +1
                 if not ok:
-                    log.debug("Segment already exists", self.ctx.to_dict({"num": seg.num}))
+                    # log.debug("Segment already exists", self.ctx.to_dict({"num": seg.num}))
                     return
             else:
                 await self.__seg_service.increment_retry_count(seg.num)  # master +1~2
