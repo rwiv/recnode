@@ -32,9 +32,6 @@ class StreamlinkStreamRecorder(StreamRecorder):
 
         self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
 
-    def wait_for_live(self) -> dict[str, HLSStream] | None:
-        return self._helper.wait_for_live()
-
     async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         info = self.ctx.to_status(
             fs_name=self._writer.fs_name,
@@ -48,7 +45,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
 
         # Start recording
-        streams = self._helper.wait_for_live()
+        streams = self._helper.wait_for_live(self.ctx)
         if streams is None:
             log.error("Failed to get live streams")
             raise ValueError("Failed to get live streams")
@@ -102,9 +99,9 @@ class StreamlinkStreamRecorder(StreamRecorder):
                 f.write(data)
             self.idx += 1
 
-            target_segments = await self._helper.check_segments(self.ctx)
-            if target_segments is not None:
-                tar_path = await asyncio.to_thread(self._helper.archive_files, target_segments, self.ctx.tmp_dir_path)
+            tgt_seg_paths = await self._helper.check_segments(self.ctx)
+            if tgt_seg_paths is not None:
+                tar_path = await asyncio.to_thread(self._helper.archive_files, tgt_seg_paths, self.ctx.tmp_dir_path)
                 self._helper.start_write_segment_task(tar_path, self.ctx)
 
         await self.__close_recording()

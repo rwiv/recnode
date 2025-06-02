@@ -2,7 +2,7 @@ import asyncio
 import threading
 from abc import ABC, abstractmethod
 
-from .stream_types import RequestContext
+from .stream_types import RecordingContext
 from ..schema.recording_arguments import RecordingArgs
 from ..schema.recording_schema import RecordingState, RecordingStatus
 from ..stream.stream_helper import StreamHelper
@@ -19,14 +19,12 @@ class StreamRecorder(ABC):
         writer: ObjectWriter,
         incomplete_dir_path: str,
     ):
-        self._live = live
         self._state = RecordingState()
         self._status: RecordingStatus = RecordingStatus.WAIT
 
         self._writer = writer
         self._fetcher = PlatformFetcher()
         self._helper = StreamHelper(
-            live=live,
             args=args,
             state=self._state,
             writer=writer,
@@ -34,13 +32,13 @@ class StreamRecorder(ABC):
             incomplete_dir_path=incomplete_dir_path,
         )
 
-        self.ctx: RequestContext = self._helper.get_ctx(live)
+        self.ctx: RecordingContext = self._helper.get_ctx(live)
         self.is_done = False
         self.recording_thread: threading.Thread | None = None
 
     def record(self):
         self.recording_thread = threading.Thread(target=self.__record_with_thread)
-        self.recording_thread.name = f"recording:{self._live.id}"
+        self.recording_thread.name = f"recording:{self.ctx.record_id}"
         self.recording_thread.start()
 
     def __record_with_thread(self):

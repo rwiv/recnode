@@ -32,6 +32,18 @@ class SegmentState(BaseModel):
     def to_dict(self):
         return self.model_dump(mode="json", by_alias=True)
 
+    @staticmethod
+    def new(url: str, num: int, duration: float, now: datetime, size: int | None = None) -> "SegmentState":
+        return SegmentState(
+            url=url,
+            num=num,
+            duration=duration,
+            size=size,
+            parallel_limit=INIT_PARALLEL_LIMIT,
+            created_at=now,
+            updated_at=now,
+        )
+
 
 class SegmentStateService:
     def __init__(
@@ -132,7 +144,7 @@ class SegmentStateService:
             log.debug("Lock does not exist", {"key": key})
             return
         if current_token != str(lock.token):
-            raise ValueError("Lock Token mismatch")
+            raise ValueError(f"Lock Token mismatch: expected={lock.token}, actual={current_token}")
         inc_count(use_master=True)
         await self.__str_master.delete(key)
 
