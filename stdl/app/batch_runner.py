@@ -32,7 +32,10 @@ class BatchRunner:
             raise ValueError("Config path not set")
         conf = read_conf(self.env.config_path)
 
-        live_state_service = LiveStateService(Redis(connection_pool=create_redis_pool(self.env.redis_master)))
+        live_state_service = LiveStateService(
+            master=Redis(connection_pool=create_redis_pool(self.env.redis_master)),
+            replica=Redis(connection_pool=create_redis_pool(self.env.redis_replica)),
+        )
 
         state = await get_state(url=conf.url, cookie_header=conf.cookie)
         await live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))

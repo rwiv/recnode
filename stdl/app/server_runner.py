@@ -40,8 +40,9 @@ def run_server():
 
     scheduler = RecordingScheduler(env)
 
-    router_redis = Redis(connection_pool=create_redis_pool(env.redis_master))
-    live_state_service = LiveStateService(router_redis)
+    router_redis_master = Redis(connection_pool=create_redis_pool(env.redis_master))
+    router_redis_replica = Redis(connection_pool=create_redis_pool(env.redis_replica))
+    live_state_service = LiveStateService(master=router_redis_master, replica=router_redis_replica)
     main_controller = MainController(scheduler, live_state_service)
 
     app = FastAPI()

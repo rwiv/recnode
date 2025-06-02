@@ -9,14 +9,13 @@ from tests.data.mock_helpers import live
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 env = get_env()
-conf = env.redis_master
-pool = create_redis_pool(conf)
-client = Redis(connection_pool=pool)
+master = Redis(connection_pool=create_redis_pool(env.redis_master))
+replica = Redis(connection_pool=create_redis_pool(env.redis_replica))
 
 
 @pytest.mark.asyncio
 async def test_live_state_service():
-    live_service = LiveStateService(client)
+    live_service = LiveStateService(master=master, replica=replica)
     live1 = live(id="2f208071-d46f-4632-b962-d69034321b23")
     await live_service.delete(live1.id)
 

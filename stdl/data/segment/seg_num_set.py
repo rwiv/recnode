@@ -12,7 +12,8 @@ LOCK_RETRY_INTERVAL_SEC = 0.1
 class SegmentNumberSet:
     def __init__(
         self,
-        client: Redis,
+        master: Redis,
+        replica: Redis,
         live_record_id: str,
         key_suffix: str,
         expire_ms: int,
@@ -20,8 +21,10 @@ class SegmentNumberSet:
         lock_wait_timeout_sec: float,
         attr: dict,
     ):
-        self.__client = client
-        self.__sorted_set = RedisSortedSet(client)
+        self.__master = master
+        self.__replica = replica
+        self.__sorted_set_master = RedisSortedSet(self.__master)
+        self.__sorted_set_replica = RedisSortedSet(self.__replica)
         self.__live_record_id = live_record_id
         self.__key_suffix = key_suffix
         self.__expire_ms = expire_ms
@@ -32,50 +35,50 @@ class SegmentNumberSet:
     async def renew(self):
         start_time = asyncio.get_event_loop().time()
         try:
-            await self.__sorted_set.set_pexpire(self.__get_key(), self.__expire_ms)
+            await self.__sorted_set_master.set_pexpire(self.__get_key(), self.__expire_ms)
         except Exception as ex:
             extra = {"duration": asyncio.get_event_loop().time() - start_time}
             log.error("Renew failed", self.__error_attr(ex, extra))
 
     async def set(self, num: int):
-        await self.__sorted_set.set(self.__get_key(), str(num), num)
+        await self.__sorted_set_master.set(self.__get_key(), str(num), num)
 
     async def all(self) -> list[int]:
-        result = await self.__sorted_set.list(self.__get_key())
+        result = await self.__sorted_set_master.list(self.__get_key())
         return [int(i) for i in result]
 
     async def get(self, num: int) -> int | None:
-        result = await self.__sorted_set.get_by_score(self.__get_key(), num)
+        result = await self.__sorted_set_master.get_by_score(self.__get_key(), num)
         if result is None:
             return None
         return int(result)
 
     async def get_highest(self) -> int | None:
-        result = await self.__sorted_set.get_highest(self.__get_key())
+        result = await self.__sorted_set_master.get_highest(self.__get_key())
         if result is None:
             return None
         return int(result)
 
     async def range(self, start: int, end: int) -> list[int]:
-        result = await self.__sorted_set.range_by_score(self.__get_key(), start, end)
+        result = await self.__sorted_set_master.range_by_score(self.__get_key(), start, end)
         return [int(i) for i in result]
 
     async def remove(self, num: int):
         if await self.contains(num):
-            await self.__sorted_set.remove_by_value(self.__get_key(), str(num))
+            await self.__sorted_set_master.remove_by_value(self.__get_key(), str(num))
 
     async def contains(self, num: int) -> bool:
-        return await self.__sorted_set.contains_by_value(self.__get_key(), str(num))
+        return await self.__sorted_set_master.contains_by_value(self.__get_key(), str(num))
 
     async def size(self) -> int:
-        return await self.__sorted_set.size(self.__get_key())
+        return await self.__sorted_set_master.size(self.__get_key())
 
     async def clear(self):
-        await self.__sorted_set.clear(self.__get_key())
+        await self.__sorted_set_master.clear(self.__get_key())
 
     def lock(self) -> RedisSpinLock:
         return RedisSpinLock(
-            client=self.__client,
+            client=self.__master,
             key=f"{self.__get_key()}:lock",
             expire_ms=self.__lock_expire_ms,
             timeout_sec=self.__lock_wait_timeout_sec,

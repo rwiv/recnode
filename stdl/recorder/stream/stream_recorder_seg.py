@@ -37,7 +37,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         live: LiveState,
         args: RecordingArgs,
         writer: ObjectWriter,
-        redis: Redis,
+        redis_master: Redis,
+        redis_replica: Redis,
         redis_data_conf: RedisDataConfig,
         req_conf: RequestConfig,
         incomplete_dir_path: str,
@@ -47,7 +48,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio
 
-        self.redis = redis
+        self.redis_master = redis_master
+        self.redis_replica = redis_replica
         self.live = live
         self.redis_data_conf = redis_data_conf
 
@@ -79,7 +81,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.success_nums = self.__create_num_seg("success")
         self.failed_nums = self.__create_num_seg("failed")
         self.seg_state_service = SegmentStateService(
-            client=redis,
+            master=redis_master,
+            replica=redis_replica,
             live_record_id=live.id,
             expire_ms=redis_data_conf.seg_expire_sec * 1000,
             lock_expire_ms=redis_data_conf.lock_expire_ms,
@@ -87,7 +90,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_parallel_retry_limit=self.seg_parallel_retry_limit,
             attr=self.ctx.to_dict(),
         )
-        self.live_state_service = LiveStateService(client=redis)
+        self.live_state_service = LiveStateService(master=redis_master, replica=redis_replica)
         self.seg_state_validator = SegmentStateValidator(
             live_state_service=self.live_state_service,
             seg_state_service=self.seg_state_service,
@@ -123,8 +126,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             "m3u8_request_retries_total": self.m3u8_retry_counter_total.get(),
         }
         if full:
-            result["redis_using_connection_count"] = len(self.redis.connection_pool._in_use_connections)
-            result["redis_available_connection_count"] = len(self.redis.connection_pool._available_connections)
+            result["redis_using_connection_count"] = len(self.redis_master.connection_pool._in_use_connections)
+            result["redis_available_connection_count"] = len(self.redis_master.connection_pool._available_connections)
         return result
 
     async def __check_status(self):
@@ -413,7 +416,8 @@ class SegmentedStreamRecorder(StreamRecorder):
 
     def __create_num_seg(self, suffix: str):
         return SegmentNumberSet(
-            client=self.redis,
+            master=self.redis_master,
+            replica=self.redis_replica,
             live_record_id=self.live.id,
             key_suffix=suffix,
             expire_ms=self.redis_data_conf.seg_expire_sec * 1000,

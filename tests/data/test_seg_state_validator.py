@@ -14,9 +14,8 @@ from tests.data.mock_helpers import seg, live
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 env = get_env()
-conf = env.redis_master
-pool = create_redis_pool(conf)
-client = Redis(connection_pool=pool)
+master = Redis(connection_pool=create_redis_pool(env.redis_master))
+replica = Redis(connection_pool=create_redis_pool(env.redis_replica))
 
 ex = 10_000
 lw = 2
@@ -26,11 +25,11 @@ lw = 2
 async def test_validate_segments():
     log.set_level(logging.DEBUG)
     live_record_id = "cc23b367-bc45-40cd-9523-e334b1bcd52d"
-    success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw, {})
+    success_nums = SegmentNumberSet(master, replica, live_record_id, "success", ex, ex, lw, {})
     http_mock = AsyncHttpClientMock(b_size=100)
     invalid_seg_num_diff_threshold = 150
-    live_service = LiveStateService(client)
-    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, 3, {})
+    live_service = LiveStateService(master=master, replica=replica)
+    seg_service = SegmentStateService(master, replica, live_record_id, ex, ex, lw, 3, {})
     validator = SegmentStateValidator(live_service, seg_service, http_mock, {}, 120, invalid_seg_num_diff_threshold)
 
     await seg_service.delete_mapped(success_nums)
@@ -79,11 +78,11 @@ async def test_validate_segments():
 async def test_validate_segment():
     log.set_level(logging.DEBUG)
     live_record_id = "31cad56f-3d77-41d6-85b1-0cc77272aac0"
-    success_nums = SegmentNumberSet(client, live_record_id, "success", ex, ex, lw, {})
+    success_nums = SegmentNumberSet(master, replica, live_record_id, "success", ex, ex, lw, {})
     http_mock = AsyncHttpClientMock(b_size=100)
     invalid_seg_time_diff_threshold_sec = 2 * 60
-    live_service = LiveStateService(client)
-    seg_service = SegmentStateService(client, live_record_id, ex, ex, lw, 3, {})
+    live_service = LiveStateService(master=master, replica=replica)
+    seg_service = SegmentStateService(master, replica, live_record_id, ex, ex, lw, 3, {})
     validator = SegmentStateValidator(live_service, seg_service, http_mock, {}, invalid_seg_time_diff_threshold_sec)
 
     await seg_service.delete_mapped(success_nums)

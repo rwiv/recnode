@@ -8,15 +8,17 @@ KEY_PREFIX = "live"
 
 
 class LiveStateService:
-    def __init__(self, client: Redis):
-        self.__client = client
-        self.__str = RedisString(client)
+    def __init__(self, master: Redis, replica: Redis):
+        self.__master = master
+        self.__replica = replica
+        self.__str_master = RedisString(self.__master)
+        self.__str_replica = RedisString(self.__replica)
 
     async def pttl(self, record_id: str) -> int:
-        return await self.__client.pttl(self.__get_key(record_id))
+        return await self.__replica.pttl(self.__get_key(record_id))
 
     async def get(self, record_id: str) -> LiveState | None:
-        text = await self.__str.get(self.__get_key(record_id))
+        text = await self.__str_master.get(self.__get_key(record_id))
         if text is None:
             return None
         return LiveState.parse_raw(text)
@@ -32,14 +34,14 @@ class LiveStateService:
     async def set(self, state: LiveState, nx: bool, px: int | None = None) -> bool:
         key = self.__get_key(state.id)
         req_px = px
-        ttl = await self.__client.pttl(key)
+        ttl = await self.__master.pttl(key)
         if ttl > 0:
             req_px = ttl
         text = state.model_dump_json(by_alias=True, exclude_none=True)
-        return await self.__str.set(key, text, nx=nx, px=req_px)
+        return await self.__str_master.set(key, text, nx=nx, px=req_px)
 
     async def delete(self, record_id: str) -> int:
-        return await self.__str.delete(self.__get_key(record_id))
+        return await self.__str_master.delete(self.__get_key(record_id))
 
     def __get_key(self, record_id: str) -> str:
         return f"{KEY_PREFIX}:{record_id}"

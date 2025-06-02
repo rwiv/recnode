@@ -13,7 +13,10 @@ from stdl.data.redis import create_redis_pool
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 
 env = get_env()
-live_state_service = LiveStateService(Redis(connection_pool=create_redis_pool(env.redis_master)))
+live_state_service = LiveStateService(
+    master=Redis(connection_pool=create_redis_pool(env.redis_master)),
+    replica=Redis(connection_pool=create_redis_pool(env.redis_replica)),
+)
 
 if env.config_path is None:
     raise ValueError("Config path not set")

@@ -71,7 +71,8 @@ class RecorderResolver:
             ),
             incomplete_dir_path=path_join(self.env.out_dir_path, "incomplete"),
             writer=self.writer,
-            redis=Redis(connection_pool=create_redis_pool(self.env.redis_master)),
+            redis_master=Redis(connection_pool=create_redis_pool(self.env.redis_master)),
+            redis_replica=Redis(connection_pool=create_redis_pool(self.env.redis_replica)),
             redis_data_conf=self.env.redis_data,
             req_conf=self.env.req_conf,
         )

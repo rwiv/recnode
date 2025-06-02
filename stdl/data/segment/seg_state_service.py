@@ -37,7 +37,8 @@ class SegmentState(BaseModel):
 class SegmentStateService:
     def __init__(
         self,
-        client: Redis,
+        master: Redis,
+        replica: Redis,
         live_record_id: str,
         expire_ms: int,
         lock_expire_ms: int,
@@ -45,8 +46,10 @@ class SegmentStateService:
         retry_parallel_retry_limit: int,
         attr: dict,
     ):
-        self.__client = client
-        self.__str = RedisString(client)
+        self.__master = master
+        self.__replica = replica
+        self.__str_master = RedisString(self.__master)
+        self.__str_replica = RedisString(self.__replica)
         self.__expire_ms = expire_ms
         self.__lock_expire_ms = lock_expire_ms
         self.__lock_wait_timeout_sec = lock_wait_timeout_sec
@@ -58,20 +61,20 @@ class SegmentStateService:
     async def renew(self, num: int):
         start_time = asyncio.get_event_loop().time()
         try:
-            await self.__str.set_pexpire(self.__get_key(num), self.__expire_ms)
+            await self.__str_master.set_pexpire(self.__get_key(num), self.__expire_ms)
         except Exception as ex:
             extra = {"duration": asyncio.get_event_loop().time() - start_time}
             log.error("Renew failed", self.__error_attr(ex, extra))
 
     async def get(self, num: int) -> SegmentState | None:
-        txt = await self.__str.get(self.__get_key(num))
+        txt = await self.__str_master.get(self.__get_key(num))
         if txt is None:
             return None
         return SegmentState(**json.loads(txt))
 
     async def get_batch(self, nums: list[int]) -> list[SegmentState]:
         keys = [self.__get_key(num) for num in nums]
-        texts = await self.__str.mget(keys)
+        texts = await self.__str_master.mget(keys)
         result: list[SegmentState] = []
         for i, txt in enumerate(texts):
             if txt is not None:
@@ -107,7 +110,7 @@ class SegmentStateService:
 
     async def _acquire_lock(self, seg_num: int, lock_num: int) -> SegmentLock | None:
         token = uuid.uuid4()
-        result = await self.__str.set(
+        result = await self.__str_master.set(
             key=self.__get_lock_key(seg_num=seg_num, lock_num=lock_num),
             value=str(token),
             nx=True,
@@ -120,36 +123,36 @@ class SegmentStateService:
 
     async def release_lock(self, lock: SegmentLock):
         key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
-        current_token = await self.__str.get(key)
+        current_token = await self.__str_master.get(key)
         if current_token is None:
             log.debug("Lock does not exist", {"key": key})
             return
         if current_token != str(lock.token):
             raise ValueError("Lock Token mismatch")
-        await self.__str.delete(key)
+        await self.__str_master.delete(key)
 
     async def is_locked(self, seg_num: int, lock_num: int) -> bool:
         key = self.__get_lock_key(seg_num=seg_num, lock_num=lock_num)
-        return await self.__str.contains(key)
+        return await self.__str_master.contains(key)
 
     async def increment_retry_count(self, seg_num: int):
         key = self.__get_retry_key(seg_num=seg_num)
-        return await self.__str.incr(key)
+        return await self.__str_master.incr(key)
 
     async def get_retry_count(self, seg_num: int) -> int:
         key = self.__get_retry_key(seg_num=seg_num)
-        count = await self.__str.get(key)
+        count = await self.__str_master.get(key)
         if count is None:
             return 0
         return int(count)
 
     async def clear_retry_count(self, seg_num: int):
         key = self.__get_retry_key(seg_num=seg_num)
-        if await self.__str.contains(key):
-            await self.__str.delete(key)
+        if await self.__str_master.contains(key):
+            await self.__str_master.delete(key)
 
     async def set(self, state: SegmentState, nx: bool) -> bool:
-        return await self.__str.set(
+        return await self.__str_master.set(
             key=self.__get_key(state.num),
             value=state.model_dump_json(by_alias=True, exclude_none=True),
             nx=nx,
@@ -157,7 +160,7 @@ class SegmentStateService:
         )
 
     async def delete(self, num: int) -> int:
-        return await self.__str.delete(self.__get_key(num))
+        return await self.__str_master.delete(self.__get_key(num))
 
     async def delete_mapped(self, nums: SegmentNumberSet):
         for num in await nums.all():
