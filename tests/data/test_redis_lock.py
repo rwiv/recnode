@@ -15,7 +15,7 @@ from stdl.data.redis import (
 )
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
-conf = get_env().redis
+conf = get_env().redis_master
 pool = create_redis_pool(conf)
 client = Redis(connection_pool=pool)
 

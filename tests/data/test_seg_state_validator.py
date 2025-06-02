@@ -14,7 +14,7 @@ from tests.data.mock_helpers import seg, live
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 env = get_env()
-conf = env.redis
+conf = env.redis_master
 pool = create_redis_pool(conf)
 client = Redis(connection_pool=pool)
 

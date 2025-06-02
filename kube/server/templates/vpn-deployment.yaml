@@ -98,10 +98,14 @@ spec:
                   key: {{ .Values.server.fs.fsNameKey }}
             - name: FS_CONFIG_PATH
               value: /mnt/fs-configs/fs_conf.yaml
-            - name: REDIS_HOST
-              value: {{ .Values.redis.host }}
-            - name: REDIS_PORT
-              value: "{{ .Values.redis.port }}"
+            - name: REDIS_MASTER_HOST
+              value: {{ .Values.redis.masterHost }}
+            - name: REDIS_MASTER_PORT
+              value: "{{ .Values.redis.masterPort }}"
+            - name: REDIS_REPLICA_HOST
+              value: {{ .Values.redis.replicaHost }}
+            - name: REDIS_REPLICA_PORT
+              value: "{{ .Values.redis.replicaPort }}"
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:

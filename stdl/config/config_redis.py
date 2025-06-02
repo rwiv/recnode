@@ -18,10 +18,20 @@ class RedisDataConfig(BaseModel):
     seg_expire_sec: conint(ge=1)
 
 
-def read_redis_config():
+def read_redis_master_config():
     return RedisConfig(
-        host=os.getenv("REDIS_HOST"),
-        port=os.getenv("REDIS_PORT"),  # type: ignore
+        host=os.getenv("REDIS_MASTER_HOST"),
+        port=os.getenv("REDIS_MASTER_PORT"),  # type: ignore
+        password=os.getenv("REDIS_PASSWORD"),
+        ca_path=os.getenv("REDIS_CA_PATH"),
+        pool_size_limit=os.getenv("REDIS_POOL_SIZE_LIMIT"),  # type: ignore
+    )
+
+
+def read_redis_replica_config():
+    return RedisConfig(
+        host=os.getenv("REDIS_REPLICA_HOST"),
+        port=os.getenv("REDIS_REPLICA_PORT"),  # type: ignore
         password=os.getenv("REDIS_PASSWORD"),
         ca_path=os.getenv("REDIS_CA_PATH"),
         pool_size_limit=os.getenv("REDIS_POOL_SIZE_LIMIT"),  # type: ignore

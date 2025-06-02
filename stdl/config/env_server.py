@@ -4,7 +4,13 @@ from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
 from .config_proxy import ProxyConfig, read_proxy_config
-from .config_redis import RedisConfig, read_redis_config, RedisDataConfig, read_redis_data_config
+from .config_redis import (
+    RedisConfig,
+    RedisDataConfig,
+    read_redis_master_config,
+    read_redis_replica_config,
+    read_redis_data_config,
+)
 from .config_request import RequestConfig, read_request_config
 from .config_stream import StreamConfig, read_stream_config
 from ..common import LOCAL_FS_NAME
@@ -20,7 +26,8 @@ class Env(BaseModel):
     config_path: constr(min_length=1) | None
     req_conf: RequestConfig
     stream: StreamConfig
-    redis: RedisConfig
+    redis_master: RedisConfig
+    redis_replica: RedisConfig
     redis_data: RedisDataConfig
     proxy: ProxyConfig
 
@@ -46,7 +53,8 @@ def get_env() -> Env:
         config_path=os.getenv("CONFIG_PATH") or None,
         req_conf=read_request_config(),
         stream=read_stream_config(),
-        redis=read_redis_config(),
+        redis_master=read_redis_master_config(),
+        redis_replica=read_redis_replica_config(),
         redis_data=read_redis_data_config(),
         proxy=read_proxy_config(),
     )

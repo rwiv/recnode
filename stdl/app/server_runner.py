@@ -40,7 +40,7 @@ def run_server():
 
     scheduler = RecordingScheduler(env)
 
-    router_redis = Redis(connection_pool=create_redis_pool(env.redis))
+    router_redis = Redis(connection_pool=create_redis_pool(env.redis_master))
     live_state_service = LiveStateService(router_redis)
     main_controller = MainController(scheduler, live_state_service)
 
