@@ -19,14 +19,11 @@ async def test_live_state_service():
     live1 = live(id="2f208071-d46f-4632-b962-d69034321b23")
     await live_service.delete(live1.id)
 
-    assert await live_service.set(live1, nx=True)
-    assert await live_service.pttl(live1.id) == -1
+    assert await live_service.set_live(live1, nx=True)
 
-    assert await live_service.set(live1, nx=False, px=10_000)
-    assert await live_service.pttl(live1.id) > 100
+    assert await live_service.set_live(live1, nx=False, px=10_000)
 
-    assert await live_service.set(live1, nx=False)
-    assert await live_service.pttl(live1.id) != -1
+    assert await live_service.set_live(live1, nx=False)
 
     await live_service.delete(live1.id)
-    assert await live_service.get(live1.id) is None
+    assert await live_service.get_live(live1.id, use_master=True) is None

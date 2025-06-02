@@ -26,20 +26,14 @@ class RedisSortedSet:
         lst = await self.__redis.zrevrange(key, 0, 0)
         if len(lst) == 0:
             return None
-        result = lst[0]
-        if isinstance(result, bytes):
-            result = result.decode("utf-8")
-        return result
+        return lst[0]
 
     @redis_metric
     async def get_by_score(self, key: str, score: Union[int, float, str]) -> str | None:
         lst = await self.__redis.zrangebyscore(key, score, score, start=0, num=1)
         if len(lst) == 0:
             return None
-        result = lst[0]
-        if isinstance(result, bytes):
-            result = result.decode("utf-8")
-        return result
+        return lst[0]
 
     @redis_metric
     async def range_by_score(

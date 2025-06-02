@@ -38,7 +38,7 @@ class BatchRunner:
         )
 
         state = await get_state(url=conf.url, cookie_header=conf.cookie)
-        await live_state_service.set(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
+        await live_state_service.set_live(state, nx=False, px=int(self.env.redis_data.live_expire_sec * 1000))
 
         recorder = self.recorder_resolver.create_recorder(state=state)
         recorder.record()

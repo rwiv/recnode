@@ -54,7 +54,7 @@ class SegmentStateValidator:
             if latest_num is None:
                 return ok()  # init recording
 
-            live = await self.__live_state_service.get(self.__seg_state_service.live_record_id)
+            live = await self.__live_state_service.get_live(self.__seg_state_service.live_record_id, use_master=False)
             if live is None:
                 log.error("LiveState not found", self.__attr)
                 return no()

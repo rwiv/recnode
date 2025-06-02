@@ -7,6 +7,7 @@ from ..redis import RedisSortedSet, RedisSpinLock
 
 
 LOCK_RETRY_INTERVAL_SEC = 0.1
+RENEW_THRESHOLD_MS = 60 * 1000  # 1 minute
 
 
 class SegmentNumberSet:
@@ -33,28 +34,29 @@ class SegmentNumberSet:
         self.__attr = attr
 
     async def renew(self):
+        key = self.__get_key()
+        ttl = await self.__replica.pttl(key)
+        if ttl is None or ttl == -2 or ttl > RENEW_THRESHOLD_MS:
+            return
+
         start_time = asyncio.get_event_loop().time()
         try:
-            await self.__sorted_set_master.set_pexpire(self.__get_key(), self.__expire_ms)
+            await self.__sorted_set_master.set_pexpire(key, self.__expire_ms)
         except Exception as ex:
             extra = {"duration": asyncio.get_event_loop().time() - start_time}
             log.error("Renew failed", self.__error_attr(ex, extra))
 
-    async def set(self, num: int):
+    async def set_num(self, num: int):
         await self.__sorted_set_master.set(self.__get_key(), str(num), num)
 
-    async def all(self) -> list[int]:
-        result = await self.__sorted_set_master.list(self.__get_key())
+    async def all(self, use_master: bool) -> list[int]:
+        sorted_set = self.__sorted_set_master if use_master else self.__sorted_set_replica
+        result = await sorted_set.list(self.__get_key())
         return [int(i) for i in result]
 
-    async def get(self, num: int) -> int | None:
-        result = await self.__sorted_set_master.get_by_score(self.__get_key(), num)
-        if result is None:
-            return None
-        return int(result)
-
-    async def get_highest(self) -> int | None:
-        result = await self.__sorted_set_master.get_highest(self.__get_key())
+    async def get_highest(self, use_master: bool) -> int | None:
+        sorted_set = self.__sorted_set_master if use_master else self.__sorted_set_replica
+        result = await sorted_set.get_highest(self.__get_key())
         if result is None:
             return None
         return int(result)

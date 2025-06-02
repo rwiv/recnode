@@ -33,7 +33,7 @@ record_id = ""
 async def test_post_record():
     print()
     state = await get_state(url=conf.url, cookie_header=conf.cookie)
-    await live_state_service.set(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
+    await live_state_service.set_live(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
     print(state.id)
 
     await start(f"{worker_url1}/{state.id}")

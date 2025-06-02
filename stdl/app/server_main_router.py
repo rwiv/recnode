@@ -46,7 +46,7 @@ class MainController:
         return Response(content=generate_latest(), media_type="text/plain")
 
     async def record(self, record_id: str):
-        state = await self.__live_state_service.get(record_id)
+        state = await self.__live_state_service.get_live(record_id, use_master=True)
         if state is None:
             raise HTTPException(status_code=404, detail="Not found LiveState")
 
@@ -58,7 +58,7 @@ class MainController:
         return "ok"
 
     async def cancel(self, record_id: str):
-        state = await self.__live_state_service.get(record_id)
+        state = await self.__live_state_service.get_live(record_id, use_master=True)
         if state is None:
             raise HTTPException(status_code=404, detail="live state not found")
         self.__scheduler.cancel(state)

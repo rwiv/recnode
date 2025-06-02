@@ -163,7 +163,7 @@ class SegmentStateService:
         return await self.__str_master.delete(self.__get_key(num))
 
     async def delete_mapped(self, nums: SegmentNumberSet):
-        for num in await nums.all():
+        for num in await nums.all(use_master=True):
             await self.delete(num)
         await nums.clear()
 

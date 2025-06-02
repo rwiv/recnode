@@ -243,7 +243,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             )
             segments.append(seg)
 
-        latest_num = await self.success_nums.get_highest()
+        latest_num = await self.success_nums.get_highest(use_master=False)
 
         if is_init:
             inspected = await self.seg_state_validator.validate_segments(segments, latest_num, self.success_nums)
@@ -263,7 +263,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             _ = asyncio.create_task(self.__process_segment(new_seg, latest_num), name=task_name)
 
         # If the first segment is not MAP_NUM, it means it is a valid segment
-        for retrying in await self.seg_state_service.get_batch(await self.retrying_nums.all()):
+        for retrying in await self.seg_state_service.get_batch(await self.retrying_nums.all(use_master=False)):
             task_name = self.seg_task_name("retry", retrying.num)
             _ = asyncio.create_task(self.__process_segment(retrying, latest_num), name=task_name)
 
@@ -358,7 +358,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_count = await self.seg_state_service.get_retry_count(seg.num)
             await metric.set_segment_request_retry(retry_count, self.ctx.live.platform, self.seg_retry_hist)
         async with self.success_nums.lock():
-            await self.success_nums.set(seg.num)
+            await self.success_nums.set_num(seg.num)
         await asyncio.gather(
             self.retrying_nums.remove(seg.num),
             self.failed_nums.remove(seg.num),
@@ -377,7 +377,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                 if not await self.success_nums.contains(seg.num):
                     await asyncio.gather(
                         self.seg_state_service.update_to_retrying(seg),
-                        self.retrying_nums.set(seg.num),
+                        self.retrying_nums.set_num(seg.num),
                     )
         else:  # failed to retry request:
             retry_count = await self.seg_state_service.get_retry_count(seg.num)
@@ -385,7 +385,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                 async with self.success_nums.lock():
                     if not await self.success_nums.contains(seg.num):
                         await asyncio.gather(
-                            self.failed_nums.set(seg.num),
+                            self.failed_nums.set_num(seg.num),
                             metric.inc_segment_request_failures(self.ctx.live.platform, self.seg_failure_counter),
                         )
                         log.error("Failed to process segment", self.__error_attr(ex, num=seg.num))
