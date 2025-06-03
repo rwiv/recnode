@@ -2,6 +2,7 @@ from typing import Union, Mapping
 
 from redis.asyncio import Redis
 
+from .redis_errors import RedisError
 from .redis_utils import redis_metric
 
 
@@ -56,6 +57,13 @@ class RedisSortedSet:
     @redis_metric
     async def contains_by_score(self, key: str, score: Union[int, float, str]) -> bool:
         return len(await self.__redis.zrangebyscore(key, score, score, start=0, num=1)) != 0
+
+    @redis_metric
+    async def exists(self, key: str) -> bool:
+        result = await self.__redis.exists(key)
+        if not isinstance(result, int):
+            raise RedisError("Expected integer data", 500)
+        return result == 1
 
     @redis_metric
     async def remove_by_value(self, key: str, value: str) -> int:  # return removed count

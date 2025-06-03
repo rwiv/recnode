@@ -138,8 +138,9 @@ class SegmentStateService:
 
     async def release_lock(self, lock: SegmentLock):
         key = self.__get_lock_key(seg_num=lock.seg_num, lock_num=lock.lock_num)
-        inc_count(use_master=False)
-        current_token = await self.__str_replica.get(key)
+        inc_count(use_master=True)
+        # When using the replica client, a mismatch error occurs if the lock is deleted immediately after creation
+        current_token = await self.__str_master.get(key)
         if current_token is None:
             log.debug("Lock does not exist", {"key": key})
             return
@@ -169,19 +170,19 @@ class SegmentStateService:
             return 0
         return int(count)
 
-    async def clear_retry_count(self, seg_num: int):
-        key = self.__get_retry_key(seg_num=seg_num)
-        inc_count(use_master=False)
-        if await self.__str_replica.exists(key):
-            inc_count(use_master=True)
-            await self.__str_master.delete(key)
+    async def clear_retry_count(self, seg_num: int, check_replica: bool = True):
+        await self._delete(self.__get_retry_key(seg_num=seg_num), check_replica)
 
-    async def delete(self, num: int):
-        key = self.__get_key(num)
-        inc_count(use_master=False)
-        if await self.__str_replica.exists(key):
-            inc_count(use_master=True)
-            return await self.__str_master.delete(key)
+    async def delete(self, num: int, check_replica: bool = True):
+        await self._delete(self.__get_key(num), check_replica)
+
+    async def _delete(self, key: str, check_replica: bool = True):
+        if check_replica:
+            inc_count(use_master=False)
+            if not await self.__str_replica.exists(key):
+                return
+        inc_count(use_master=True)
+        await self.__str_master.delete(key)  # If replica check is performed, data might not be deleted
 
     async def delete_mapped(self, nums: SegmentNumberSet):
         for num in await nums.all(use_master=True):

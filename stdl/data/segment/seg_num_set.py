@@ -68,10 +68,14 @@ class SegmentNumberSet:
         result = await self.__get_sorted_set(use_master).range_by_score(self.__get_key(), start, end)
         return [int(i) for i in result]
 
-    async def remove(self, num: int):
-        if await self.contains(num, use_master=False):
+    async def remove(self, num: int, check_replica: bool = True):
+        if check_replica:
             inc_count(use_master=False)
-            await self.__sorted_set_master.remove_by_value(self.__get_key(), str(num))
+            if not await self.contains(num, use_master=False):
+                return
+        inc_count(use_master=False)
+        # If replica check is performed, data might not be deleted
+        await self.__sorted_set_master.remove_by_value(self.__get_key(), str(num))
 
     async def contains(self, num: int, use_master: bool) -> bool:
         inc_count(use_master=use_master)

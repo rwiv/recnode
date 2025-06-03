@@ -328,7 +328,7 @@ class SegmentedStreamRecorder(StreamRecorder):
                 log.error("Failed to failure process", self.__error_attr(ex, num=seg.num))
         finally:
             try:
-                await self.__seg_service.release_lock(lock)  # master +1
+                await self.__seg_service.release_lock(lock)  # master +2
             except BaseException as ex:
                 attr = self.__error_attr(ex, num=seg.num)
                 attr["lock_num"] = lock.lock_num

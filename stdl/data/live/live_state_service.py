@@ -40,12 +40,14 @@ class LiveStateService:
         text = state.model_dump_json(by_alias=True, exclude_none=True)
         return await self.__str_master.set(key, text, nx=nx, px=req_px)
 
-    async def delete(self, record_id: str):
+    async def delete(self, record_id: str, check_replica: bool = False):
         key = self.__get_key(record_id)
-        inc_count(use_master=False)
-        if await self.__str_replica.exists(key):
-            inc_count(use_master=True)
-            await self.__str_master.delete(key)
+        if check_replica:
+            inc_count(use_master=False)
+            if not await self.__str_replica.exists(key):
+                return
+        inc_count(use_master=True)
+        await self.__str_master.delete(key)  # If replica check is performed, data might not be deleted
 
     def __get_key(self, record_id: str) -> str:
         return f"{KEY_PREFIX}:{record_id}"
