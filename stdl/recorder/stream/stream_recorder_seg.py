@@ -330,7 +330,10 @@ class SegmentedStreamRecorder(StreamRecorder):
             try:
                 await self.__seg_service.release_lock(lock)  # master +1
             except BaseException as ex:
-                log.error("Failed to release segment lock", self.__error_attr(ex, num=seg.num))
+                attr = self.__error_attr(ex, num=seg.num)
+                attr["lock_num"] = lock.lock_num
+                attr["duration"] = cur_duration(req_start)
+                log.error("Failed to release segment lock", attr)
 
     async def __on_segment_request_success(self, seg: SegmentState, size: int):
         if seg.is_retrying:

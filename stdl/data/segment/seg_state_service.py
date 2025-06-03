@@ -144,8 +144,7 @@ class SegmentStateService:
             log.debug("Lock does not exist", {"key": key})
             return
         if current_token != str(lock.token):
-            attr = f"seg_num={lock.seg_num}, lock_num={lock.lock_num}, expected={lock.token}, actual={current_token}"
-            raise ValueError(f"Lock Token mismatch: {attr}")
+            raise ValueError(f"Lock Token mismatch: expected={lock.token}, actual={current_token}")
         inc_count(use_master=True)
         await self.__str_master.delete(key)
 
