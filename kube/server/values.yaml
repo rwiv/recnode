@@ -47,7 +47,7 @@ redis:
     secretName: stdl-redis-tls
   poolSize: 200
   data:
-    lockExpireMs: 10000
+    lockExpireMs: 11000
     lockWaitSec: 5
     liveExpireSec: 604800
     segExpireSec: 86400
