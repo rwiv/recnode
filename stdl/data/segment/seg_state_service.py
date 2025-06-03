@@ -142,8 +142,7 @@ class SegmentStateService:
         # When using the replica client, a mismatch error occurs if the lock is deleted immediately after creation
         current_token = await self.__str_master.get(key)
         if current_token is None:
-            log.debug("Lock does not exist", {"key": key})
-            return
+            raise ValueError("Lock does not exist")
         if current_token != str(lock.token):
             raise ValueError(f"Lock Token mismatch: expected={lock.token}, actual={current_token}")
         inc_count(use_master=True)
