@@ -330,7 +330,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             try:
                 await self.__seg_service.release_lock(lock)  # master +2
             except BaseException as ex:
-                attr = self.__error_attr(ex, num=seg.num)
+                attr = self.__error_attr(ex)
+                attr["seg_num"] = seg.num
                 attr["lock_num"] = lock.lock_num
                 attr["duration"] = cur_duration(req_start)
                 log.error("Failed to release segment lock", attr)
