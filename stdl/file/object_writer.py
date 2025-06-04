@@ -30,9 +30,9 @@ class ObjectWriter(ABC):
                 break
             except Exception as e:
                 if retry_cnt == self.write_retry_limit:
-                    log.error("Write Segment: Retry Limit Exceeded", error_dict(e))
+                    log.error("Failed to write segment: Retry Limit Exceeded", error_dict(e))
                     raise
-                log.error(f"Write Segment: cnt={retry_cnt}", error_dict(e))
+                log.warn(f"Failed to write segment: cnt={retry_cnt}", error_dict(e))
                 await asyncio.sleep(self.write_retry_delay_sec * (2**retry_cnt))
         metric.set_object_write_duration(asyncio.get_event_loop().time() - start)
 
