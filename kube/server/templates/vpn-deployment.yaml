@@ -89,6 +89,8 @@ spec:
               value: "{{ .Values.server.reqConf.segParallelRetryLimit }}"
             - name: SEG_FAILURE_THRESHOLD_RATIO
               value: "{{ .Values.server.reqConf.segFailureThresholdRatio }}"
+            - name: INTERVAL_WAIT_WEIGHT_SEC
+              value: "{{ .Values.server.reqConf.intervalWaitWeightSec }}"
             - name: TMP_DIR_PATH
               value: /app/tmp
             - name: FS_NAME

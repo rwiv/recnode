@@ -23,12 +23,12 @@ class RecordingScheduler:
         self.__start_monitoring_states()
 
     async def get_status(self, with_stats: bool = False, full_stats: bool = False, with_resources: bool = False):
-        recorders = [
+        recordings = [
             await recorder.get_status(with_stats=with_stats, full_stats=full_stats)
             for recorder in self.__recorder_map.values()
         ]
         result: dict = {
-            "recorders": recorders,
+            "recordings": recordings,
         }
         if with_resources:
             result["thread_counts"] = len(threading.enumerate())

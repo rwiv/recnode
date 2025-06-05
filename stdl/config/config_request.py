@@ -9,6 +9,7 @@ class RequestConfig(BaseModel):
     seg_timeout_sec: confloat(ge=1)
     seg_parallel_retry_limit: conint(ge=0)
     seg_failure_threshold_ratio: conint(ge=0)
+    interval_wait_weight_sec: confloat(ge=0)
 
 
 def read_request_config() -> RequestConfig:
@@ -18,4 +19,5 @@ def read_request_config() -> RequestConfig:
         seg_timeout_sec=os.getenv("SEG_TIMEOUT_SEC"),  # type: ignore
         seg_parallel_retry_limit=os.getenv("SEG_PARALLEL_RETRY_LIMIT"),  # type: ignore
         seg_failure_threshold_ratio=os.getenv("SEG_FAILURE_THRESHOLD_RATIO"),  # type: ignore
+        interval_wait_weight_sec=os.getenv("INTERVAL_WAIT_WEIGHT_SEC"),  # type: ignore
     )
