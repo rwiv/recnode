@@ -240,8 +240,10 @@ helm-stage-server-run:
 		--set vpn.hostName=stdl-vpn-521.home.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy.stage.svc.cluster.local \
 		--set gateway=istio-system/internal-gateway \
-		--set redis.host=stdl-redis-master.stage.svc.cluster.local \
-		--set redis.port=6379 \
+		--set redis.masterHost=stdl-redis-master.stage.svc.cluster.local \
+		--set redis.masterPort=6379 \
+		--set redis.replicaHost=stdl-redis-replicas.stage.svc.cluster.local \
+		--set redis.replicaPort=6379 \
 		--set nodeName=vm-52
 	-@helm install stdl-server-522 ../kube/server -n stage \
 		--set metadata.namespace=stage \
@@ -252,8 +254,10 @@ helm-stage-server-run:
 		--set plain.hostName=stdl-plain-522.home.rwiv.xyz \
 		--set vpn.enabled=false \
 		--set gateway=istio-system/internal-gateway \
-		--set redis.host=stdl-redis-master.stage.svc.cluster.local \
-		--set redis.port=6379 \
+		--set redis.masterHost=stdl-redis-master.stage.svc.cluster.local \
+		--set redis.masterPort=6379 \
+		--set redis.replicaHost=stdl-redis-replicas.stage.svc.cluster.local \
+		--set redis.replicaPort=6379 \
 		--set nodeName=vm-52
 
 helm-stage-server-rm:

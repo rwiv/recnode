@@ -69,4 +69,4 @@ server:
     segTimeoutSec: 8
     segParallelRetryLimit: 4
     segFailureThresholdRatio: 4
-    intervalWaitWeightSec: 0.8
+    intervalWaitWeightSec: 1.2
