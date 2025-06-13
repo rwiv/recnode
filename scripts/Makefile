@@ -74,8 +74,7 @@ helm-redis-dep:
 	-@helm dependency update ./redis
 
 helm-prod-redis-run:
-	-@helm install stdl-redis ../kube/redis -n media \
-	  --set redis.master.persistence.enabled=false
+	-@helm install stdl-redis ../kube/redis -n media
 
 helm-prod-redis-rm:
 	-@helm uninstall stdl-redis -n media
@@ -97,6 +96,9 @@ helm-stage-redis-rm:
 
 delete-stage-redis-pvc:
 	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n stage
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n stage
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n stage
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n stage
 
 
 # server
