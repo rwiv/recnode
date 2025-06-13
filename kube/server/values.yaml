@@ -33,7 +33,8 @@ affinity: {}
 podLabels: {}
 nodeName: ~
 
-gateway: istio-system/internal-gateway
+ingress:
+  secretName: cloudflare-certificate
 
 redis:
   masterHost: stdl-redis-master.media.svc.cluster.local
