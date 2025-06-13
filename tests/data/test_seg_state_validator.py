@@ -50,24 +50,29 @@ async def test_validate_segments():
     await success_nums.set_num(305)
     await seg_service.set_seg_nx(seg(306))
     await success_nums.set_num(306)
+    await seg_service.set_seg_nx(seg(307, size=None))
+    await success_nums.set_num(307)
 
     l = await success_nums.get_highest(use_master=True)
 
+    # check for empty segments
     assert await validator.validate_segments([seg(302), seg(304)], l, success_nums) == ok()
-    assert await validator.validate_segments([seg(302), seg(304, url="asd")], l, success_nums) == crit()
 
+    # check for segment url
+    assert await validator.validate_segments([seg(302), seg(304, url="asd")], l, success_nums) == crit()
+    # check for segment duration
     assert await validator.validate_segments([seg(302), seg(304, duration=5.3)], l, success_nums) == crit()
 
-    assert await validator.validate_segments([seg(303), seg(304)], l, success_nums) == crit()
-    assert await validator.validate_segments([seg(304), seg(306)], l, success_nums) == no()
+    # check for segment size
+    assert await validator.validate_segments([seg(301), seg(302), seg(303), seg(304)], l, success_nums) == crit()
+    assert await validator.validate_segments([seg(302), seg(303), seg(306), seg(307)], l, success_nums) == ok()
 
-    assert await validator.validate_segments([seg(302), seg(303), seg(304)], l, success_nums) == ok()
-
+    # check for segment timestamp
     assert await validator.validate_segments([seg(302), seg(305)], l, success_nums) == crit()
 
+    # check for seg_num_diff_threshold
     assert await validator.validate_segments([seg(400), seg(401)], l, success_nums) == ok()
     assert await validator.validate_segments([seg(460), seg(462), seg(464)], l, success_nums) == crit()
-
     assert await validator.validate_segments([seg(100), seg(102)], l, success_nums) == crit()
 
     await seg_service.delete_mapped(success_nums)

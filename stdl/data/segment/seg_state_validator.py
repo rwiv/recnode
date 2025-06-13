@@ -78,21 +78,26 @@ class SegmentStateValidator:
             seg_stat_map = {seg.num: seg for seg in matched_seg_states}
 
             matched_req_segments = [seg for seg in sorted_req_segments if seg.num in matched_nums]
-            for i, req_seg in enumerate(matched_req_segments):
+            for req_seg in matched_req_segments:
                 seg_state = seg_stat_map.get(req_seg.num)
                 if seg_state is None:
                     log.error(f"ReqSegment not found for num {req_seg.num}", self.__attr)
                     return no()
                 if not self.__validate_segment_pair(req_seg, seg_state):
                     return critical()
-                if i == 0:
+
+            for req_seg in reversed(matched_req_segments):
+                seg_state = seg_stat_map.get(req_seg.num)
+                if seg_state is None:
+                    log.error(f"ReqSegment not found for num {req_seg.num}", self.__attr)
+                    return no()
+                if seg_state.size is not None:
                     req_b = await self.__seg_http.get_bytes(url=req_seg.url, retry_limit=self.__req_retry_limit)
                     if len(req_b) != seg_state.size:
                         log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, len(req_b)))
-                        if seg_state.size is None:
-                            return no()
-                        else:
-                            return critical()
+                        return critical()
+                    break
+
             return ok()
         except BaseException as ex:
             log.error("Validate segments failed", self.__error_attr(ex))
