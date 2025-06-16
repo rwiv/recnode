@@ -81,6 +81,9 @@ helm-prod-redis-rm:
 
 delete-prod-redis-pvc:
 	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n media
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n media
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
 
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \
@@ -107,10 +110,10 @@ helm-prod-71-run:
 		--set image.tag=$(APP_VERSION) \
 		--set plain.enabled=true \
 		--set plain.name=stdl-server-plain-711 \
-		--set plain.hostName=stdl-plain-711.netcup.rwiv.xyz \
+		--set plain.hostName=stdl-plain-711.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-711 \
-		--set vpn.hostName=stdl-vpn-711.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-711.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-71
@@ -119,7 +122,7 @@ helm-prod-71-run:
 		--set plain.enabled=false \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-712 \
-		--set vpn.hostName=stdl-vpn-712.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-712.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-71
@@ -128,7 +131,7 @@ helm-prod-71-run:
 		--set plain.enabled=false \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-713 \
-		--set vpn.hostName=stdl-vpn-713.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-713.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-71
@@ -143,10 +146,10 @@ helm-prod-72-run:
 		--set image.tag=$(APP_VERSION) \
 		--set plain.enabled=true \
 		--set plain.name=stdl-server-plain-721 \
-		--set plain.hostName=stdl-plain-721.netcup.rwiv.xyz \
+		--set plain.hostName=stdl-plain-721.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-721 \
-		--set vpn.hostName=stdl-vpn-721.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-721.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-72
@@ -155,7 +158,7 @@ helm-prod-72-run:
 		--set plain.enabled=false \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-722 \
-		--set vpn.hostName=stdl-vpn-722.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-722.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-72
@@ -164,7 +167,7 @@ helm-prod-72-run:
 		--set plain.enabled=false \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-723 \
-		--set vpn.hostName=stdl-vpn-723.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-723.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-72
@@ -179,10 +182,10 @@ helm-prod-73-run:
 		--set image.tag=$(APP_VERSION) \
 		--set plain.enabled=true \
 		--set plain.name=stdl-server-plain-731 \
-		--set plain.hostName=stdl-plain-731.netcup.rwiv.xyz \
+		--set plain.hostName=stdl-plain-731.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-731 \
-		--set vpn.hostName=stdl-vpn-731.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-731.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-73
@@ -191,7 +194,7 @@ helm-prod-73-run:
 		--set plain.enabled=false \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-732 \
-		--set vpn.hostName=stdl-vpn-732.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-732.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-73
@@ -200,7 +203,7 @@ helm-prod-73-run:
 		--set plain.enabled=false \
 		--set vpn.enabled=true \
 		--set vpn.name=stdl-server-vpn-733 \
-		--set vpn.hostName=stdl-vpn-733.netcup.rwiv.xyz \
+		--set vpn.hostName=stdl-vpn-733.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
 		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-73
