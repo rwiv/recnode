@@ -45,6 +45,8 @@ async def test_redis_str():
     await redis_str.set(f"{key}:1", "ok")
     await redis_str.set(f"{key}:3", "ok")
     assert await redis_str.mget(keys) == ["ok", None, "ok"]
+    assert await redis_str.delete(f"{key}:1")
+    assert await redis_str.delete(f"{key}:3")
 
 
 @pytest.mark.asyncio

@@ -7,7 +7,7 @@ from .redis_lock_spin import RedisSpinLock
 from .redis_queue import RedisQueue
 from .redis_sorted_set import RedisSortedSet
 from .redis_string import RedisString
-from .redis_utils import create_redis_client, create_redis_pool, get_keys, inc_count
+from .redis_utils import create_redis_pool, get_keys, inc_count
 
 
 targets = [

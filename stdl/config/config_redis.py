@@ -7,7 +7,7 @@ class RedisConfig(BaseModel):
     host: constr(min_length=1)
     port: conint(ge=1)
     password: constr(min_length=1)
-    ca_path: constr(min_length=1)
+    ca_path: constr(min_length=1) | None
     pool_size_limit: conint(ge=1)
 
 
@@ -23,7 +23,7 @@ def read_redis_master_config():
         host=os.getenv("REDIS_MASTER_HOST"),
         port=os.getenv("REDIS_MASTER_PORT"),  # type: ignore
         password=os.getenv("REDIS_PASSWORD"),
-        ca_path=os.getenv("REDIS_CA_PATH"),
+        ca_path=os.getenv("REDIS_CA_PATH") or None,
         pool_size_limit=os.getenv("REDIS_POOL_SIZE_LIMIT"),  # type: ignore
     )
 
@@ -33,7 +33,7 @@ def read_redis_replica_config():
         host=os.getenv("REDIS_REPLICA_HOST"),
         port=os.getenv("REDIS_REPLICA_PORT"),  # type: ignore
         password=os.getenv("REDIS_PASSWORD"),
-        ca_path=os.getenv("REDIS_CA_PATH"),
+        ca_path=os.getenv("REDIS_CA_PATH") or None,
         pool_size_limit=os.getenv("REDIS_POOL_SIZE_LIMIT"),  # type: ignore
     )
 
