@@ -1,4 +1,4 @@
-APP_VERSION=0.8.1
+APP_VERSION=0.8.2
 
 stage-run: helm-stage-server-run
 stage-rm: helm-stage-server-rm
@@ -8,6 +8,8 @@ stage-rm: helm-stage-server-rm
 72-rm: helm-prod-72-rm
 73-run: helm-prod-73-run
 73-rm: helm-prod-73-rm
+74-run: helm-prod-74-run
+74-rm: helm-prod-74-rm
 
 # infra
 ## argo
@@ -115,7 +117,6 @@ helm-prod-71-run:
 		--set vpn.name=stdl-server-vpn-711 \
 		--set vpn.hostName=stdl-vpn-711.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-71
 	-@helm install stdl-server-712 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
@@ -124,22 +125,20 @@ helm-prod-71-run:
 		--set vpn.name=stdl-server-vpn-712 \
 		--set vpn.hostName=stdl-vpn-712.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-71
-	-@helm install stdl-server-713 ../kube/server -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set plain.enabled=false \
-		--set vpn.enabled=true \
-		--set vpn.name=stdl-server-vpn-713 \
-		--set vpn.hostName=stdl-vpn-713.rwiv.xyz \
-		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
-		--set nodeName=host-71
+#	-@helm install stdl-server-713 ../kube/server -n media \
+#		--set image.tag=$(APP_VERSION) \
+#		--set plain.enabled=false \
+#		--set vpn.enabled=true \
+#		--set vpn.name=stdl-server-vpn-713 \
+#		--set vpn.hostName=stdl-vpn-713.rwiv.xyz \
+#		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
+#		--set nodeName=host-71
 
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
 	-@helm uninstall stdl-server-712 -n media
-	-@helm uninstall stdl-server-713 -n media
+#	-@helm uninstall stdl-server-713 -n media
 
 helm-prod-72-run:
 	-@helm install stdl-server-721 ../kube/server -n media \
@@ -151,7 +150,6 @@ helm-prod-72-run:
 		--set vpn.name=stdl-server-vpn-721 \
 		--set vpn.hostName=stdl-vpn-721.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-72
 	-@helm install stdl-server-722 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
@@ -160,22 +158,20 @@ helm-prod-72-run:
 		--set vpn.name=stdl-server-vpn-722 \
 		--set vpn.hostName=stdl-vpn-722.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-72
-	-@helm install stdl-server-723 ../kube/server -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set plain.enabled=false \
-		--set vpn.enabled=true \
-		--set vpn.name=stdl-server-vpn-723 \
-		--set vpn.hostName=stdl-vpn-723.rwiv.xyz \
-		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
-		--set nodeName=host-72
+#	-@helm install stdl-server-723 ../kube/server -n media \
+#		--set image.tag=$(APP_VERSION) \
+#		--set plain.enabled=false \
+#		--set vpn.enabled=true \
+#		--set vpn.name=stdl-server-vpn-723 \
+#		--set vpn.hostName=stdl-vpn-723.rwiv.xyz \
+#		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
+#		--set nodeName=host-72
 
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
 	-@helm uninstall stdl-server-722 -n media
-	-@helm uninstall stdl-server-723 -n media
+#	-@helm uninstall stdl-server-723 -n media
 
 helm-prod-73-run:
 	-@helm install stdl-server-731 ../kube/server -n media \
@@ -187,7 +183,6 @@ helm-prod-73-run:
 		--set vpn.name=stdl-server-vpn-731 \
 		--set vpn.hostName=stdl-vpn-731.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-73
 	-@helm install stdl-server-732 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
@@ -196,22 +191,53 @@ helm-prod-73-run:
 		--set vpn.name=stdl-server-vpn-732 \
 		--set vpn.hostName=stdl-vpn-732.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
 		--set nodeName=host-73
-	-@helm install stdl-server-733 ../kube/server -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set plain.enabled=false \
-		--set vpn.enabled=true \
-		--set vpn.name=stdl-server-vpn-733 \
-		--set vpn.hostName=stdl-vpn-733.rwiv.xyz \
-		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
-		--set gateway=istio-system/external-gateway \
-		--set nodeName=host-73
+#	-@helm install stdl-server-733 ../kube/server -n media \
+#		--set image.tag=$(APP_VERSION) \
+#		--set plain.enabled=false \
+#		--set vpn.enabled=true \
+#		--set vpn.name=stdl-server-vpn-733 \
+#		--set vpn.hostName=stdl-vpn-733.rwiv.xyz \
+#		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
+#		--set nodeName=host-73
 
 helm-prod-73-rm:
 	-@helm uninstall stdl-server-731 -n media
 	-@helm uninstall stdl-server-732 -n media
-	-@helm uninstall stdl-server-733 -n media
+#	-@helm uninstall stdl-server-733 -n media
+
+helm-prod-74-run:
+	-@helm install stdl-server-741 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=true \
+		--set plain.name=stdl-server-plain-741 \
+		--set plain.hostName=stdl-plain-741.rwiv.xyz \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-741 \
+		--set vpn.hostName=stdl-vpn-741.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-74.media.svc.cluster.local \
+		--set nodeName=host-74
+	-@helm install stdl-server-742 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set plain.enabled=false \
+		--set vpn.enabled=true \
+		--set vpn.name=stdl-server-vpn-742 \
+		--set vpn.hostName=stdl-vpn-742.rwiv.xyz \
+		--set vpn.proxyEndpoint=http://stdl-proxy-74.media.svc.cluster.local \
+		--set nodeName=host-74
+#	-@helm install stdl-server-743 ../kube/server -n media \
+#		--set image.tag=$(APP_VERSION) \
+#		--set plain.enabled=false \
+#		--set vpn.enabled=true \
+#		--set vpn.name=stdl-server-vpn-743 \
+#		--set vpn.hostName=stdl-vpn-743.rwiv.xyz \
+#		--set vpn.proxyEndpoint=http://stdl-proxy-74.media.svc.cluster.local \
+#		--set nodeName=host-74
+
+helm-prod-74-rm:
+	-@helm uninstall stdl-server-741 -n media
+	-@helm uninstall stdl-server-742 -n media
+#	-@helm uninstall stdl-server-743 -n media
 
 helm-prod-proxy-run:
 	-@helm install stdl-proxy-71 ../kube/proxy -n media \
@@ -226,11 +252,16 @@ helm-prod-proxy-run:
 		--set image.tag=$(APP_VERSION) \
 		--set metadata.name=stdl-proxy-73 \
 		--set nodeName=host-73
+	-@helm install stdl-proxy-74 ../kube/proxy -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-proxy-74 \
+		--set nodeName=host-74
 
 helm-prod-proxy-rm:
 	-@helm uninstall stdl-proxy-71 -n media
 	-@helm uninstall stdl-proxy-72 -n media
 	-@helm uninstall stdl-proxy-73 -n media
+	-@helm uninstall stdl-proxy-74 -n media
 
 helm-stage-server-run:
 	-@helm install stdl-server-521 ../kube/server -n stage \
@@ -244,7 +275,6 @@ helm-stage-server-run:
 		--set vpn.name=stdl-server-vpn-521 \
 		--set vpn.hostName=stdl-vpn-521.home.rwiv.xyz \
 		--set vpn.proxyEndpoint=http://stdl-proxy.stage.svc.cluster.local \
-		--set gateway=istio-system/internal-gateway \
 		--set redis.masterHost=stdl-redis-master.stage.svc.cluster.local \
 		--set redis.masterPort=6379 \
 		--set redis.replicaHost=stdl-redis-replicas.stage.svc.cluster.local \
@@ -258,7 +288,6 @@ helm-stage-server-run:
 		--set plain.name=stdl-server-plain-522 \
 		--set plain.hostName=stdl-plain-522.home.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set gateway=istio-system/internal-gateway \
 		--set redis.masterHost=stdl-redis-master.stage.svc.cluster.local \
 		--set redis.masterPort=6379 \
 		--set redis.replicaHost=stdl-redis-replicas.stage.svc.cluster.local \
