@@ -4,7 +4,6 @@ import random
 from datetime import datetime
 
 import aiofiles
-import redis.exceptions
 from aiofiles import os as aos
 from pyutils import log, path_join, error_dict
 from redis.asyncio import Redis
@@ -163,11 +162,11 @@ class SegmentedStreamRecorder(StreamRecorder):
             log.error("Error during recording", self.ctx.to_err(e))
             self._status = RecordingStatus.FAILED
 
-        await self.__close_recording()
         try:
+            await self.__close_recording()
             log.info("Finish Recording", await self.__get_result_attr())
         except Exception as e:
-            log.error("Failed to get result attributes", self.ctx.to_err(e))
+            log.error("Error during closing recording", self.ctx.to_err(e))
         self.is_done = True
 
     async def __interval(self, is_init: bool = False):
@@ -274,24 +273,34 @@ class SegmentedStreamRecorder(StreamRecorder):
         if seg.num == MAP_NUM:
             raise ValueError(f"{MAP_NUM} is not a valid segment number")
 
-        coroutines = [
-            self.__success_nums.contains(seg.num, use_master=False),
-            self.__failed_nums.contains(seg.num, use_master=False),
-        ]
-        if not seg.is_retrying:
-            coroutines.append(self.__retrying_nums.contains(seg.num, use_master=False))
-            coroutines.append(self.__seg_service.is_locked(seg_num=seg.num, lock_num=FIRST_SEG_LOCK_NUM, use_master=False))
-        if any(await asyncio.gather(*coroutines)):
+        try:
+            coroutines = [
+                self.__success_nums.contains(seg.num, use_master=False),
+                self.__failed_nums.contains(seg.num, use_master=False),
+            ]
+            if not seg.is_retrying:
+                coroutines.append(self.__retrying_nums.contains(seg.num, use_master=False))
+                coroutines.append(
+                    self.__seg_service.is_locked(seg_num=seg.num, lock_num=FIRST_SEG_LOCK_NUM, use_master=False)
+                )
+            if any(await asyncio.gather(*coroutines)):
+                return
+
+            inspected = await self.__seg_validator.validate_segment(seg, latest_num, self.__success_nums)
+            if not inspected.ok:
+                if inspected.critical:
+                    await self.__live_service.update_is_invalid(record_id=self.__record_id, is_invalid=True)
+                    self.__done_flag = True
+                return
+        except Exception as ex:
+            log.error("Failed to check segment", self.__error_attr(ex, num=seg.num))
             return
 
-        inspected = await self.__seg_validator.validate_segment(seg, latest_num, self.__success_nums)
-        if not inspected.ok:
-            if inspected.critical:
-                await self.__live_service.update_is_invalid(record_id=self.__record_id, is_invalid=True)
-                self.__done_flag = True
+        try:
+            lock = await self.__seg_service.acquire_lock(seg)  # master +1
+        except Exception as ex:
+            log.error("Failed to acquire segment lock", self.__error_attr(ex, num=seg.num))
             return
-
-        lock = await self.__seg_service.acquire_lock(seg)  # master +1
         if lock is None:
             # log.debug(f"Failed to acquire segment {seg.num}")
             return
