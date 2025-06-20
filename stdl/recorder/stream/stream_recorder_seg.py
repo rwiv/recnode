@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 
 import aiofiles
+import redis.exceptions
 from aiofiles import os as aos
 from pyutils import log, path_join, error_dict
 from redis.asyncio import Redis
@@ -163,7 +164,10 @@ class SegmentedStreamRecorder(StreamRecorder):
             self._status = RecordingStatus.FAILED
 
         await self.__close_recording()
-        log.info("Finish Recording", await self.__get_result_attr())
+        try:
+            log.info("Finish Recording", await self.__get_result_attr())
+        except Exception as e:
+            log.error("Failed to get result attributes", self.ctx.to_err(e))
         self.is_done = True
 
     async def __interval(self, is_init: bool = False):
