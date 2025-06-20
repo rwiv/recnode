@@ -40,11 +40,6 @@ create-cloud-prod-secrets:
 	  --from-file=fs_conf.yaml=../dev/secrets/fs/fs_conf.yaml
 	-@kubectl create secret generic stdl-redis-auth -n media \
 	  --from-file=password=../dev/secrets/redis-auth/password.txt
-	-@kubectl create secret generic nordvpn-credentials -n media \
-	  --from-file=username=../dev/secrets/nordvpn-credentials/username.txt \
-	  --from-file=password=../dev/secrets/nordvpn-credentials/password.txt
-	-@kubectl create secret generic nordvpn-vpn -n media \
-	  --from-file=client.ovpn=../dev/secrets/nordvpn-vpn/client.ovpn
 
 delete-cloud-prod-secrets:
 	-@kubectl delete secret stdl-fs -n media
