@@ -11,12 +11,20 @@ stage-rm: helm-stage-server-rm
 74-run: helm-prod-74-run
 74-rm: helm-prod-74-rm
 
-# infra
-## argo
+# argo
 argo-run:
 	-@kubectl create -f ../kube/argocd/application.yaml
 
-## secrets
+
+# infra
+helm-infra-run:
+	-@helm install stdl-infra ../kube/infra -n media
+
+helm-infra-rm:
+	-@helm uninstall stdl-infra -n media
+
+
+# secrets
 print-redis-ca:
 	-@kubectl get secret stdl-redis-tls -n media -o jsonpath="{['data']['ca\.crt']}" | base64 --decode && echo
 
@@ -66,7 +74,7 @@ delete-stage-secrets:
 	-@kubectl delete secret nordvpn-vpn -n stage
 
 
-## redis
+# redis
 helm-redis-dep:
 	-@helm dependency update ./redis
 

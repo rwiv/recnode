@@ -1,0 +1,10 @@
+global:
+  namespace: media
+vault:
+  mount: kube
+  version: 1
+  refreshAfter: 30s
+secrets:
+  queue:
+    path: media/stdl/queue
+    secretName: stdl-queue
