@@ -24,6 +24,14 @@ helm-infra-rm:
 	-@helm uninstall stdl-infra -n media
 
 
+# expose
+helm-expose-run:
+	-@helm install stdl-expose ../kube/expose -n media
+
+helm-expose-rm:
+	-@helm uninstall stdl-expose -n media
+
+
 # redis
 helm-redis-dep:
 	-@helm dependency update ./redis
@@ -42,9 +50,7 @@ delete-prod-redis-pvc:
 
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \
-		-f ../dev/redis-values-stage.yaml \
 		--set metadata.namespace=stage \
-		--set domainName=stdl-redis-stage.rwiv.xyz \
 		--set redis.master.service.nodePorts.redis=32133 \
 		--set redis.replica.service.nodePorts.redis=32134 \
 		--set redis.master.persistence.enabled=false

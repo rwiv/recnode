@@ -17,22 +17,18 @@ redis:
     existingSecretPasswordKey: password
   master:
     service:
-      type: NodePort
+      type: ClusterIP
       ports:
         redis: 6379
-      nodePorts:
-        redis: 30211
     persistence:
       enabled: true
       size: 8Gi
   replica:
     replicaCount: 3
     service:
-      type: NodePort
+      type: ClusterIP
       ports:
         redis: 6379
-      nodePorts:
-        redis: 30212
     persistence:
       enabled: true
       size: 8Gi
