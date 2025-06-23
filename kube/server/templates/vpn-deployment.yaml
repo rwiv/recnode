@@ -113,8 +113,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.redis.auth.secretName }}
                   key: {{ .Values.redis.auth.passwordKey }}
-            - name: REDIS_CA_PATH
-              value: /mnt/redis-tls/ca.crt
             - name: REDIS_POOL_SIZE_LIMIT
               value: "{{ .Values.redis.poolSize }}"
             - name: REDIS_LOCK_EXPIRE_MS
@@ -129,9 +127,6 @@ spec:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml
               subPath: fs_conf.yaml
-            - name: redis-tls
-              mountPath: /mnt/redis-tls/ca.crt
-              subPath: ca.crt
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       {{- with .Values.affinity }}
@@ -142,9 +137,6 @@ spec:
         - name: fs-configs
           secret:
             secretName: {{ .Values.server.fs.name }}
-        - name: redis-tls
-          secret:
-            secretName: {{ .Values.redis.tls.secretName }}
         - name: ovpn-conf
           secret:
             secretName: {{ .Values.vpn.nordvpn.ovpn.name }}

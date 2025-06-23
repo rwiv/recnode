@@ -44,8 +44,6 @@ redis:
   auth:
     secretName: stdl-redis-auth
     passwordKey: password
-  tls:
-    secretName: stdl-redis-tls
   poolSize: 200
   data:
     lockExpireMs: 10000

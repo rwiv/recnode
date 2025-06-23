@@ -8,3 +8,6 @@ secrets:
   queue:
     path: media/stdl/queue
     secretName: stdl-queue
+  fs:
+    path: media/stdl/fs
+    secretName: stdl-fs
