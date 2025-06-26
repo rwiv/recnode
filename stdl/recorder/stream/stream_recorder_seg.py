@@ -5,7 +5,6 @@ from datetime import datetime
 
 import aiofiles
 from aiofiles import os as aos
-from aiohttp import BaseConnector
 from pyutils import log, path_join, error_dict
 from redis.asyncio import Redis
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
@@ -19,7 +18,7 @@ from ...data.live import LiveState, LiveStateService
 from ...data.segment import SegmentNumberSet, SegmentStateService, SegmentStateValidator, SegmentState
 from ...file import ObjectWriter
 from ...metric import metric
-from ...utils import AsyncHttpClient, AsyncCounter
+from ...utils import AsyncHttpClient, AsyncCounter, ProxyConnectorConfig
 
 TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
@@ -41,8 +40,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         redis_replica: Redis,
         redis_data_conf: RedisDataConfig,
         req_conf: RequestConfig,
-        connector: BaseConnector | None,
         incomplete_dir_path: str,
+        proxy: ProxyConnectorConfig | None,
     ):
         super().__init__(live, args, writer, incomplete_dir_path)
         self.__m3u8_retry_limit = req_conf.m3u8_retry_limit
@@ -73,14 +72,14 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
-            connector=connector,
+            proxy=proxy,
         )
         self.__seg_http = AsyncHttpClient(
             timeout_sec=req_conf.seg_timeout_sec,
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
-            connector=connector,
+            proxy=proxy,
         )
 
         self.__retrying_nums = self.__create_num_seg("retrying")

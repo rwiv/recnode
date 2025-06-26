@@ -3,9 +3,20 @@ from typing import Any
 
 import aiohttp
 from aiohttp import BaseConnector, ClientTimeout
+from aiohttp_socks import ProxyConnector, ProxyType
+from pydantic import BaseModel
 from pyutils import log, error_dict
 
 from .errors import HttpRequestError
+
+
+class ProxyConnectorConfig(BaseModel):
+    proxy_type: ProxyType
+    host: str
+    port: int
+    username: str
+    password: str
+    rdns: bool
 
 
 class AsyncHttpClient:
@@ -16,7 +27,7 @@ class AsyncHttpClient:
         retry_delay_sec: float = 0,
         use_backoff: bool = False,
         print_error: bool = True,
-        connector: BaseConnector | None = None,
+        proxy: ProxyConnectorConfig | None = None,
     ):
         self.retry_limit = retry_limit
         self.retry_delay_sec = retry_delay_sec
@@ -24,13 +35,26 @@ class AsyncHttpClient:
         self.timeout = aiohttp.ClientTimeout(total=timeout_sec)
         self.headers = {}
         self.print_error = print_error
-        self.connector = connector
+        self.proxy_connector_config = proxy
 
     def set_headers(self, headers: dict):
         for k, v in headers.items():
             if self.headers.get(k) is not None:
                 raise ValueError(f"Header {k} already set")
             self.headers[k] = v
+
+    def __proxy_connector(self) -> BaseConnector | None:
+        if self.proxy_connector_config is None:
+            return None
+
+        return ProxyConnector(
+            proxy_type=ProxyType.SOCKS5,
+            host=self.proxy_connector_config.host,
+            port=self.proxy_connector_config.port,
+            username=self.proxy_connector_config.username,
+            password=self.proxy_connector_config.password,
+            rdns=self.proxy_connector_config.rdns,
+        )
 
     async def get_text(
         self,
@@ -114,8 +138,9 @@ class AsyncHttpClient:
         req_print_error = print_error if print_error is not None else self.print_error
         req_retry_limit = retry_limit if retry_limit is not None else self.retry_limit
 
-        if connector is None:
-            connector = self.connector
+        proxy_connector = connector
+        if proxy_connector is None:
+            proxy_connector = self.__proxy_connector()
 
         for retry_cnt in range(req_retry_limit + 1):
             start = asyncio.get_event_loop().time()
@@ -128,7 +153,7 @@ class AsyncHttpClient:
                     json=json,
                     raw=raw,
                     timeout=self.timeout,
-                    connector=connector,
+                    connector=proxy_connector,
                 )
             except Exception as ex:
                 err = error_dict(ex)

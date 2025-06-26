@@ -3,7 +3,7 @@ import sys
 
 from .async_types import *
 from .http import FIREFOX_USER_AGENT, fetch_my_public_ip
-from .http_async import AsyncHttpClient, AsyncHttpClientMock
+from .http_async import AsyncHttpClient, AsyncHttpClientMock, ProxyConnectorConfig
 from .errors import HttpError, HttpRequestError
 from .path import *
 from .streamlink import *

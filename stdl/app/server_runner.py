@@ -38,6 +38,7 @@ def run_server():
 
     env = get_env()
     my_public_ip = fetch_my_public_ip()
+    log.info(f"Public IP: {my_public_ip}")
 
     scheduler = RecordingScheduler(env, my_public_ip)
 

@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .config_proxy import ProxyServerConfig, read_proxy_server_config
+from .config_proxy import ProxyServerConfig, read_proxy_server_config, ProxyConfig
 from .config_redis import RedisConfig, RedisDataConfig
 from .config_request import RequestConfig, read_request_config
 from .config_stream import StreamConfig

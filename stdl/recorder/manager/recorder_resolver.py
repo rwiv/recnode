@@ -1,6 +1,4 @@
-from aiohttp import BaseConnector
-from aiohttp_socks import ProxyConnector
-from python_socks import ProxyType
+from aiohttp_socks import ProxyType
 from pyutils import path_join
 from redis.asyncio import Redis
 
@@ -13,7 +11,7 @@ from ...data.live import LocationType
 from ...data.live import LiveState
 from ...data.redis import create_redis_pool
 from ...file import ObjectWriter
-from ...utils import StreamLinkSessionArgs
+from ...utils import StreamLinkSessionArgs, ProxyConnectorConfig
 
 
 class RecorderResolver:
@@ -80,10 +78,10 @@ class RecorderResolver:
             redis_replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
             redis_data_conf=self.__env.redis_data,
             req_conf=self.__env.req_conf,
-            connector=self._create_proxy_connector(state.location),
+            proxy=self.__create_proxy_connector_config(state.location),
         )
 
-    def _create_proxy_connector(self, location: LocationType) -> BaseConnector | None:
+    def __create_proxy_connector_config(self, location: LocationType) -> ProxyConnectorConfig | None:
         if location == LocationType.LOCAL:
             return None
 
@@ -97,7 +95,7 @@ class RecorderResolver:
         if location == LocationType.PROXY_DOMESTIC:
             port = self.__env.proxy.port_domestic
 
-        return ProxyConnector(
+        return ProxyConnectorConfig(
             proxy_type=ProxyType.SOCKS5,
             host=host,
             port=port,

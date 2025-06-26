@@ -5,4 +5,4 @@ FIREFOX_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/
 
 
 def fetch_my_public_ip() -> str:
-    return requests.get("https://api.ipify.org").text
+    return requests.get("https://api.ipify.org").text.strip()
