@@ -69,138 +69,66 @@ delete-stage-redis-pvc:
 helm-prod-71-run:
 	-@helm install stdl-server-711 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-plain-711 \
-		--set ingress.hostName=stdl-plain-711.rwiv.xyz \
+		--set metadata.name=stdl-server-711 \
+		--set ingress.hostName=stdl-711.rwiv.xyz \
 		--set nodeName=host-71
-#	-@helm install stdl-server-712 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-712 \
-#		--set vpn.hostName=stdl-vpn-712.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
-#		--set nodeName=host-71
-#	-@helm install stdl-server-713 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-713 \
-#		--set vpn.hostName=stdl-vpn-713.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-71.media.svc.cluster.local \
-#		--set nodeName=host-71
+	-@helm install stdl-server-712 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-712 \
+		--set ingress.hostName=stdl-712.rwiv.xyz \
+		--set nodeName=host-71
 
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
-#	-@helm uninstall stdl-server-712 -n media
-#	-@helm uninstall stdl-server-713 -n media
+	-@helm uninstall stdl-server-712 -n media
 
 helm-prod-72-run:
 	-@helm install stdl-server-721 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-plain-721 \
-		--set ingress.hostName=stdl-plain-721.rwiv.xyz \
+		--set metadata.name=stdl-server-721 \
+		--set ingress.hostName=stdl-721.rwiv.xyz \
 		--set nodeName=host-72
-#	-@helm install stdl-server-722 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-722 \
-#		--set vpn.hostName=stdl-vpn-722.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
-#		--set nodeName=host-72
-#	-@helm install stdl-server-723 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-723 \
-#		--set vpn.hostName=stdl-vpn-723.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-72.media.svc.cluster.local \
-#		--set nodeName=host-72
+	-@helm install stdl-server-722 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-722 \
+		--set ingress.hostName=stdl-722.rwiv.xyz \
+		--set nodeName=host-72
 
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
-#	-@helm uninstall stdl-server-722 -n media
-#	-@helm uninstall stdl-server-723 -n media
+	-@helm uninstall stdl-server-722 -n media
 
 helm-prod-73-run:
 	-@helm install stdl-server-731 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-plain-731 \
-		--set ingress.hostName=stdl-plain-731.rwiv.xyz \
+		--set metadata.name=stdl-server-731 \
+		--set ingress.hostName=stdl-731.rwiv.xyz \
 		--set nodeName=host-73
-#	-@helm install stdl-server-732 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-732 \
-#		--set vpn.hostName=stdl-vpn-732.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
-#		--set nodeName=host-73
-#	-@helm install stdl-server-733 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-733 \
-#		--set vpn.hostName=stdl-vpn-733.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-73.media.svc.cluster.local \
-#		--set nodeName=host-73
+	-@helm install stdl-server-732 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-732 \
+		--set ingress.hostName=stdl-732.rwiv.xyz \
+		--set nodeName=host-73
 
 helm-prod-73-rm:
 	-@helm uninstall stdl-server-731 -n media
-#	-@helm uninstall stdl-server-732 -n media
-#	-@helm uninstall stdl-server-733 -n media
+	-@helm uninstall stdl-server-732 -n media
 
 helm-prod-74-run:
 	-@helm install stdl-server-741 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-plain-741 \
-		--set ingress.hostName=stdl-plain-741.rwiv.xyz \
+		--set metadata.name=stdl-server-741 \
+		--set ingress.hostName=stdl-741.rwiv.xyz \
 		--set nodeName=host-74
-#	-@helm install stdl-server-742 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-742 \
-#		--set vpn.hostName=stdl-vpn-742.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-74.media.svc.cluster.local \
-#		--set nodeName=host-74
-#	-@helm install stdl-server-743 ../kube/server -n media \
-#		--set image.tag=$(APP_VERSION) \
-#		--set plain.enabled=false \
-#		--set vpn.enabled=true \
-#		--set vpn.name=stdl-server-vpn-743 \
-#		--set vpn.hostName=stdl-vpn-743.rwiv.xyz \
-#		--set vpn.proxyEndpoint=http://stdl-proxy-74.media.svc.cluster.local \
-#		--set nodeName=host-74
+	-@helm install stdl-server-742 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-742 \
+		--set ingress.hostName=stdl-742.rwiv.xyz \
+		--set nodeName=host-74
 
 helm-prod-74-rm:
 	-@helm uninstall stdl-server-741 -n media
-#	-@helm uninstall stdl-server-742 -n media
-#	-@helm uninstall stdl-server-743 -n media
-
-helm-prod-proxy-run:
-	-@helm install stdl-proxy-71 ../kube/proxy -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-proxy-71 \
-		--set nodeName=host-71
-	-@helm install stdl-proxy-72 ../kube/proxy -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-proxy-72 \
-		--set nodeName=host-72
-	-@helm install stdl-proxy-73 ../kube/proxy -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-proxy-73 \
-		--set nodeName=host-73
-	-@helm install stdl-proxy-74 ../kube/proxy -n media \
-		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-proxy-74 \
-		--set nodeName=host-74
-
-helm-prod-proxy-rm:
-	-@helm uninstall stdl-proxy-71 -n media
-	-@helm uninstall stdl-proxy-72 -n media
-	-@helm uninstall stdl-proxy-73 -n media
-	-@helm uninstall stdl-proxy-74 -n media
+	-@helm uninstall stdl-server-742 -n media
 
 helm-stage-server-run:
 	-@helm install stdl-server-521 ../kube/server -n stage \
@@ -236,13 +164,3 @@ helm-stage-server-run:
 helm-stage-server-rm:
 	-@helm uninstall stdl-server-521 -n stage
 	-@helm uninstall stdl-server-522 -n stage
-
-helm-stage-proxy-run:
-	-@helm install stdl-proxy ../kube/proxy -n stage \
-		--set metadata.namespace=stage \
-		--set image.repository=harbor.rwiv.xyz/test/stdl \
-		--set image.tag=latest \
-		--set server.replicas=1
-
-helm-stage-proxy-rm:
-	-@helm uninstall stdl-proxy -n stage

@@ -1,5 +1,0 @@
-apiVersion: v2
-name: stdl-proxy
-description: stdl-proxy
-type: application
-version: 0.1.0
