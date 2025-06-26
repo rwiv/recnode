@@ -18,8 +18,8 @@ ingress:
 
 proxy:
   secretName: proxy-auth
-  portDomesticKey: portDomestic
-  portOverseasKey: portOverseas
+  portDomesticKey: port-domestic
+  portOverseasKey: port-overseas
   usernameKey: username
   passwordKey: password
   rdns: true

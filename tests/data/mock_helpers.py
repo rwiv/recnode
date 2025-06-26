@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from stdl.common import PlatformType
-from stdl.data.live import LiveState
+from stdl.data.live import LiveState, LocationType
 from stdl.data.segment import SegmentState
 
 
@@ -17,6 +17,7 @@ def live(id: str = str(uuid.uuid4())):
         streamUrl="http://example.com/stream",
         headers=None,
         videoName="test_video",
+        location=LocationType.LOCAL,
         isInvalid=False,
         createdAt=datetime.now(),
         updatedAt=datetime.now(),

@@ -23,6 +23,6 @@ class LiveState(BaseModel):
     headers: dict[str, str] | None = None
     video_name: str = Field(alias="videoName")
     is_invalid: bool = Field(alias="isInvalid")
-    location: LocationType = Field(alias="proxyType", default=LocationType.LOCAL)
+    location: LocationType
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")

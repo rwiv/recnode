@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from pyutils import log
 from streamlink.stream.hls.hls import HLSStream
 
-from ..data.live import LiveState
+from ..data.live import LiveState, LocationType
 from ..fetcher import PlatformFetcher
 from ..utils import StreamLinkSessionArgs, get_streams
 
@@ -48,6 +48,7 @@ async def get_live_state(url: str, cookie_header: str | None):
         streamUrl=stream_url,
         headers=headers,
         videoName=now.strftime("%Y%m%d_%H%M%S"),
+        location=LocationType.LOCAL,
         isInvalid=False,
         createdAt=now,
         updatedAt=now,

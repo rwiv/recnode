@@ -1,4 +1,4 @@
-APP_VERSION=0.8.4
+APP_VERSION=0.8.5
 
 stage-run: helm-stage-server-run
 stage-rm: helm-stage-server-rm
@@ -69,7 +69,7 @@ delete-stage-redis-pvc:
 helm-prod-71-run:
 	-@helm install stdl-server-711 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-711 \
+		--set metadata.name=stdl-server-plain-711 \
 		--set ingress.hostName=stdl-plain-711.rwiv.xyz \
 		--set nodeName=host-71
 #	-@helm install stdl-server-712 ../kube/server -n media \
@@ -91,13 +91,13 @@ helm-prod-71-run:
 
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
-	-@helm uninstall stdl-server-712 -n media
+#	-@helm uninstall stdl-server-712 -n media
 #	-@helm uninstall stdl-server-713 -n media
 
 helm-prod-72-run:
 	-@helm install stdl-server-721 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-721 \
+		--set metadata.name=stdl-server-plain-721 \
 		--set ingress.hostName=stdl-plain-721.rwiv.xyz \
 		--set nodeName=host-72
 #	-@helm install stdl-server-722 ../kube/server -n media \
@@ -119,7 +119,7 @@ helm-prod-72-run:
 
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
-	-@helm uninstall stdl-server-722 -n media
+#	-@helm uninstall stdl-server-722 -n media
 #	-@helm uninstall stdl-server-723 -n media
 
 helm-prod-73-run:
@@ -147,13 +147,13 @@ helm-prod-73-run:
 
 helm-prod-73-rm:
 	-@helm uninstall stdl-server-731 -n media
-	-@helm uninstall stdl-server-732 -n media
+#	-@helm uninstall stdl-server-732 -n media
 #	-@helm uninstall stdl-server-733 -n media
 
 helm-prod-74-run:
 	-@helm install stdl-server-741 ../kube/server -n media \
 		--set image.tag=$(APP_VERSION) \
-		--set metadata.name=stdl-server-741 \
+		--set metadata.name=stdl-server-plain-741 \
 		--set ingress.hostName=stdl-plain-741.rwiv.xyz \
 		--set nodeName=host-74
 #	-@helm install stdl-server-742 ../kube/server -n media \
@@ -175,7 +175,7 @@ helm-prod-74-run:
 
 helm-prod-74-rm:
 	-@helm uninstall stdl-server-741 -n media
-	-@helm uninstall stdl-server-742 -n media
+#	-@helm uninstall stdl-server-742 -n media
 #	-@helm uninstall stdl-server-743 -n media
 
 helm-prod-proxy-run:
