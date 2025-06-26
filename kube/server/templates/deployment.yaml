@@ -1,15 +1,14 @@
-{{- if .Values.vpn.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.vpn.name }}
+  name: {{ .Values.metadata.name }}
   namespace: {{ .Values.metadata.namespace }}
 spec:
   replicas: {{ .Values.server.replicas }}
   selector:
     matchLabels:
       app: {{ .Values.metadata.appName }}
-      sub: {{ .Values.vpn.name }}
+      sub: {{ .Values.metadata.name }}
       {{ if .Values.nodeName }}
       node: {{ .Values.nodeName }}
       {{ end }}
@@ -17,7 +16,7 @@ spec:
     metadata:
       labels:
         app: {{ .Values.metadata.appName }}
-        sub: {{ .Values.vpn.name }}
+        sub: {{ .Values.metadata.name }}
         {{ if .Values.nodeName }}
         node: {{ .Values.nodeName }}
         {{ end }}
@@ -29,54 +28,17 @@ spec:
       nodeName: {{ .Values.nodeName }}
       {{ end }}
       containers:
-        - name: gluetun
-          image: {{ .Values.gluetun.repository }}:{{ .Values.gluetun.tag }}
-          ports:
-            - containerPort: {{ .Values.server.service.targetPort }}
-          securityContext:
-            capabilities:
-              add: [ "NET_ADMIN" ]
-          env:
-            - name: VPN_SERVICE_PROVIDER
-              value: "custom"
-            - name: VPN_TYPE
-              value: "openvpn"
-            - name: OPENVPN_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.vpn.nordvpn.credentials.name }}
-                  key: {{ .Values.vpn.nordvpn.credentials.keys.username }}
-            - name: OPENVPN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.vpn.nordvpn.credentials.name }}
-                  key: {{ .Values.vpn.nordvpn.credentials.keys.password }}
-            - name: OPENVPN_CUSTOM_CONFIG
-              value: "/ovpn/{{ .Values.vpn.nordvpn.ovpn.keys.filename }}"
-            - name: DNS_KEEP_NAMESERVER
-              value: "true"
-            - name: FIREWALL_OUTBOUND_SUBNETS
-              value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
-            - name: FIREWALL_INPUT_PORTS
-              value: "{{ .Values.server.service.targetPort }}"
-          volumeMounts:
-            - name: ovpn-conf
-              mountPath: "/ovpn/{{ .Values.vpn.nordvpn.ovpn.keys.filename }}"
-              subPath: {{ .Values.vpn.nordvpn.ovpn.keys.filename }}
-              readOnly: true
         - name: {{ .Values.server.containerName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           workingDir: "/app"
           command: ["python", "-m", "stdl", "server"]
+          ports:
+            - containerPort: {{ .Values.server.service.targetPort }}
           env:
             - name: PY_ENV
               value: prod
             - name: SERVER_PORT
               value: "{{ .Values.server.service.targetPort }}"
-            - name: PROXY_ENABLED
-              value: "true"
-            - name: PROXY_ENDPOINT
-              value: {{ .Values.vpn.proxyEndpoint }}
             - name: SEG_SIZE_MB
               value: "{{ .Values.server.segSizeMb }}"
             - name: M3U8_RETRY_LIMIT
@@ -123,6 +85,30 @@ spec:
               value: "{{ .Values.redis.data.liveExpireSec }}"
             - name: REDIS_SEG_EXPIRE_SEC
               value: "{{ .Values.redis.data.segExpireSec }}"
+            - name: PROXY_PORT_DOMESTIC
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.proxy.secretName }}
+                  key: {{ .Values.proxy.portDomesticKey }}
+            - name: PROXY_PORT_OVERSEAS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.proxy.secretName }}
+                  key: {{ .Values.proxy.portOverseasKey }}
+            - name: PROXY_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.proxy.secretName }}
+                  key: {{ .Values.proxy.usernameKey }}
+            - name: PROXY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.proxy.secretName }}
+                  key: {{ .Values.proxy.passwordKey }}
+            - name: PROXY_RDNS
+              value: "{{ .Values.proxy.rdns }}"
+            - name: PROXY_USE_MY_IP
+              value: "{{ .Values.proxy.useMyIp }}"
           volumeMounts:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml
@@ -137,7 +123,3 @@ spec:
         - name: fs-configs
           secret:
             secretName: {{ .Values.server.fs.name }}
-        - name: ovpn-conf
-          secret:
-            secretName: {{ .Values.vpn.nordvpn.ovpn.name }}
-{{- end }}

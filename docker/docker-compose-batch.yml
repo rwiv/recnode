@@ -1,6 +1,6 @@
 services:
   stdl-batch:
-    image: harbor.rwiv.xyz/private/stdl:0.8.3
+    image: harbor.rwiv.xyz/private/stdl:0.8.4
     container_name: stdl-batch
     environment:
       PY_ENV: prod

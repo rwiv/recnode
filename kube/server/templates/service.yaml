@@ -1,13 +1,12 @@
-{{- if .Values.vpn.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.vpn.name }}
+  name: {{ .Values.metadata.name }}
   namespace: {{ .Values.metadata.namespace }}
 spec:
   selector:
     app: {{ .Values.metadata.appName }}
-    sub: {{ .Values.vpn.name }}
+    sub: {{ .Values.metadata.name }}
     {{ if .Values.nodeName }}
     node: {{ .Values.nodeName }}
     {{ end }}
@@ -15,4 +14,3 @@ spec:
   ports:
     - port: {{ .Values.server.service.port }}
       targetPort: {{ .Values.server.service.targetPort }}
-{{- end }}

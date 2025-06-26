@@ -1,33 +1,12 @@
 metadata:
   appName: stdl-server
+  name: stdl-server
   namespace: media
-plain:
-  enabled: true
-  name: stdl-server-plain
-  hostName: stdl-plain.home.rwiv.xyz
-vpn:
-  enabled: false
-  name: stdl-server-vpn
-  hostName: stdl-vpn.home.rwiv.xyz
-  proxyEndpoint: http://stdl-proxy.media.svc.cluster.local
-  nordvpn:
-    credentials:
-      name: nordvpn-credentials
-      keys:
-        username: username
-        password: password
-    ovpn:
-      name: nordvpn-vpn
-      keys:
-        filename: client.ovpn
 
 image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.0.0
   pullSecret: image-pull-secret
-gluetun:
-  repository: qmcgaw/gluetun
-  tag: v3.40
 
 affinity: {}
 podLabels: {}
@@ -35,6 +14,16 @@ nodeName: ~
 
 ingress:
   secretName: cloudflare-certificate
+  hostName: stdl.home.rwiv.xyz
+
+proxy:
+  secretName: proxy-auth
+  portDomesticKey: portDomestic
+  portOverseasKey: portOverseas
+  usernameKey: username
+  passwordKey: password
+  rdns: true
+  useMyIp: true
 
 redis:
   masterHost: stdl-redis-master.media.svc.cluster.local
