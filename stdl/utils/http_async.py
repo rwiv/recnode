@@ -2,7 +2,7 @@ import asyncio
 from typing import Any
 
 import aiohttp
-from aiohttp import ClientTimeout
+from aiohttp import BaseConnector, ClientTimeout
 from pyutils import log, error_dict
 
 from .errors import HttpRequestError
@@ -16,6 +16,7 @@ class AsyncHttpClient:
         retry_delay_sec: float = 0,
         use_backoff: bool = False,
         print_error: bool = True,
+        connector: BaseConnector | None = None,
     ):
         self.retry_limit = retry_limit
         self.retry_delay_sec = retry_delay_sec
@@ -23,6 +24,7 @@ class AsyncHttpClient:
         self.timeout = aiohttp.ClientTimeout(total=timeout_sec)
         self.headers = {}
         self.print_error = print_error
+        self.connector = connector
 
     def set_headers(self, headers: dict):
         for k, v in headers.items():
@@ -37,6 +39,7 @@ class AsyncHttpClient:
         attr: dict | None = None,
         print_error: bool | None = None,
         retry_limit: int | None = None,
+        connector: BaseConnector | None = None,
     ) -> str:
         return await self.fetch(
             method="GET",
@@ -46,6 +49,7 @@ class AsyncHttpClient:
             attr=attr,
             print_error=print_error,
             retry_limit=retry_limit,
+            connector=connector,
         )
 
     async def get_json(
@@ -55,6 +59,7 @@ class AsyncHttpClient:
         attr: dict | None = None,
         print_error: bool | None = None,
         retry_limit: int | None = None,
+        connector: BaseConnector | None = None,
     ) -> Any:
         return await self.fetch(
             method="GET",
@@ -64,6 +69,7 @@ class AsyncHttpClient:
             attr=attr,
             print_error=print_error,
             retry_limit=retry_limit,
+            connector=connector,
         )
 
     async def get_bytes(
@@ -73,6 +79,7 @@ class AsyncHttpClient:
         attr: dict | None = None,
         print_error: bool | None = None,
         retry_limit: int | None = None,
+        connector: BaseConnector | None = None,
     ) -> bytes:
         return await self.fetch(
             method="GET",
@@ -82,6 +89,7 @@ class AsyncHttpClient:
             attr=attr,
             print_error=print_error,
             retry_limit=retry_limit,
+            connector=connector,
         )
 
     async def fetch(
@@ -95,6 +103,7 @@ class AsyncHttpClient:
         attr: dict | None = None,
         print_error: bool | None = None,
         retry_limit: int | None = None,
+        connector: BaseConnector | None = None,
     ) -> Any:
         req_headers = self.headers
         if headers is not None:
@@ -104,6 +113,9 @@ class AsyncHttpClient:
 
         req_print_error = print_error if print_error is not None else self.print_error
         req_retry_limit = retry_limit if retry_limit is not None else self.retry_limit
+
+        if connector is None:
+            connector = self.connector
 
         for retry_cnt in range(req_retry_limit + 1):
             start = asyncio.get_event_loop().time()
@@ -116,6 +128,7 @@ class AsyncHttpClient:
                     json=json,
                     raw=raw,
                     timeout=self.timeout,
+                    connector=connector,
                 )
             except Exception as ex:
                 err = error_dict(ex)
@@ -157,8 +170,9 @@ async def request(
     json: bool = False,
     raw: bool = False,
     timeout: ClientTimeout = ClientTimeout(total=60),
+    connector: BaseConnector | None = None,
 ) -> Any:
-    async with aiohttp.ClientSession(timeout=timeout) as session:
+    async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
         async with session.request(method=method, url=url, headers=headers) as res:
             if res.status >= 400:
                 raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
@@ -184,5 +198,6 @@ class AsyncHttpClientMock(AsyncHttpClient):
         attr: dict | None = None,
         print_error: bool | None = None,
         retry_limit: int | None = None,
+        connector: BaseConnector | None = None,
     ) -> bytes:
         return b"0" * self.b_size

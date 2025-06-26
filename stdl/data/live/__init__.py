@@ -1,7 +1,7 @@
 import os
 import sys
 
-from .live_state import LiveState
+from .live_state import LiveState, LocationType
 from .live_state_service import LiveStateService
 
 targets = [

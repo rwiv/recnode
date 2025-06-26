@@ -2,6 +2,7 @@ import asyncio
 import time
 
 from aiofiles import os as aos
+from aiohttp import BaseConnector
 from pyutils import log, path_join
 from streamlink.stream.hls.hls import HLSStream, HLSStreamReader
 
@@ -19,6 +20,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         live: LiveState,
         args: RecordingArgs,
         writer: ObjectWriter,
+        connector: BaseConnector | None,
         incomplete_dir_path: str,
     ):
         super().__init__(live, args, writer, incomplete_dir_path)
@@ -30,7 +32,13 @@ class StreamlinkStreamRecorder(StreamRecorder):
 
         self.idx = 0
 
-        self.http = AsyncHttpClient(timeout_sec=10, retry_limit=2, retry_delay_sec=0.5, use_backoff=True)
+        self.http = AsyncHttpClient(
+            timeout_sec=10,
+            retry_limit=2,
+            retry_delay_sec=0.5,
+            use_backoff=True,
+            connector=connector,
+        )
 
     async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         info = self.ctx.to_status(

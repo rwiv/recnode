@@ -3,7 +3,7 @@ import os
 from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
-from .config_proxy import ProxyConfig, read_proxy_config
+from .config_proxy import ProxyServerConfig, read_proxy_server_config
 
 
 class ProxyEnv(BaseModel):
@@ -11,7 +11,7 @@ class ProxyEnv(BaseModel):
     port: conint(ge=0)
     fs_name: constr(min_length=1)
     fs_config_path: constr(min_length=1) | None
-    proxy: ProxyConfig
+    proxy: ProxyServerConfig
 
 
 def get_proxy_env() -> ProxyEnv:
@@ -30,5 +30,5 @@ def get_proxy_env() -> ProxyEnv:
         port=os.getenv("SERVER_PORT") or 9084,  # type: ignore
         fs_name=fs_name,
         fs_config_path=os.getenv("FS_CONFIG_PATH") or None,
-        proxy=read_proxy_config(),
+        proxy=read_proxy_server_config(),
     )

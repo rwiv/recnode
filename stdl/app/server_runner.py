@@ -12,7 +12,7 @@ from ..config import get_env
 from ..data.live import LiveStateService
 from ..data.redis import create_redis_pool
 from ..recorder import RecordingScheduler
-from ..utils import disable_streamlink_log
+from ..utils import disable_streamlink_log, fetch_my_public_ip
 
 
 async def handle_error(request: Request, call_next):
@@ -37,8 +37,9 @@ def run_server():
     disable_streamlink_log()
 
     env = get_env()
+    my_public_ip = fetch_my_public_ip()
 
-    scheduler = RecordingScheduler(env)
+    scheduler = RecordingScheduler(env, my_public_ip)
 
     live_service = LiveStateService(
         master=Redis(connection_pool=create_redis_pool(env.redis_master)),

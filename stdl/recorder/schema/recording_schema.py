@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from pyutils import log
 
 from ...common import PlatformType
+from ...data.live import LocationType
 
 
 class RecordingState(BaseModel):
@@ -28,7 +29,7 @@ class RecorderStatusInfo(BaseModel):
     channel_name: str = Field(serialization_alias="channelName")
     live_id: str = Field(serialization_alias="liveId")
     video_name: str = Field(serialization_alias="videoName")
+    location: LocationType
     fs_name: str = Field(serialization_alias="fsName")
     num: int
     status: RecordingStatus = Field(serialization_alias="status")
-    stream_url: str | None = Field(serialization_alias="streamUrl", default=None)

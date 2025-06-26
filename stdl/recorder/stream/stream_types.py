@@ -3,6 +3,8 @@ from typing import Any
 from pydantic import BaseModel
 from pyutils import error_dict
 
+
+from ...data.live import LocationType
 from ..schema.recording_schema import RecorderStatusInfo, RecordingStatus
 from ...fetcher import LiveInfo
 
@@ -14,6 +16,7 @@ class RecordingContext(BaseModel):
     stream_base_url: str | None
     headers: dict[str, str]
     video_name: str
+    location: LocationType
     tmp_dir_path: str
     out_dir_path: str
     live: LiveInfo
@@ -50,7 +53,7 @@ class RecordingContext(BaseModel):
             live_id=self.live.live_id,
             fs_name=fs_name,
             video_name=self.video_name,
+            location=self.location,
             num=num,
             status=status,
-            stream_url=self.stream_url,
         )

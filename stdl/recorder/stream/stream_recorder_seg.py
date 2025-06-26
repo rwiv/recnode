@@ -5,6 +5,7 @@ from datetime import datetime
 
 import aiofiles
 from aiofiles import os as aos
+from aiohttp import BaseConnector
 from pyutils import log, path_join, error_dict
 from redis.asyncio import Redis
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
@@ -40,6 +41,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         redis_replica: Redis,
         redis_data_conf: RedisDataConfig,
         req_conf: RequestConfig,
+        connector: BaseConnector | None,
         incomplete_dir_path: str,
     ):
         super().__init__(live, args, writer, incomplete_dir_path)
@@ -71,12 +73,14 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
+            connector=connector,
         )
         self.__seg_http = AsyncHttpClient(
             timeout_sec=req_conf.seg_timeout_sec,
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
+            connector=connector,
         )
 
         self.__retrying_nums = self.__create_num_seg("retrying")
@@ -102,7 +106,6 @@ class SegmentedStreamRecorder(StreamRecorder):
 
     async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         status = self.ctx.to_status(fs_name=self._writer.fs_name, num=self.__idx, status=self._status)
-        status.stream_url = None
         dct = status.model_dump(mode="json", by_alias=True, exclude_none=True)
 
         if with_stats:

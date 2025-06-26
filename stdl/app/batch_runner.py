@@ -10,7 +10,7 @@ from ..data.live import LiveStateService
 from ..data.redis import create_redis_pool
 from ..file import create_fs_writer
 from ..recorder import RecorderResolver
-from ..utils import disable_streamlink_log
+from ..utils import disable_streamlink_log, fetch_my_public_ip
 
 
 async def async_input(prompt: str) -> str:
@@ -22,7 +22,8 @@ class BatchRunner:
     def __init__(self):
         self.__env = get_env()
         self.__writer = create_fs_writer(self.__env)
-        self.__recorder_resolver = RecorderResolver(self.__env, self.__writer)
+        my_public_ip = fetch_my_public_ip()
+        self.__recorder_resolver = RecorderResolver(self.__env, self.__writer, my_public_ip)
 
     async def run(self):
         log.set_level(logging.DEBUG)

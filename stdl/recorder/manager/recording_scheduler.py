@@ -13,10 +13,10 @@ from ...file import create_fs_writer
 
 
 class RecordingScheduler:
-    def __init__(self, env: Env):
+    def __init__(self, env: Env, my_public_ip: str):
         self.__env = env
         self.__writer = create_fs_writer(self.__env)
-        self.__resolver = RecorderResolver(self.__env, self.__writer)
+        self.__resolver = RecorderResolver(self.__env, self.__writer, my_public_ip)
 
         self.__recorder_map: dict[str, StreamRecorder] = {}
         self.__check_thread: threading.Thread | None = None
@@ -27,9 +27,7 @@ class RecordingScheduler:
             await recorder.get_status(with_stats=with_stats, full_stats=full_stats)
             for recorder in self.__recorder_map.values()
         ]
-        result: dict = {
-            "recordings": recordings,
-        }
+        result: dict = {"recordings": recordings}
         if with_resources:
             result["thread_counts"] = len(threading.enumerate())
             result["thread_names"] = [thread.name for thread in threading.enumerate()]

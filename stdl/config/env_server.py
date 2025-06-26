@@ -3,7 +3,7 @@ import os
 from pydantic import BaseModel, constr, conint
 from pyutils import load_dotenv, path_join, find_project_root
 
-from .config_proxy import ProxyConfig, read_proxy_config
+from .config_proxy import ProxyConfig, ProxyServerConfig, read_proxy_config, read_proxy_server_config
 from .config_redis import (
     RedisConfig,
     RedisDataConfig,
@@ -29,6 +29,7 @@ class Env(BaseModel):
     redis_master: RedisConfig
     redis_replica: RedisConfig
     redis_data: RedisDataConfig
+    proxy_server: ProxyServerConfig
     proxy: ProxyConfig
 
 
@@ -56,5 +57,6 @@ def get_env() -> Env:
         redis_master=read_redis_master_config(),
         redis_replica=read_redis_replica_config(),
         redis_data=read_redis_data_config(),
+        proxy_server=read_proxy_server_config(),
         proxy=read_proxy_config(),
     )

@@ -1,4 +1,5 @@
 aiohttp==3.11.11
+aiohttp_socks==0.10.1
 aiofiles==24.1.0
 aiobotocore==2.22.0
 types-aiobotocore[s3]==2.22.0

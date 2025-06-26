@@ -1,8 +1,15 @@
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, Field
 
 from ...common import PlatformType
+
+
+class LocationType(Enum):
+    LOCAL = "local"
+    PROXY_DOMESTIC = "proxy_domestic"
+    PROXY_OVERSEAS = "proxy_overseas"
 
 
 class LiveState(BaseModel):
@@ -16,5 +23,6 @@ class LiveState(BaseModel):
     headers: dict[str, str] | None = None
     video_name: str = Field(alias="videoName")
     is_invalid: bool = Field(alias="isInvalid")
+    location: LocationType = Field(alias="proxyType", default=LocationType.LOCAL)
     created_at: datetime = Field(alias="createdAt")
     updated_at: datetime = Field(alias="updatedAt")

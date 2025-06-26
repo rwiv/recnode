@@ -1,3 +1,6 @@
+from aiohttp import BaseConnector
+from aiohttp_socks import ProxyConnector
+from python_socks import ProxyType
 from pyutils import path_join
 from redis.asyncio import Redis
 
@@ -6,6 +9,7 @@ from ..stream.stream_recorder import StreamRecorder
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common import PlatformType
 from ...config import Env
+from ...data.live import LocationType
 from ...data.live import LiveState
 from ...data.redis import create_redis_pool
 from ...file import ObjectWriter
@@ -13,9 +17,10 @@ from ...utils import StreamLinkSessionArgs
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, writer: ObjectWriter):
+    def __init__(self, env: Env, writer: ObjectWriter, my_public_ip: str):
         self.__env = env
         self.__writer = writer
+        self.__my_public_ip = my_public_ip
 
     def create_recorder(self, state: LiveState) -> StreamRecorder:
         if state.platform == PlatformType.CHZZK:
@@ -75,4 +80,28 @@ class RecorderResolver:
             redis_replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
             redis_data_conf=self.__env.redis_data,
             req_conf=self.__env.req_conf,
+            connector=self._create_proxy_connector(state.location),
+        )
+
+    def _create_proxy_connector(self, location: LocationType) -> BaseConnector | None:
+        if location == LocationType.LOCAL:
+            return None
+
+        host = self.__env.proxy.host
+        if self.__env.proxy.use_my_ip:
+            host = self.__my_public_ip
+        if host is None:
+            raise ValueError("Proxy host is not set")
+
+        port = self.__env.proxy.port_overseas
+        if location == LocationType.PROXY_DOMESTIC:
+            port = self.__env.proxy.port_domestic
+
+        return ProxyConnector(
+            proxy_type=ProxyType.SOCKS5,
+            host=host,
+            port=port,
+            username=self.__env.proxy.username,
+            password=self.__env.proxy.password,
+            rdns=self.__env.proxy.rdns,
         )

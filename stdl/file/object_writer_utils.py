@@ -7,10 +7,10 @@ from ..config import Env, ProxyEnv
 
 
 def create_fs_writer(env: Env) -> ObjectWriter:
-    if env.proxy.enabled:
-        if env.proxy.endpoint is None:
+    if env.proxy_server.enabled:
+        if env.proxy_server.endpoint is None:
             raise ValueError("Proxy endpoint is not set")
-        return ProxyObjectWriter(env.proxy.endpoint, env.fs_name)
+        return ProxyObjectWriter(env.proxy_server.endpoint, env.fs_name)
 
     fs_name = env.fs_name
     fs_conf_path = env.fs_config_path

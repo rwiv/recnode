@@ -77,6 +77,7 @@ class StreamHelper:
             stream_url=state.stream_url,
             stream_base_url=stream_base_url,
             video_name=state.video_name,
+            location=state.location,
             headers=headers,
             tmp_dir_path=tmp_dir_path,
             out_dir_path=out_dir_path,
