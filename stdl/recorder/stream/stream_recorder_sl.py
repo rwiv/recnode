@@ -22,7 +22,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         incomplete_dir_path: str,
         proxy: ProxyConnectorConfig | None,
     ):
-        super().__init__(live, args, writer, incomplete_dir_path)
+        super().__init__(live, args, writer, incomplete_dir_path, proxy)
         self.read_retry_limit = 1
         self.read_retry_delay_sec = 0.5
         self.read_buf_size = 4 * 1024 * 1024

@@ -9,6 +9,7 @@ from ..stream.stream_helper import StreamHelper
 from ...data.live import LiveState
 from ...fetcher import PlatformFetcher
 from ...file import ObjectWriter
+from ...utils import AsyncHttpClient, ProxyConnectorConfig
 
 
 class StreamRecorder(ABC):
@@ -18,12 +19,21 @@ class StreamRecorder(ABC):
         args: RecordingArgs,
         writer: ObjectWriter,
         incomplete_dir_path: str,
+        proxy: ProxyConnectorConfig | None,
     ):
         self._state = RecordingState()
         self._status: RecordingStatus = RecordingStatus.WAIT
 
         self._writer = writer
-        self._fetcher = PlatformFetcher()
+        fetcher_http = AsyncHttpClient(
+            timeout_sec=30,
+            retry_limit=3,
+            retry_delay_sec=0.5,
+            use_backoff=True,
+            print_error=True,
+            proxy=proxy,
+        )
+        self._fetcher = PlatformFetcher(fetcher_http)
         self._helper = StreamHelper(
             args=args,
             state=self._state,

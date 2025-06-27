@@ -1,4 +1,5 @@
 import asyncio
+from enum import Enum
 from typing import Any
 
 import aiohttp
@@ -8,6 +9,12 @@ from pydantic import BaseModel
 from pyutils import log, error_dict
 
 from .errors import HttpRequestError
+
+
+class ReturnType(Enum):
+    TEXT = "text"
+    JSON = "json"
+    RAW = "raw"
 
 
 class ProxyConnectorConfig(BaseModel):
@@ -69,7 +76,7 @@ class AsyncHttpClient:
             method="GET",
             url=url,
             headers=headers,
-            text=True,
+            return_type=ReturnType.TEXT,
             attr=attr,
             print_error=print_error,
             retry_limit=retry_limit,
@@ -89,7 +96,7 @@ class AsyncHttpClient:
             method="GET",
             url=url,
             headers=headers,
-            json=True,
+            return_type=ReturnType.JSON,
             attr=attr,
             print_error=print_error,
             retry_limit=retry_limit,
@@ -109,7 +116,29 @@ class AsyncHttpClient:
             method="GET",
             url=url,
             headers=headers,
-            raw=True,
+            return_type=ReturnType.RAW,
+            attr=attr,
+            print_error=print_error,
+            retry_limit=retry_limit,
+            connector=connector,
+        )
+
+    async def post_json(
+        self,
+        url: str,
+        json: dict,
+        headers: dict | None = None,
+        attr: dict | None = None,
+        print_error: bool | None = None,
+        retry_limit: int | None = None,
+        connector: BaseConnector | None = None,
+    ) -> Any:
+        return await self.fetch(
+            method="POST",
+            url=url,
+            headers=headers,
+            return_type=ReturnType.JSON,
+            json=json,
             attr=attr,
             print_error=print_error,
             retry_limit=retry_limit,
@@ -120,10 +149,9 @@ class AsyncHttpClient:
         self,
         method: str,
         url: str,
+        return_type: ReturnType,
         headers: dict | None = None,
-        text: bool = False,
-        json: bool = False,
-        raw: bool = False,
+        json: dict | None = None,
         attr: dict | None = None,
         print_error: bool | None = None,
         retry_limit: int | None = None,
@@ -148,10 +176,9 @@ class AsyncHttpClient:
                 return await request(
                     method=method,
                     url=url,
+                    return_type=return_type,
                     headers=req_headers,
-                    text=text,
                     json=json,
-                    raw=raw,
                     timeout=self.timeout,
                     connector=proxy_connector,
                 )
@@ -191,24 +218,23 @@ async def request(
     method: str,
     url: str,
     headers: dict,
-    text: bool = False,
-    json: bool = False,
-    raw: bool = False,
+    return_type: ReturnType,
+    json: dict | None = None,
     timeout: ClientTimeout = ClientTimeout(total=60),
     connector: BaseConnector | None = None,
 ) -> Any:
     async with aiohttp.ClientSession(timeout=timeout, connector=connector) as session:
-        async with session.request(method=method, url=url, headers=headers) as res:
+        async with session.request(method=method, url=url, headers=headers, json=json) as res:
             if res.status >= 400:
                 raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
-            if text:
+            if return_type == ReturnType.TEXT:
                 return await res.text()
-            elif raw:
-                return await res.read()
-            elif json:
+            elif return_type == ReturnType.JSON:
                 return await res.json()
+            elif return_type == ReturnType.RAW:
+                return await res.read()
             else:
-                return await res.text()
+                raise ValueError(f"Invalid return type: {return_type}")
 
 
 class AsyncHttpClientMock(AsyncHttpClient):

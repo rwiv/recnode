@@ -7,13 +7,14 @@ from .platform.soop_fetcher import SoopFetcher
 from .platform.twitch_fetcher import TwitchFetcher
 from ..common import PlatformType
 from ..metric import metric
+from ..utils import AsyncHttpClient
 
 
 class PlatformFetcher:
-    def __init__(self):
-        self.__chzzk = ChzzkFetcher()
-        self.__soop = SoopFetcher()
-        self.__twitch = TwitchFetcher()
+    def __init__(self, http: AsyncHttpClient):
+        self.__chzzk = ChzzkFetcher(http)
+        self.__soop = SoopFetcher(http)
+        self.__twitch = TwitchFetcher(http)
         self.headers = {}
 
     def set_headers(self, headers: dict):

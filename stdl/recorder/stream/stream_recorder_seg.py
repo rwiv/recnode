@@ -43,7 +43,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         incomplete_dir_path: str,
         proxy: ProxyConnectorConfig | None,
     ):
-        super().__init__(live, args, writer, incomplete_dir_path)
+        super().__init__(live, args, writer, incomplete_dir_path, proxy)
         self.__m3u8_retry_limit = req_conf.m3u8_retry_limit
         self.__seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.__seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio

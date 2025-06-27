@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import Any
 
-import aiohttp
 from pydantic import BaseModel
 from streamlink.session.session import Streamlink
 
 from ..fetcher import LiveInfo
 from ...common import PlatformType
-from ...utils import HttpRequestError
+from ...utils import AsyncHttpClient
 
 
 class TwitchLiveInfo(BaseModel):
@@ -33,29 +32,15 @@ class TwitchLiveInfo(BaseModel):
 class TwitchFetcher:
     CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"
 
-    def __init__(self, session=Streamlink(), api_header=None, access_token_param=None):
-        self.session = session
-        self.headers = {
-            "Client-ID": self.CLIENT_ID,
-        }
-        self.headers.update(**dict(api_header or []))
-        self.access_token_params = dict(access_token_param or [])
-        self.access_token_params.setdefault("playerType", "embed")
+    def __init__(self, http: AsyncHttpClient, api_header=None):
+        self.__http = http
+        self.__headers = {"Client-ID": self.CLIENT_ID}
+        self.__headers.update(**dict(api_header or []))
 
     async def call(self, data, /, *, headers=None) -> Any:
-        async with aiohttp.ClientSession() as session:
-            url = "https://gql.twitch.tv/gql"
-            async with session.post(
-                url=url,
-                json=data,
-                headers={
-                    **self.headers,
-                    **(headers or {}),
-                },
-            ) as res:
-                if res.status >= 400:
-                    raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
-                return await res.json()
+        url = "https://gql.twitch.tv/gql"
+        req_headers = {**self.__headers, **(headers or {})}
+        return await self.__http.post_json(url=url, json=data, headers=req_headers)
 
     @staticmethod
     def _gql_persisted_query(operationname: str, sha256hash: str, **variables):

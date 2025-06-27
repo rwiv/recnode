@@ -1,11 +1,10 @@
 from datetime import datetime
 
-import aiohttp
 from pydantic import BaseModel
 
 from ..fetcher import LiveInfo
 from ...common import PlatformType
-from ...utils import HttpRequestError
+from ...utils import AsyncHttpClient
 
 
 class SoopStation(BaseModel):
@@ -39,10 +38,10 @@ class SoopStationResponse(BaseModel):
 
 
 class SoopFetcher:
+    def __init__(self, http: AsyncHttpClient):
+        self.__http = http
+
     async def fetch_live_info(self, user_id: str, headers: dict) -> LiveInfo | None:
         url = f"https://chapi.sooplive.co.kr/api/{user_id}/station"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url=url, headers=headers) as res:
-                if res.status >= 400:
-                    raise HttpRequestError("Failed to request", res.status, url, res.method, res.reason)
-                return SoopStationResponse(**await res.json()).to_info()
+        data = await self.__http.get_json(url=url, headers=headers)
+        return SoopStationResponse(**data).to_info()

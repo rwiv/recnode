@@ -8,7 +8,7 @@ from streamlink.stream.hls.hls import HLSStream
 
 from ..data.live import LiveState, LocationType
 from ..fetcher import PlatformFetcher
-from ..utils import StreamLinkSessionArgs, get_streams
+from ..utils import StreamLinkSessionArgs, get_streams, AsyncHttpClient
 
 
 async def get_live_state(url: str, cookie_header: str | None):
@@ -29,7 +29,7 @@ async def get_live_state(url: str, cookie_header: str | None):
     if cookie_header is not None:
         headers["Cookie"] = cookie_header
 
-    fetcher = PlatformFetcher()
+    fetcher = PlatformFetcher(AsyncHttpClient())
     if len(fetcher.headers) == 0:
         fetcher.set_headers(headers)
 
