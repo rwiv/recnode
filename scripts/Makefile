@@ -11,10 +11,6 @@ stage-rm: helm-stage-server-rm
 74-run: helm-prod-74-run
 74-rm: helm-prod-74-rm
 
-# argo
-argo-run:
-	-@kubectl create -f ../kube/argocd/application.yaml
-
 
 # infra
 helm-infra-run:
@@ -77,10 +73,22 @@ helm-prod-71-run:
 		--set metadata.name=stdl-server-712 \
 		--set ingress.hostName=stdl-712.rwiv.xyz \
 		--set nodeName=host-71
+	-@helm install stdl-server-713 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-713 \
+		--set ingress.hostName=stdl-713.rwiv.xyz \
+		--set nodeName=host-71
+	-@helm install stdl-server-714 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-714 \
+		--set ingress.hostName=stdl-714.rwiv.xyz \
+		--set nodeName=host-71
 
 helm-prod-71-rm:
 	-@helm uninstall stdl-server-711 -n media
 	-@helm uninstall stdl-server-712 -n media
+	-@helm uninstall stdl-server-713 -n media
+	-@helm uninstall stdl-server-714 -n media
 
 helm-prod-72-run:
 	-@helm install stdl-server-721 ../kube/server -n media \
@@ -93,10 +101,22 @@ helm-prod-72-run:
 		--set metadata.name=stdl-server-722 \
 		--set ingress.hostName=stdl-722.rwiv.xyz \
 		--set nodeName=host-72
+	-@helm install stdl-server-723 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-723 \
+		--set ingress.hostName=stdl-723.rwiv.xyz \
+		--set nodeName=host-72
+	-@helm install stdl-server-724 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-724 \
+		--set ingress.hostName=stdl-724.rwiv.xyz \
+		--set nodeName=host-72
 
 helm-prod-72-rm:
 	-@helm uninstall stdl-server-721 -n media
 	-@helm uninstall stdl-server-722 -n media
+	-@helm uninstall stdl-server-723 -n media
+	-@helm uninstall stdl-server-724 -n media
 
 helm-prod-73-run:
 	-@helm install stdl-server-731 ../kube/server -n media \
@@ -109,10 +129,22 @@ helm-prod-73-run:
 		--set metadata.name=stdl-server-732 \
 		--set ingress.hostName=stdl-732.rwiv.xyz \
 		--set nodeName=host-73
+	-@helm install stdl-server-733 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-733 \
+		--set ingress.hostName=stdl-733.rwiv.xyz \
+		--set nodeName=host-73
+	-@helm install stdl-server-734 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-734 \
+		--set ingress.hostName=stdl-734.rwiv.xyz \
+		--set nodeName=host-73
 
 helm-prod-73-rm:
 	-@helm uninstall stdl-server-731 -n media
 	-@helm uninstall stdl-server-732 -n media
+	-@helm uninstall stdl-server-733 -n media
+	-@helm uninstall stdl-server-734 -n media
 
 helm-prod-74-run:
 	-@helm install stdl-server-741 ../kube/server -n media \
@@ -125,10 +157,22 @@ helm-prod-74-run:
 		--set metadata.name=stdl-server-742 \
 		--set ingress.hostName=stdl-742.rwiv.xyz \
 		--set nodeName=host-74
+	-@helm install stdl-server-743 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-743 \
+		--set ingress.hostName=stdl-743.rwiv.xyz \
+		--set nodeName=host-74
+	-@helm install stdl-server-744 ../kube/server -n media \
+		--set image.tag=$(APP_VERSION) \
+		--set metadata.name=stdl-server-744 \
+		--set ingress.hostName=stdl-744.rwiv.xyz \
+		--set nodeName=host-74
 
 helm-prod-74-rm:
 	-@helm uninstall stdl-server-741 -n media
 	-@helm uninstall stdl-server-742 -n media
+	-@helm uninstall stdl-server-743 -n media
+	-@helm uninstall stdl-server-744 -n media
 
 helm-stage-server-run:
 	-@helm install stdl-server-521 ../kube/server -n stage \
