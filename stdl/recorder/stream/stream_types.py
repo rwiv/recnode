@@ -53,7 +53,7 @@ class RecordingContext(BaseModel):
             live_id=self.live.live_id,
             fs_name=fs_name,
             video_name=self.video_name,
-            location=self.location,
             num=num,
+            location=self.location,
             status=status,
         )
