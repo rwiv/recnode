@@ -1,6 +1,7 @@
 import threading
 import time
 
+from pydantic import BaseModel
 from pyutils import log, error_dict
 
 from ..manager.recorder_resolver import RecorderResolver
@@ -10,6 +11,12 @@ from ...common import PlatformType
 from ...config import Env
 from ...data.live import LiveState
 from ...file import create_fs_writer
+
+
+class RecordingSummary(BaseModel):
+    platform: PlatformType
+    channel_id: str
+    video_name: str
 
 
 class RecordingScheduler:
@@ -33,10 +40,15 @@ class RecordingScheduler:
             result["thread_names"] = [thread.name for thread in threading.enumerate()]
         return result
 
-    def get_recorder_infos(self):
-        result: list[tuple[PlatformType, str]] = []
+    def get_recorder_summaries(self):
+        result: list[RecordingSummary] = []
         for recorder in self.__recorder_map.values():
-            result.append((recorder.ctx.live.platform, recorder.ctx.live.channel_id))
+            summary = RecordingSummary(
+                platform=recorder.ctx.live.platform,
+                channel_id=recorder.ctx.live.channel_id,
+                video_name=recorder.ctx.video_name,
+            )
+            result.append(summary)
         return result
 
     def record(self, state: LiveState):

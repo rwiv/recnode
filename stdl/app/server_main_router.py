@@ -50,9 +50,13 @@ class MainController:
         if state is None:
             raise HTTPException(status_code=404, detail="Not found LiveState")
 
-        for platform, channel_id in self.__scheduler.get_recorder_infos():
-            if platform == state.platform and channel_id == state.channel_id:
-                raise HTTPException(status_code=400, detail="Already recording live")
+        for summary in self.__scheduler.get_recorder_summaries():
+            if (
+                summary.platform == state.platform
+                and summary.channel_id == state.channel_id
+                and summary.video_name == state.video_name
+            ):
+                raise HTTPException(status_code=422, detail="Already recording live")
 
         self.__scheduler.record(state)
         return "ok"
