@@ -28,17 +28,62 @@ spec:
       nodeName: {{ .Values.nodeName }}
       {{ end }}
       containers:
+        {{- if .Values.vpn.enabled }}
+        - name: gluetun
+          image: {{ .Values.gluetun.repository }}:{{ .Values.gluetun.tag }}
+          ports:
+            - containerPort: {{ .Values.server.service.targetPort }}
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          env:
+            - name: VPN_SERVICE_PROVIDER
+              value: "custom"
+            - name: VPN_TYPE
+              value: "openvpn"
+            - name: OPENVPN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.vpn.credentials.secretName }}
+                  key: {{ .Values.vpn.credentials.keys.username }}
+            - name: OPENVPN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.vpn.credentials.secretName }}
+                  key: {{ .Values.vpn.credentials.keys.password }}
+            - name: OPENVPN_CUSTOM_CONFIG
+              value: "/ovpn/{{ .Values.vpn.conf.keys.filename }}"
+            - name: DNS_KEEP_NAMESERVER
+              value: "true"
+            - name: FIREWALL_OUTBOUND_SUBNETS
+              value: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+            - name: FIREWALL_INPUT_PORTS
+              value: "{{ .Values.server.service.targetPort }}"
+          volumeMounts:
+            - name: ovpn-conf
+              mountPath: "/ovpn/{{ .Values.vpn.conf.keys.filename }}"
+              subPath: {{ .Values.vpn.conf.keys.filename }}
+              readOnly: true
+        {{- end }}
         - name: {{ .Values.server.containerName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           workingDir: "/app"
           command: ["python", "-m", "stdl", "server"]
+          {{- if not .Values.vpn.enabled }}
           ports:
             - containerPort: {{ .Values.server.service.targetPort }}
+          {{- end }}
           env:
             - name: PY_ENV
               value: prod
             - name: SERVER_PORT
               value: "{{ .Values.server.service.targetPort }}"
+            {{- if .Values.vpn.enabled }}
+            - name: PROXY_ENABLED
+              value: "true"
+            - name: PROXY_ENDPOINT
+              value: {{ .Values.vpn.proxyEndpoint }}
+            {{- end }}
             - name: SEG_SIZE_MB
               value: "{{ .Values.server.segSizeMb }}"
             - name: M3U8_RETRY_LIMIT
@@ -85,6 +130,7 @@ spec:
               value: "{{ .Values.redis.data.liveExpireSec }}"
             - name: REDIS_SEG_EXPIRE_SEC
               value: "{{ .Values.redis.data.segExpireSec }}"
+            {{- if .Values.proxy.enabled }}
             - name: PROXY_PORT_DOMESTIC
               valueFrom:
                 secretKeyRef:
@@ -109,6 +155,7 @@ spec:
               value: "{{ .Values.proxy.rdns }}"
             - name: PROXY_USE_MY_IP
               value: "{{ .Values.proxy.useMyIp }}"
+            {{- end }}
           volumeMounts:
             - name: fs-configs
               mountPath: /mnt/fs-configs/fs_conf.yaml
@@ -123,3 +170,8 @@ spec:
         - name: fs-configs
           secret:
             secretName: {{ .Values.server.fs.name }}
+        {{- if .Values.vpn.enabled }}
+        - name: ovpn-conf
+          secret:
+            secretName: {{ .Values.vpn.conf.secretName }}
+        {{- end }}

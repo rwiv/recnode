@@ -231,8 +231,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             inspected = await self.__seg_validator.validate_segments(segments, latest_num, self.__success_nums)
             if not inspected.ok:
                 if inspected.critical:
+                    log.error("Invalid m3u8", self.ctx.to_dict())
                     await self.__live_service.update_is_invalid(record_id=self.__record_id, is_invalid=True)
-                log.error("Invalid m3u8", self.ctx.to_dict())
                 self.__done_flag = True
                 return
 

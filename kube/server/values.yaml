@@ -7,6 +7,9 @@ image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.0.0
   pullSecret: image-pull-secret
+gluetun:
+  repository: qmcgaw/gluetun
+  tag: v3.40
 
 affinity: {}
 podLabels: {}
@@ -17,6 +20,7 @@ ingress:
   hostName: stdl.home.rwiv.xyz
 
 proxy:
+  enabled: true
   secretName: proxy-auth
   portDomesticKey: port-domestic
   portOverseasKey: port-overseas
@@ -58,3 +62,16 @@ server:
     segParallelRetryLimit: 4
     segFailureThresholdRatio: 4
     intervalWaitWeightSec: 1.2
+
+vpn:
+  enabled: false
+  proxyEndpoint: ~
+  credentials:
+    secretName: nordvpn-credentials
+    keys:
+      username: username
+      password: password
+  conf:
+    secretName: nordvpn-domestic
+    keys:
+      filename: client.ovpn

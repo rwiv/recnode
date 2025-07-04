@@ -1,5 +1,5 @@
 import pytest
-from aiohttp_socks import ProxyConnector, ProxyType
+from aiohttp_socks import ProxyType
 from pyutils import load_dotenv, path_join, find_project_root
 
 from stdl.config import get_env
@@ -20,7 +20,7 @@ async def test_http_client():
     proxy = ProxyConnectorConfig(
         proxy_type=ProxyType.SOCKS5,
         host=host,
-        port=conf.port_overseas,
+        port=conf.port_domestic,
         username=conf.username,
         password=conf.password,
         rdns=conf.rdns,
