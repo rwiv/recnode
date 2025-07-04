@@ -43,22 +43,21 @@ delete-prod-redis-pvc:
 	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n media
 	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
 	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-3 -n media
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-4 -n media
+	-@kubectl delete pvc redis-data-stdl-redis-replicas-5 -n media
 
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \
 		--set metadata.namespace=stage \
+		--set redis.master.persistence.enabled=false \
 		--set redis.master.service.nodePorts.redis=32133 \
+		--set redis.replica.persistence.enabled=false \
 		--set redis.replica.service.nodePorts.redis=32134 \
-		--set redis.master.persistence.enabled=false
+		--set redis.replica.replicaCount=1
 
 helm-stage-redis-rm:
 	-@helm uninstall stdl-redis -n stage
-
-delete-stage-redis-pvc:
-	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n stage
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n stage
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n stage
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n stage
 
 
 # server

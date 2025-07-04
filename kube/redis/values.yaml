@@ -22,13 +22,13 @@ redis:
         redis: 6379
     persistence:
       enabled: true
-      size: 8Gi
+      size: 6Gi
   replica:
-    replicaCount: 3
+    replicaCount: 6
     service:
       type: ClusterIP
       ports:
         redis: 6379
     persistence:
       enabled: true
-      size: 8Gi
+      size: 6Gi
