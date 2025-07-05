@@ -50,10 +50,12 @@ delete-prod-redis-pvc:
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \
 		--set metadata.namespace=stage \
-		--set redis.master.persistence.enabled=false \
+		--set redis.master.service.type=NodePort \
 		--set redis.master.service.nodePorts.redis=32133 \
-		--set redis.replica.persistence.enabled=false \
+		--set redis.master.persistence.enabled=false \
+		--set redis.replica.service.type=NodePort \
 		--set redis.replica.service.nodePorts.redis=32134 \
+		--set redis.replica.persistence.enabled=false \
 		--set redis.replica.replicaCount=1
 
 helm-stage-redis-rm:
