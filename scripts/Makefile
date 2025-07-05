@@ -44,8 +44,6 @@ delete-prod-redis-pvc:
 	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
 	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
 	-@kubectl delete pvc redis-data-stdl-redis-replicas-3 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-4 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-5 -n media
 
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \

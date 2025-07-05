@@ -22,13 +22,27 @@ redis:
         redis: 6379
     persistence:
       enabled: true
-      size: 6Gi
+      size: 4Gi
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1024Mi
+      limits:
+        cpu: 2000m
+        memory: 2048Mi
   replica:
-    replicaCount: 6
+    replicaCount: 4
     service:
       type: ClusterIP
       ports:
         redis: 6379
     persistence:
       enabled: true
-      size: 6Gi
+      size: 4Gi
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1024Mi
+      limits:
+        cpu: 2000m
+        memory: 2048Mi
