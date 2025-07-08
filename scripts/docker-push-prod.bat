@@ -2,8 +2,8 @@ cd ..
 set IMG=harbor.rwiv.xyz/private/stdl:0.8.7
 set DOCKERFILE=./docker/Dockerfile
 
-docker buildx build --platform linux/amd64,linux/arm64 -t %IMG% -f %DOCKERFILE% --push .
+docker build -t %IMG% -f %DOCKERFILE% .
+docker push %IMG%
 
-docker stop buildx_buildkit_multi-arch-builder0
-docker rm buildx_buildkit_multi-arch-builder0
+docker rmi %IMG%
 pause

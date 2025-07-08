@@ -25,10 +25,10 @@ redis:
       size: 4Gi
     resources:
       requests:
-        cpu: 1000m
+        cpu: 200m
         memory: 1024Mi
       limits:
-        cpu: 2000m
+        cpu: 400m
         memory: 2048Mi
   replica:
     replicaCount: 4
@@ -41,8 +41,8 @@ redis:
       size: 4Gi
     resources:
       requests:
-        cpu: 1000m
+        cpu: 200m
         memory: 1024Mi
       limits:
-        cpu: 2000m
+        cpu: 400m
         memory: 2048Mi
