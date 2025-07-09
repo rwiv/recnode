@@ -30,6 +30,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -60,8 +61,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -87,10 +87,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -151,6 +153,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -181,8 +184,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -208,10 +210,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -246,6 +250,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -276,8 +281,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -303,10 +307,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -371,6 +377,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -401,8 +408,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -428,10 +434,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -492,6 +500,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -522,8 +531,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -549,10 +557,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -587,6 +597,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -617,8 +628,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -644,10 +654,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -692,6 +704,7 @@
       "type": "timeseries"
     },
     {
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -699,6 +712,7 @@
         "y": 25
       },
       "id": 7,
+      "panels": [],
       "title": "Redis",
       "type": "row"
     },
@@ -749,8 +763,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -870,8 +883,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -991,8 +1003,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1116,8 +1127,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -1195,19 +1205,16 @@
     "list": [
       {
         "current": {
-          "selected": true,
-          "text": "netcup-vpn-713",
-          "value": "netcup-vpn-713"
+          "text": "netcup-711",
+          "value": "netcup-711"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "derdwjhapfpj4e"
         },
         "definition": "label_values({job=\"stdl\"},instance)",
-        "hide": 0,
         "includeAll": false,
         "label": "Host",
-        "multi": false,
         "name": "node",
         "options": [],
         "query": {
@@ -1217,13 +1224,11 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       },
       {
         "current": {
-          "selected": true,
           "text": "soop",
           "value": "soop"
         },
@@ -1232,10 +1237,8 @@
           "uid": "derdwjhapfpj4e"
         },
         "definition": "label_values({job=\"stdl\"},platform)",
-        "hide": 0,
         "includeAll": false,
         "label": "Platform",
-        "multi": false,
         "name": "platform",
         "options": [],
         "query": {
@@ -1245,7 +1248,6 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
         "type": "query"
       }
