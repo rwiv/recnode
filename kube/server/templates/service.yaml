@@ -3,6 +3,12 @@ kind: Service
 metadata:
   name: {{ .Values.metadata.name }}
   namespace: {{ .Values.metadata.namespace }}
+  labels:
+    app: {{ .Values.metadata.appName }}
+    sub: {{ .Values.metadata.name }}
+    {{ if .Values.nodeName }}
+    node: {{ .Values.nodeName }}
+    {{ end }}
 spec:
   selector:
     app: {{ .Values.metadata.appName }}
@@ -12,5 +18,7 @@ spec:
     {{ end }}
   type: {{ .Values.server.service.type }}
   ports:
-    - port: {{ .Values.server.service.port }}
+    - name: {{ .Values.server.service.name }}
+      port: {{ .Values.server.service.port }}
+      protocol: {{ .Values.server.service.protocol }}
       targetPort: {{ .Values.server.service.targetPort }}

@@ -21,7 +21,7 @@ spec:
         node: {{ .Values.nodeName }}
         {{ end }}
         {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
+        {{ toYaml . | nindent 8 }}
         {{- end }}
     spec:
       {{ if .Values.nodeName }}

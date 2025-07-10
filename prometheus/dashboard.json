@@ -100,7 +100,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(m3u8_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.95, rate(m3u8_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -112,7 +112,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, rate(m3u8_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.50, rate(m3u8_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -125,7 +125,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(m3u8_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(m3u8_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -223,7 +223,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "rate(m3u8_request_retries_total{instance=\"$node\",platform=\"$platform\"}[$__rate_interval])",
+          "expr": "rate(m3u8_request_retries_total{service=\"$node\",platform=\"$platform\"}[$__rate_interval])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -320,7 +320,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(segment_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.95, rate(segment_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -333,7 +333,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, rate(segment_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.5, rate(segment_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -349,7 +349,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(segment_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(segment_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -447,7 +447,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(interval_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.95, rate(interval_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -459,7 +459,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, rate(interval_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.50, rate(interval_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -472,7 +472,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(interval_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(interval_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -570,7 +570,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "rate(segment_request_failures_total{instance=\"$node\",platform=\"$platform\"}[$__rate_interval])",
+          "expr": "rate(segment_request_failures_total{service=\"$node\",platform=\"$platform\"}[$__rate_interval])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -667,7 +667,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(segment_request_retries_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.95, rate(segment_request_retries_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -679,7 +679,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, rate(segment_request_retries_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.50, rate(segment_request_retries_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -692,7 +692,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(segment_request_retries_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(segment_request_retries_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -733,6 +733,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -789,10 +790,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -800,7 +803,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(redis_request_duration_seconds_bucket{instance=\"$node\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.95, rate(redis_request_duration_seconds_bucket{service=\"$node\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -812,7 +815,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, rate(redis_request_duration_seconds_bucket{instance=\"$node\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.50, rate(redis_request_duration_seconds_bucket{service=\"$node\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -825,7 +828,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(redis_request_duration_seconds_bucket{instance=\"$node\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(redis_request_duration_seconds_bucket{service=\"$node\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -853,6 +856,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -909,10 +913,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -920,7 +926,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "rate(redis_replica_requests_total{instance=\"$node\"}[$__rate_interval])",
+          "expr": "rate(redis_replica_requests_total{service=\"$node\"}[$__rate_interval])",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -932,7 +938,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "rate(redis_master_requests_total{instance=\"$node\"}[$__rate_interval])",
+          "expr": "rate(redis_master_requests_total{service=\"$node\"}[$__rate_interval])",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -973,6 +979,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -1029,18 +1036,20 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "derdwjhapfpj4e"
           },
-          "editorMode": "builder",
-          "expr": "histogram_quantile(0.95, rate(object_write_duration_seconds_bucket{instance=\"$node\"}[$__rate_interval]))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, rate(object_write_duration_seconds_bucket{service=\"$node\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1052,8 +1061,8 @@
             "uid": "derdwjhapfpj4e"
           },
           "disableTextWrap": false,
-          "editorMode": "builder",
-          "expr": "histogram_quantile(0.5, rate(object_write_duration_seconds_bucket{instance=\"$node\"}[$__rate_interval]))",
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.5, rate(object_write_duration_seconds_bucket{service=\"$node\"}[$__rate_interval]))",
           "fullMetaSearch": false,
           "hide": false,
           "includeNullMetadata": true,
@@ -1069,7 +1078,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(object_write_duration_seconds_bucket{instance=\"$node\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(object_write_duration_seconds_bucket{service=\"$node\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1097,6 +1106,7 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -1153,10 +1163,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.0.2",
       "targets": [
         {
           "datasource": {
@@ -1164,7 +1176,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, rate(api_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.95, rate(api_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "__auto",
           "range": true,
@@ -1176,7 +1188,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, rate(api_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.50, rate(api_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1189,7 +1201,7 @@
             "uid": "derdwjhapfpj4e"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.10, rate(api_request_duration_seconds_bucket{instance=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
+          "expr": "histogram_quantile(0.10, rate(api_request_duration_seconds_bucket{service=\"$node\",platform=\"$platform\"}[$__rate_interval]))",
           "hide": false,
           "instant": false,
           "legendFormat": "__auto",
@@ -1201,25 +1213,28 @@
       "type": "timeseries"
     }
   ],
+  "preload": false,
+  "schemaVersion": 41,
+  "tags": [],
   "templating": {
     "list": [
       {
         "current": {
-          "text": "netcup-711",
-          "value": "netcup-711"
+          "text": "stdl-server-722",
+          "value": "stdl-server-722"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "derdwjhapfpj4e"
         },
-        "definition": "label_values({job=\"stdl\"},instance)",
+        "definition": "label_values({job=\"stdl-server\"},service)",
         "includeAll": false,
         "label": "Host",
         "name": "node",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values({job=\"stdl\"},instance)",
+          "query": "label_values({job=\"stdl-server\"},service)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -1236,14 +1251,14 @@
           "type": "prometheus",
           "uid": "derdwjhapfpj4e"
         },
-        "definition": "label_values({job=\"stdl\"},platform)",
+        "definition": "label_values({job=\"stdl-server\"},platform)",
         "includeAll": false,
         "label": "Platform",
         "name": "platform",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values({job=\"stdl\"},platform)",
+          "query": "label_values({job=\"stdl-server\"},platform)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,

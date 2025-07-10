@@ -3,6 +3,12 @@ metadata:
   name: stdl-server
   namespace: media
 
+serviceMonitor:
+  enabled: false
+  namespace: telemetry
+  labels:
+    release: kube-prometheus-stack
+
 image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.0.0
@@ -14,10 +20,6 @@ gluetun:
 affinity: {}
 podLabels: {}
 nodeName: ~
-
-ingress:
-  secretName: cloudflare-certificate
-  hostName: stdl.home.rwiv.xyz
 
 proxy:
   enabled: true
@@ -49,7 +51,9 @@ server:
   containerName: stdl-server
   service:
     type: ClusterIP
+    name: http
     port: 80
+    protocol: TCP
     targetPort: 9083
   fs:
     name: stdl-fs

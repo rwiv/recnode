@@ -1,0 +1,27 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Values.metadata.name }}
+  namespace: {{ .Values.serviceMonitor.namespace }}
+  labels:
+    {{- with .Values.serviceMonitor.labels }}
+    {{ toYaml . | nindent 8 }}
+    {{- end }}
+spec:
+  jobLabel: app
+  endpoints:
+    - port: http
+      scheme: http
+      path: /metrics
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.metadata.namespace }}
+  selector:
+    matchLabels:
+    app: {{ .Values.metadata.appName }}
+    sub: {{ .Values.metadata.name }}
+    {{ if .Values.nodeName }}
+    node: {{ .Values.nodeName }}
+    {{ end }}
+{{- end }}
