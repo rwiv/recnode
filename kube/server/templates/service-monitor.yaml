@@ -19,9 +19,9 @@ spec:
       - {{ .Values.metadata.namespace }}
   selector:
     matchLabels:
-    app: {{ .Values.metadata.appName }}
-    sub: {{ .Values.metadata.name }}
-    {{ if .Values.nodeName }}
-    node: {{ .Values.nodeName }}
-    {{ end }}
+      app: {{ .Values.metadata.appName }}
+      sub: {{ .Values.metadata.name }}
+      {{ if .Values.nodeName }}
+      node: {{ .Values.nodeName }}
+      {{ end }}
 {{- end }}
