@@ -26,27 +26,26 @@ async def get_live_state(url: str, cookie_header: str | None):
     headers = {}
     for k, v in stream.session.http.headers.items():
         headers[k] = v
-    if cookie_header is not None:
-        headers["Cookie"] = cookie_header
 
     fetcher = PlatformFetcher(AsyncHttpClient())
     if len(fetcher.headers) == 0:
         fetcher.set_headers(headers)
 
-    liveInfo = await fetcher.fetch_live_info(url)
-    if liveInfo is None:
+    live_info = await fetcher.fetch_live_info(url)
+    if live_info is None:
         raise ValueError("Channel not live")
 
     now = datetime.now()
     return LiveState(
         id=str(uuid.uuid4()),
-        platform=liveInfo.platform,
-        channelId=liveInfo.channel_id,
-        channelName=liveInfo.channel_name,
-        liveId=liveInfo.live_id,
-        liveTitle=liveInfo.live_title,
+        platform=live_info.platform,
+        channelId=live_info.channel_id,
+        channelName=live_info.channel_name,
+        liveId=live_info.live_id,
+        liveTitle=live_info.live_title,
         streamUrl=stream_url,
         headers=headers,
+        platformCookie=cookie_header,
         videoName=now.strftime("%Y%m%d_%H%M%S"),
         location=LocationType.LOCAL,
         isInvalid=False,

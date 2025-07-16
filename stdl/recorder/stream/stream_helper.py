@@ -50,12 +50,10 @@ class StreamHelper:
         self.__threshold_sec = FILE_WAIT_SEC
 
     def get_ctx(self, state: LiveState) -> RecordingContext:
-        headers = {"User-Agent": FIREFOX_USER_AGENT}
-        if state.headers is not None:
-            for k, v in state.headers.items():
-                headers[k] = v
-        if len(self.__fetcher.headers) == 0:
-            self.__fetcher.set_headers(headers)
+        if "User-Agent" not in self.__fetcher.headers:
+            self.__fetcher.headers["User-Agent"] = FIREFOX_USER_AGENT
+        if state.platform_cookie is not None:
+            self.__fetcher.headers["Cookie"] = state.platform_cookie
 
         live = LiveInfo(
             platform=state.platform,
@@ -78,13 +76,13 @@ class StreamHelper:
             stream_base_url=stream_base_url,
             video_name=state.video_name,
             location=state.location,
-            headers=headers,
+            headers=state.headers or {"User-Agent": FIREFOX_USER_AGENT},
             tmp_dir_path=tmp_dir_path,
             out_dir_path=out_dir_path,
             live=live,
         )
 
-        if headers.get("Cookie") is not None:
+        if state.platform_cookie is not None:
             log.debug("Using Credentials", ctx.to_dict())
 
         return ctx
