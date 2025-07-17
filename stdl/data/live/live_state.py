@@ -24,6 +24,7 @@ class LiveState(BaseModel):
     stream_params: dict[str, list[str]] | None = Field(alias="streamParams")
     stream_headers: dict[str, str] = Field(alias="streamHeaders")
     video_name: str = Field(alias="videoName")
+    fs_name: str = Field(alias="fsName")
     is_invalid: bool = Field(alias="isInvalid")
     location: LocationType
     created_at: datetime = Field(alias="createdAt")

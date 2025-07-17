@@ -6,6 +6,7 @@ from pyutils import load_dotenv, path_join, find_project_root
 from redis.asyncio import Redis
 
 from stdl.app import get_live_state, read_conf
+from stdl.common import LOCAL_FS_NAME
 from stdl.config import get_env
 from stdl.data.live import LiveStateService
 from stdl.data.redis import create_redis_pool
@@ -32,7 +33,12 @@ record_id = ""
 @pytest.mark.asyncio
 async def test_post_record():
     print()
-    state = await get_live_state(live_url=conf.url, platform_cookie=conf.cookie, stream_params_str=None)
+    state = await get_live_state(
+        live_url=conf.url,
+        fs_name=LOCAL_FS_NAME,
+        platform_cookie=conf.cookie,
+        stream_params_str=None,
+    )
     await live_service.set_live(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
     print(state.id)
 

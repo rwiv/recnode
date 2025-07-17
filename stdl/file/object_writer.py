@@ -76,6 +76,7 @@ class ProxyObjectWriter(ObjectWriter):
         form = FormData()
         form.add_field("file", data, filename=filename(path), content_type="application/octet-stream")
         form.add_field("path", path)
+        form.add_field("fs_name", self.fs_name)
         async with aiohttp.ClientSession() as session:
             async with session.post(url=url, data=form) as res:
                 if res.status >= 400:

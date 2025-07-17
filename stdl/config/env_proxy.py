@@ -9,8 +9,7 @@ from .config_proxy import ProxyServerConfig, read_proxy_server_config
 class ProxyEnv(BaseModel):
     env: constr(min_length=1)
     port: conint(ge=0)
-    fs_name: constr(min_length=1)
-    fs_config_path: constr(min_length=1) | None
+    fs_config_path: constr(min_length=1)
     proxy: ProxyServerConfig
 
 
@@ -21,14 +20,9 @@ def get_proxy_env() -> ProxyEnv:
     if env == "dev":
         load_dotenv(path_join(find_project_root(), "dev", ".env-proxy"))
 
-    fs_name = os.getenv("FS_NAME") or None
-    if fs_name is None:
-        raise ValueError("FS_NAME is not set in the environment variables.")
-
     return ProxyEnv(
         env=env,
         port=os.getenv("SERVER_PORT") or 9084,  # type: ignore
-        fs_name=fs_name,
-        fs_config_path=os.getenv("FS_CONFIG_PATH") or None,
+        fs_config_path=os.getenv("FS_CONFIG_PATH"),
         proxy=read_proxy_server_config(),
     )

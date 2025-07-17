@@ -7,17 +7,17 @@ from ..stream.stream_recorder import StreamRecorder
 from ..stream.stream_recorder_seg import SegmentedStreamRecorder
 from ...common import PlatformType
 from ...config import Env
-from ...data.live import LocationType
 from ...data.live import LiveState
+from ...data.live import LocationType
 from ...data.redis import create_redis_pool
-from ...file import ObjectWriter
+from ...file import create_fs_writer, read_fs_config_by_file
 from ...utils import StreamLinkSessionArgs, ProxyConnectorConfig
 
 
 class RecorderResolver:
-    def __init__(self, env: Env, writer: ObjectWriter, my_public_ip: str):
+    def __init__(self, env: Env, my_public_ip: str):
         self.__env = env
-        self.__writer = writer
+        self.__fs_configs = read_fs_config_by_file(env.fs_config_path)
         self.__my_public_ip = my_public_ip
 
     def create_recorder(self, state: LiveState) -> StreamRecorder:
@@ -64,7 +64,7 @@ class RecorderResolver:
                 seg_size_mb=self.__env.stream.seg_size_mb,
             ),
             incomplete_dir_path=path_join(self.__env.out_dir_path, "incomplete"),
-            writer=self.__writer,
+            writer=create_fs_writer(state.fs_name, self.__fs_configs, self.__env.proxy_server),
             redis_master=Redis(connection_pool=create_redis_pool(self.__env.redis_master)),
             redis_replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
             redis_data_conf=self.__env.redis_data,

@@ -1,24 +1,21 @@
-from pathlib import Path
-
-from .fs_config import read_fs_config_by_file
+from .fs_config import FsConfig
 from .fs_types import FsType
 from .object_writer import ObjectWriter, LocalObjectWriter, S3ObjectWriter, ProxyObjectWriter
-from ..config import Env, ProxyEnv
+from ..common import LOCAL_FS_NAME
+from ..config import ProxyServerConfig
 
 
-def create_fs_writer(env: Env) -> ObjectWriter:
-    if env.proxy_server.enabled:
-        if env.proxy_server.endpoint is None:
+def create_fs_writer(fs_name: str, configs: list[FsConfig], proxy_server: ProxyServerConfig) -> ObjectWriter:
+    if proxy_server.enabled:
+        if proxy_server.endpoint is None:
             raise ValueError("Proxy endpoint is not set")
-        return ProxyObjectWriter(env.proxy_server.endpoint, env.fs_name)
+        return ProxyObjectWriter(proxy_server.endpoint, fs_name)
 
-    fs_name = env.fs_name
-    fs_conf_path = env.fs_config_path
-
-    if fs_conf_path is None or not Path(fs_conf_path).exists():
+    if fs_name == LOCAL_FS_NAME:
         return LocalObjectWriter()
+
     fs_conf = None
-    for conf in read_fs_config_by_file(fs_conf_path):
+    for conf in configs:
         if conf.name == fs_name:
             fs_conf = conf
             break
@@ -29,18 +26,13 @@ def create_fs_writer(env: Env) -> ObjectWriter:
         if fs_conf.s3 is None:
             raise ValueError(f"Cannot find S3 configuration with name {fs_name}")
         return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3)
-    else:
-        return LocalObjectWriter()
+
+    raise ValueError(f"Unsupported fs_name: {fs_name}")
 
 
-def create_proxy_fs_writer(env: ProxyEnv) -> ObjectWriter:
-    fs_name = env.fs_name
-    fs_conf_path = env.fs_config_path
-
-    if fs_conf_path is None or not Path(fs_conf_path).exists():
-        raise ValueError("File system configuration path is not set")
+def create_proxy_fs_writer(fs_name: str, configs: list[FsConfig]) -> ObjectWriter:
     fs_conf = None
-    for conf in read_fs_config_by_file(fs_conf_path):
+    for conf in configs:
         if conf.name == fs_name:
             fs_conf = conf
             break
@@ -51,5 +43,5 @@ def create_proxy_fs_writer(env: ProxyEnv) -> ObjectWriter:
         if fs_conf.s3 is None:
             raise ValueError(f"Cannot find S3 configuration with name {fs_name}")
         return S3ObjectWriter(fs_name=fs_name, conf=fs_conf.s3)
-    else:
-        raise ValueError(f"Unsupported file system type {fs_conf.type} for proxy writer")
+
+    raise ValueError(f"Unsupported fs_name: {fs_name}")

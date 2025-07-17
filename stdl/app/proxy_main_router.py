@@ -1,18 +1,13 @@
 import aiohttp
 from fastapi import APIRouter, UploadFile, File
 
-from ..file import ObjectWriter, FsType
+from ..file import FsConfig, create_proxy_fs_writer
 from ..utils import HttpRequestError
 
 
 class ProxyMainController:
-    def __init__(self, writer: ObjectWriter):
-        self.__write_retry_limit = 8
-        self.__write_retry_delay_sec = 0.5
-
-        self.__writer = writer
-        if self.__writer.fs_type == FsType.LOCAL:
-            raise ValueError("local fs_type is not supported")
+    def __init__(self, configs: list[FsConfig]):
+        self.__configs = configs
 
         self.router = APIRouter(prefix="/api")
         self.router.add_api_route("/health", self.health, methods=["GET"])
@@ -29,5 +24,6 @@ class ProxyMainController:
                     raise HttpRequestError.from_response("Failed to request", res)
                 return await res.text()
 
-    async def upload(self, file: UploadFile = File(...), path: str = File(...)):
-        await self.__writer.write(path, await file.read())
+    async def upload(self, file: UploadFile = File(...), path: str = File(...), fs_name: str = File(...)):
+        writer = create_proxy_fs_writer(fs_name=fs_name, configs=self.__configs)
+        await writer.write(path, await file.read())
