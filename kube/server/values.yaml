@@ -56,8 +56,8 @@ server:
     protocol: TCP
     targetPort: 9083
   fs:
-    name: stdl-fs
-    fsNameKey: fs-name
+    secretName: stdl-fs
+    confKey: fs_conf.yaml
   segSizeMb: 17
   reqConf:
     m3u8RetryLimit: 5

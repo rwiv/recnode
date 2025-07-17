@@ -100,13 +100,8 @@ spec:
               value: "{{ .Values.server.reqConf.intervalWaitWeightSec }}"
             - name: TMP_DIR_PATH
               value: /app/tmp
-            - name: FS_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.server.fs.name }}
-                  key: {{ .Values.server.fs.fsNameKey }}
             - name: FS_CONFIG_PATH
-              value: /mnt/fs-configs/fs_conf.yaml
+              value: "/mnt/fs-configs/{{ .Values.server.fs.confKey }}"
             - name: REDIS_MASTER_HOST
               value: {{ .Values.redis.masterHost }}
             - name: REDIS_MASTER_PORT
@@ -158,8 +153,8 @@ spec:
             {{- end }}
           volumeMounts:
             - name: fs-configs
-              mountPath: /mnt/fs-configs/fs_conf.yaml
-              subPath: fs_conf.yaml
+              mountPath: "/mnt/fs-configs/{{ .Values.server.fs.confKey }}"
+              subPath: {{ .Values.server.fs.confKey }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       {{- with .Values.affinity }}
@@ -169,7 +164,7 @@ spec:
       volumes:
         - name: fs-configs
           secret:
-            secretName: {{ .Values.server.fs.name }}
+            secretName: {{ .Values.server.fs.secretName }}
         {{- if .Values.vpn.enabled }}
         - name: ovpn-conf
           secret:
