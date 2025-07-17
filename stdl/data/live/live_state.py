@@ -19,9 +19,10 @@ class LiveState(BaseModel):
     channel_name: str = Field(alias="channelName")
     live_id: str = Field(alias="liveId")  # source_id
     live_title: str = Field(alias="liveTitle")
+    platform_cookie: str | None = Field(alias="platformCookie")
     stream_url: str = Field(alias="streamUrl")
-    headers: dict[str, str] | None = None  # change to `streamHeaders`
-    platform_cookie: str | None = Field(alias="platformCookie", default=None)
+    stream_params: dict[str, list[str]] | None = Field(alias="streamParams")
+    stream_headers: dict[str, str] = Field(alias="streamHeaders")
     video_name: str = Field(alias="videoName")
     is_invalid: bool = Field(alias="isInvalid")
     location: LocationType

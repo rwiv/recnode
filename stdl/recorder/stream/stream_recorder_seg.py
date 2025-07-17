@@ -5,7 +5,7 @@ from datetime import datetime
 
 import aiofiles
 from aiofiles import os as aos
-from pyutils import log, path_join, error_dict
+from pyutils import log, path_join, error_dict, merge_query_string
 from redis.asyncio import Redis
 from streamlink.stream.hls.m3u8 import M3U8Parser, M3U8
 from streamlink.stream.hls.segment import HLSSegment
@@ -136,8 +136,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             await asyncio.sleep(1)
 
     async def _record(self):
-        self.__m3u8_http.set_headers(self.ctx.headers)
-        self.__seg_http.set_headers(self.ctx.headers)
+        self.__m3u8_http.set_headers(self.ctx.stream_headers)
+        self.__seg_http.set_headers(self.ctx.stream_headers)
 
         # Start recording
         log.info("Start Recording", self.ctx.to_dict(with_stream_url=True))
@@ -180,7 +180,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         try:
             m3u8_text = await self.__m3u8_http.get_text(
                 url=self.ctx.stream_url,
-                headers=self.ctx.headers,
+                headers=self.ctx.stream_headers,
                 attr=self.ctx.to_dict(),
                 print_error=False,
             )
@@ -220,10 +220,15 @@ class SegmentedStreamRecorder(StreamRecorder):
         segments = []
         now = datetime.now()
         for raw_seg in raw_segments:
-            url = raw_seg.uri
             if self.ctx.stream_base_url is not None:
-                url = "/".join([self.ctx.stream_base_url, raw_seg.uri])
-            segments.append(SegmentState.new(url=url, num=raw_seg.num, duration=raw_seg.duration, now=now))
+                seg_url = "/".join([self.ctx.stream_base_url, raw_seg.uri])
+            else:  # twitch
+                seg_url = raw_seg.uri
+
+            if self.ctx.stream_params is not None:
+                seg_url = merge_query_string(seg_url, self.ctx.stream_params, overwrite=True, url_encode=False)
+
+            segments.append(SegmentState.new(url=seg_url, num=raw_seg.num, duration=raw_seg.duration, now=now))
 
         latest_num = await self.__success_nums.get_highest(use_master=False)
 

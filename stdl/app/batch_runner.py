@@ -38,7 +38,7 @@ class BatchRunner:
             replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
         )
 
-        live_state = await get_live_state(url=conf.url, cookie_header=conf.cookie)
+        live_state = await get_live_state(live_url=conf.url, stream_params_str=conf.params, platform_cookie=conf.cookie)
         await live_service.set_live(live_state, nx=False, px=int(self.__env.redis_data.live_expire_sec * 1000))
 
         recorder = self.__recorder_resolver.create_recorder(state=live_state)

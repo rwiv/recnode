@@ -48,7 +48,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
         return info.model_dump(mode="json", by_alias=True, exclude_none=True)
 
     async def _record(self):
-        self.http.set_headers(self.ctx.headers)
+        self.http.set_headers(self.ctx.stream_headers)
         await aos.makedirs(self.ctx.tmp_dir_path, exist_ok=True)
 
         # Start recording

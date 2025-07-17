@@ -32,7 +32,7 @@ record_id = ""
 @pytest.mark.asyncio
 async def test_post_record():
     print()
-    state = await get_live_state(url=conf.url, cookie_header=conf.cookie)
+    state = await get_live_state(live_url=conf.url, platform_cookie=conf.cookie, stream_params_str=None)
     await live_service.set_live(state, nx=False, px=int(env.redis_data.live_expire_sec * 1000))
     print(state.id)
 

@@ -4,7 +4,7 @@ import tarfile
 import time
 
 from aiofiles import os as aos
-from pyutils import log, path_join, filename, error_dict, dirpath
+from pyutils import log, path_join, filename, error_dict, dirpath, get_base_url
 from streamlink.stream.hls.hls import HLSStream
 
 from .stream_types import RecordingContext
@@ -68,15 +68,16 @@ class StreamHelper:
 
         stream_base_url = None
         if live.platform != PlatformType.TWITCH:
-            stream_base_url = "/".join(state.stream_url.split("/")[:-1])
+            stream_base_url = get_base_url(state.stream_url)
         ctx = RecordingContext(
             record_id=state.id,
             live_url=self.__live_url,
             stream_url=state.stream_url,
             stream_base_url=stream_base_url,
+            stream_params=state.stream_params,
+            stream_headers=state.stream_headers,
             video_name=state.video_name,
             location=state.location,
-            headers=state.headers or {"User-Agent": FIREFOX_USER_AGENT},
             tmp_dir_path=tmp_dir_path,
             out_dir_path=out_dir_path,
             live=live,

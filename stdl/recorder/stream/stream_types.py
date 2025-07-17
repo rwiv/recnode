@@ -14,7 +14,8 @@ class RecordingContext(BaseModel):
     live_url: str
     stream_url: str
     stream_base_url: str | None
-    headers: dict[str, str]
+    stream_params: dict[str, list[str]] | None
+    stream_headers: dict[str, str]
     video_name: str
     location: LocationType
     tmp_dir_path: str

@@ -31,33 +31,24 @@ class RecorderResolver:
             raise ValueError("Invalid Request Type")
 
     def __create_chzzk_recorder(self, state: LiveState):
-        cookie_header = None
-        if state.headers is not None:
-            cookie_header = state.headers.get("Cookie")
         return self.__create_recorder(
             state=state,
             url=f"https://chzzk.naver.com/live/{state.channel_id}",
-            cookie_header=cookie_header,
+            cookie_header=state.platform_cookie,
         )
 
     def __create_soop_recorder(self, state: LiveState):
-        cookie_header = None
-        if state.headers is not None:
-            cookie_header = state.headers.get("Cookie")
         return self.__create_recorder(
             state=state,
             url=f"https://play.sooplive.co.kr/{state.channel_id}",
-            cookie_header=cookie_header,
+            cookie_header=state.platform_cookie,
         )
 
     def __create_twitch_recorder(self, state: LiveState):
-        cookie_header = None
-        if state.headers is not None:
-            cookie_header = state.headers.get("Cookie")
         return self.__create_recorder(
             state=state,
             url=f"https://www.twitch.tv/{state.channel_id}",
-            cookie_header=cookie_header,
+            cookie_header=state.platform_cookie,
         )
 
     def __create_recorder(self, state: LiveState, url: str, cookie_header: str | None) -> StreamRecorder:
