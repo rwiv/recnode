@@ -92,7 +92,7 @@ class SegmentStateService:
         inc_count(use_master=True)
         return await self.__str_master.set(
             key=self.__get_key(state.num),
-            value=state.model_dump_json(by_alias=True, exclude_none=True),
+            value=state.model_dump_json(by_alias=True),
             nx=nx,
             px=self.__expire_ms,
         )

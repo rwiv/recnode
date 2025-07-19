@@ -37,7 +37,7 @@ class LiveStateService:
         if ttl > 0:
             req_px = ttl
         inc_count(use_master=True)
-        text = state.model_dump_json(by_alias=True, exclude_none=True)
+        text = state.model_dump_json(by_alias=True)
         return await self.__str_master.set(key, text, nx=nx, px=req_px)
 
     async def delete(self, record_id: str, check_replica: bool = False):

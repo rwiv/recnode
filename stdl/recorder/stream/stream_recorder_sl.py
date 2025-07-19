@@ -45,7 +45,7 @@ class StreamlinkStreamRecorder(StreamRecorder):
             num=self.idx,
             status=self._status,
         )
-        return info.model_dump(mode="json", by_alias=True, exclude_none=True)
+        return info.model_dump(mode="json", by_alias=True)
 
     async def _record(self):
         self.http.set_headers(self.ctx.stream_headers)

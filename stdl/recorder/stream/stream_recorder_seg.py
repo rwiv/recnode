@@ -105,7 +105,7 @@ class SegmentedStreamRecorder(StreamRecorder):
 
     async def get_status(self, with_stats: bool = False, full_stats: bool = False) -> dict:
         status = self.ctx.to_status(fs_name=self._writer.fs_name, num=self.__idx, status=self._status)
-        dct = status.model_dump(mode="json", by_alias=True, exclude_none=True)
+        dct = status.model_dump(mode="json", by_alias=True)
 
         if with_stats:
             if full_stats:

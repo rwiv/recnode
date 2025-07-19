@@ -1,5 +1,5 @@
 cd ..
-set IMG=harbor.rwiv.xyz/private/stdl:0.9.1
+set IMG=harbor.rwiv.xyz/private/stdl:0.9.2
 set DOCKERFILE=./docker/Dockerfile
 
 docker build -t %IMG% -f %DOCKERFILE% .
