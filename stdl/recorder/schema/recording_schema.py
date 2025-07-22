@@ -16,9 +16,9 @@ class RecordingState(BaseModel):
 
 
 class RecordingStatus(Enum):
-    WAIT = "wait"
+    WAITING = "waiting"
     RECORDING = "recording"
-    DONE = "done"
+    COMPLETED = "completed"
     FAILED = "failed"
 
 

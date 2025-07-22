@@ -22,7 +22,7 @@ class StreamRecorder(ABC):
         proxy: ProxyConnectorConfig | None,
     ):
         self._state = RecordingState()
-        self._status: RecordingStatus = RecordingStatus.WAIT
+        self._status: RecordingStatus = RecordingStatus.WAITING
 
         self._writer = writer
         fetcher_http = AsyncHttpClient(

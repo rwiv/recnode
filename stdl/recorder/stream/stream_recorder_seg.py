@@ -151,11 +151,11 @@ class SegmentedStreamRecorder(StreamRecorder):
 
             while True:
                 if self.__done_flag:
-                    self._status = RecordingStatus.DONE
+                    self._status = RecordingStatus.COMPLETED
                     log.debug("Finish Stream", self.ctx.to_dict())
                     break
                 if self._state.abort_flag:
-                    self._status = RecordingStatus.DONE
+                    self._status = RecordingStatus.COMPLETED
                     log.debug("Abort Stream", self.ctx.to_dict())
                     break
 
@@ -236,6 +236,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             inspected = await self.__seg_validator.validate_segments(segments, latest_num, self.__success_nums)
             if not inspected.ok:
                 if inspected.critical:
+                    self._status = RecordingStatus.FAILED
                     log.error("Invalid m3u8", self.ctx.to_dict())
                     await self.__live_service.update_is_invalid(record_id=self.__record_id, is_invalid=True)
                 self.__done_flag = True
@@ -296,6 +297,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             inspected = await self.__seg_validator.validate_segment(seg, latest_num, self.__success_nums)
             if not inspected.ok:
                 if inspected.critical:
+                    self._status = RecordingStatus.FAILED
                     await self.__live_service.update_is_invalid(record_id=self.__record_id, is_invalid=True)
                     self.__done_flag = True
                 return
