@@ -13,12 +13,12 @@ from .config_redis import (
 )
 from .config_request import RequestConfig, read_request_config
 from .config_stream import StreamConfig, read_stream_config
-from ..common import LOCAL_FS_NAME
 
 
 class Env(BaseModel):
     env: constr(min_length=1)
     port: conint(ge=0)
+    api_token: constr(min_length=1)
     fs_config_path: constr(min_length=1)
     out_dir_path: constr(min_length=1) | None
     tmp_dir_path: constr(min_length=1)
@@ -42,6 +42,7 @@ def get_env() -> Env:
     return Env(
         env=env,
         port=os.getenv("SERVER_PORT") or 9083,  # type: ignore
+        api_token=os.getenv("SERVER_API_TOKEN"),  # type: ignore
         fs_config_path=os.getenv("FS_CONFIG_PATH"),
         out_dir_path=os.getenv("OUT_DIR_PATH") or None,
         tmp_dir_path=os.getenv("TMP_DIR_PATH"),

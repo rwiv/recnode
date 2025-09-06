@@ -190,13 +190,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             await self.__m3u8_retry_counter.increment()
             await metric.inc_m3u8_request_retry(platform=self.__pf, extra=self.__m3u8_retry_counter_total)
             await metric.set_m3u8_request_duration(cur_duration(req_start_time), self.__pf, self.__m3u8_duration_hist)
-            live_info = await self._fetcher.fetch_live_info(self.ctx.live_url)
-            if live_info is None:
-                self.__done_flag = True
-                return
-            # log.debug("Failed to get playlist", self.ctx.to_err(ex))
             if self.__m3u8_retry_counter.get() >= self.__m3u8_retry_limit:
-                log.error("Max retry limit reached for m3u8", self.ctx.to_err(ex))
+                log.error("Failed to get m3u8", self.ctx.to_err(ex))
                 self.__done_flag = True
             return
 

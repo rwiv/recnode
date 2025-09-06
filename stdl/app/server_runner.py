@@ -46,7 +46,11 @@ def run_server():
         master=Redis(connection_pool=create_redis_pool(env.redis_master)),
         replica=Redis(connection_pool=create_redis_pool(env.redis_replica)),
     )
-    main_controller = MainController(scheduler, live_service)
+    main_controller = MainController(
+        api_token=env.api_token,
+        scheduler=scheduler,
+        live_service=live_service,
+    )
 
     app = FastAPI()
     app.add_middleware(BaseHTTPMiddleware, dispatch=handle_error)

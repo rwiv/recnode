@@ -55,6 +55,9 @@ server:
     port: 80
     protocol: TCP
     targetPort: 9083
+  auth:
+    secretName: stdl-auth
+    tokenKey: bearer-token
   fs:
     secretName: stdl-fs
     confKey: fs_conf.yaml
@@ -76,7 +79,6 @@ vpn:
       username: username
       password: password
   conf:
-#    secretName: nordvpn-domestic
-    secretName: nordvpn-overseas
+    secretName: nordvpn-domestic
     keys:
       filename: client.ovpn

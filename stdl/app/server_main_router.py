@@ -1,5 +1,6 @@
 import aiohttp
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
 from prometheus_client import generate_latest
 from pydantic import BaseModel, constr
 from starlette.responses import Response
@@ -8,6 +9,8 @@ from ..common import PlatformType
 from ..data.live import LiveStateService
 from ..recorder import RecordingScheduler
 from ..utils import HttpRequestError
+
+bearer_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 class CancelRequest(BaseModel):
@@ -18,9 +21,11 @@ class CancelRequest(BaseModel):
 class MainController:
     def __init__(
         self,
+        api_token: str,
         scheduler: RecordingScheduler,
         live_service: LiveStateService,
     ):
+        self.__api_token = api_token
         self.__scheduler = scheduler
         self.__live_service = live_service
 
@@ -32,17 +37,23 @@ class MainController:
         self.router.add_api_route("/api/recordings/{record_id}", self.cancel, methods=["DELETE"])
         self.router.add_api_route("/api/recordings", self.get_status, methods=["GET"])
 
-    def health(self):
+    def health(self, token: str = Depends(bearer_scheme)):
+        if token != self.__api_token:
+            raise HTTPException(status_code=401, detail="Invalid api token")
         return {"status": "UP"}
 
-    async def my_ip(self):
+    async def my_ip(self, token: str = Depends(bearer_scheme)):
+        if token != self.__api_token:
+            raise HTTPException(status_code=401, detail="Invalid api token")
         async with aiohttp.ClientSession() as session:
             async with session.get(url="https://api.ipify.org") as res:
                 if res.status >= 400:
                     raise HttpRequestError.from_response("Failed to request", res)
                 return await res.text()
 
-    def metrics(self):
+    def metrics(self, token: str = Depends(bearer_scheme)):
+        if token != self.__api_token:
+            raise HTTPException(status_code=401, detail="Invalid api token")
         return Response(content=generate_latest(), media_type="text/plain")
 
     async def record(self, record_id: str):

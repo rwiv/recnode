@@ -78,6 +78,11 @@ spec:
               value: prod
             - name: SERVER_PORT
               value: "{{ .Values.server.service.targetPort }}"
+            - name: SERVER_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.server.auth.secretName }}
+                  key: {{ .Values.server.auth.tokenKey }}
             {{- if .Values.vpn.enabled }}
             - name: PROXY_ENABLED
               value: "true"
