@@ -3,12 +3,6 @@ metadata:
   name: stdl-server
   namespace: media
 
-serviceMonitor:
-  enabled: true
-  namespace: telemetry
-  labels:
-    release: kube-prometheus-stack
-
 image:
   repository: harbor.rwiv.xyz/private/stdl
   tag: 0.0.0

@@ -17,8 +17,8 @@ spec:
       authorization:
         type: Bearer
         credentials:
-          name: {{ .Values.server.auth.secretName }}
-          key: {{ .Values.server.auth.tokenKey }}
+          name: {{ .Values.auth.secretName }}
+          key: {{ .Values.auth.tokenKey }}
   namespaceSelector:
     matchNames:
       - {{ .Values.metadata.namespace }}

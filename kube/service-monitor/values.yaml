@@ -1,0 +1,16 @@
+metadata:
+  appName: stdl-server
+  name: stdl-server
+  namespace: media
+
+serviceMonitor:
+  enabled: true
+  namespace: telemetry
+  labels:
+    release: kube-prometheus-stack
+
+nodeName: ~
+
+auth:
+  secretName: stdl-auth
+  tokenKey: bearer-token
