@@ -76,6 +76,7 @@ vpn:
       username: username
       password: password
   conf:
-    secretName: nordvpn-domestic
+#    secretName: nordvpn-domestic
+    secretName: nordvpn-overseas
     keys:
       filename: client.ovpn

@@ -42,16 +42,16 @@ spec:
             - name: FS_NAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.server.secrets.fs.name }}
-                  key: {{ .Values.server.secrets.fs.fsNameKey }}
+                  name: {{ .Values.server.fs.secretName }}
+                  key: {{ .Values.server.fs.fsNameKey }}
             - name: FS_CONFIG_PATH
-              value: /mnt/fs-configs/fs_conf.yaml
+              value: "/mnt/fs-configs/{{ .Values.server.fs.confKey }}"
             - name: PROXY_ENABLED
               value: "true"
           volumeMounts:
             - name: fs-configs
-              mountPath: /mnt/fs-configs/fs_conf.yaml
-              subPath: fs_conf.yaml
+              mountPath: "/mnt/fs-configs/{{ .Values.server.fs.confKey }}"
+              subPath: {{ .Values.server.fs.confKey }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       {{- with .Values.affinity }}
@@ -61,4 +61,4 @@ spec:
       volumes:
         - name: fs-configs
           secret:
-            secretName: {{ .Values.server.secrets.fs.name }}
+            secretName: {{ .Values.server.fs.secretName }}

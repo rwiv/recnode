@@ -17,7 +17,7 @@ server:
     port: 80
     targetPort: 9084
     nodePort: 30214
-  secrets:
-    fs:
-      name: stdl-fs
-      fsNameKey: fs-name
+  fs:
+    secretName: stdl-fs
+    fsNameKey: fs-name
+    confKey: fs_conf.yaml
