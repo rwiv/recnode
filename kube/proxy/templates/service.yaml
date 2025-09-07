@@ -7,8 +7,8 @@ spec:
   selector:
     app: {{ .Values.metadata.appName }}
     sub: {{ .Values.metadata.name }}
-    {{ if .Values.nodeName }}
-    node: {{ .Values.nodeName }}
+    {{ if .Values.nodeAlias }}
+    node: {{ .Values.nodeAlias }}
     {{ end }}
   type: {{ .Values.server.service.type }}
   ports:

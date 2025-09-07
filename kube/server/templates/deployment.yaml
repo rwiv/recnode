@@ -9,23 +9,24 @@ spec:
     matchLabels:
       app: {{ .Values.metadata.appName }}
       sub: {{ .Values.metadata.name }}
-      {{ if .Values.nodeName }}
-      node: {{ .Values.nodeName }}
+      {{ if .Values.nodeAlias }}
+      node: {{ .Values.nodeAlias }}
       {{ end }}
   template:
     metadata:
       labels:
         app: {{ .Values.metadata.appName }}
         sub: {{ .Values.metadata.name }}
-        {{ if .Values.nodeName }}
-        node: {{ .Values.nodeName }}
+        {{ if .Values.nodeAlias }}
+        node: {{ .Values.nodeAlias }}
         {{ end }}
         {{- with .Values.podLabels }}
         {{ toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{ if .Values.nodeName }}
-      nodeName: {{ .Values.nodeName }}
+      {{ if .Values.nodeAlias }}
+      nodeSelector:
+        alias: {{ .Values.nodeAlias }}
       {{ end }}
       containers:
         {{- if .Values.vpn.enabled }}

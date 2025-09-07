@@ -8,7 +8,7 @@ image:
   pullSecret: image-pull-secret
 affinity: {}
 podLabels: {}
-nodeName: ~
+nodeAlias: ~
 server:
   replicas: 2
   containerName: stdl-proxy

@@ -13,7 +13,7 @@ gluetun:
 
 affinity: {}
 podLabels: {}
-nodeName: ~
+nodeAlias: ~
 
 proxy:
   enabled: true

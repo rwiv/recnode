@@ -31,7 +31,7 @@ redis:
         cpu: 400m
         memory: 2048Mi
   replica:
-    replicaCount: 4
+    replicaCount: 3
     service:
       type: ClusterIP
       ports:
