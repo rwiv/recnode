@@ -17,7 +17,7 @@ env = get_env()
 master = Redis(connection_pool=create_redis_pool(env.redis_master))
 replica = Redis(connection_pool=create_redis_pool(env.redis_replica))
 
-ex = 10_000
+ex = 10
 lw = 2
 
 

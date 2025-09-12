@@ -149,8 +149,8 @@ spec:
                   key: {{ .Values.redis.server.passwordKey }}
             - name: REDIS_POOL_SIZE_LIMIT
               value: "{{ .Values.redis.poolSize }}"
-            - name: REDIS_LOCK_EXPIRE_MS
-              value: "{{ .Values.redis.data.lockExpireMs }}"
+            - name: REDIS_LOCK_EXPIRE_SEC
+              value: "{{ .Values.redis.data.lockExpireSec }}"
             - name: REDIS_LOCK_WAIT_SEC
               value: "{{ .Values.redis.data.lockWaitSec }}"
             - name: REDIS_LIVE_EXPIRE_SEC

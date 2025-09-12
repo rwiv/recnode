@@ -51,8 +51,8 @@ class SegmentStateService:
         master: Redis,
         replica: Redis,
         live_record_id: str,
-        expire_ms: int,
-        lock_expire_ms: int,
+        seg_expire_sec: float,
+        lock_expire_sec: float,
         retry_parallel_retry_limit: int,
         attr: dict,
     ):
@@ -60,8 +60,8 @@ class SegmentStateService:
         self.__replica = replica
         self.__str_master = RedisString(self.__master)
         self.__str_replica = RedisString(self.__replica)
-        self.__expire_ms = expire_ms
-        self.__lock_expire_ms = lock_expire_ms
+        self.__seg_expire_ms = int(seg_expire_sec * 1000)
+        self.__lock_expire_ms = int(lock_expire_sec * 1000)
         self.__retry_parallel_retry_limit = retry_parallel_retry_limit
         self.__attr = attr
 
@@ -92,7 +92,7 @@ class SegmentStateService:
             key=self.__get_key(state.num),
             value=state.model_dump_json(by_alias=True),
             nx=nx,
-            px=self.__expire_ms,
+            px=self.__seg_expire_ms,
         )
 
     async def set_seg_nx(self, state: SegmentState) -> bool:
@@ -154,7 +154,7 @@ class SegmentStateService:
     async def increment_retry_count(self, seg_num: int) -> int:
         inc_count(use_master=True)
         key = self.__get_retry_key(seg_num=seg_num)
-        result = await self.__str_master.incr(key, px=self.__expire_ms)
+        result = await self.__str_master.incr(key, px=self.__seg_expire_ms)
         if result == 1:
             inc_count(use_master=True)
         return result

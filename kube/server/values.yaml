@@ -47,7 +47,7 @@ redis:
     replicaPortKey: replica-port
   poolSize: 200
   data:
-    lockExpireMs: 10000
+    lockExpireSec: 10
     lockWaitSec: 5
     liveExpireSec: 604800
     segExpireSec: 86400
@@ -72,7 +72,7 @@ server:
     m3u8RetryLimit: 5
     m3u8TimeoutSec: 8
     segTimeoutSec: 8
-    segParallelRetryLimit: 4
+    segParallelRetryLimit: 3
     segFailureThresholdRatio: 4
     intervalWaitWeightSec: 1.2
 

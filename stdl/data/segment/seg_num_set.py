@@ -17,8 +17,8 @@ class SegmentNumberSet:
         replica: Redis,
         live_record_id: str,
         key_suffix: str,
-        expire_ms: int,
-        lock_expire_ms: int,
+        seg_expire_sec: float,
+        lock_expire_sec: float,
         lock_wait_timeout_sec: float,
         attr: dict,
     ):
@@ -28,8 +28,8 @@ class SegmentNumberSet:
         self.__sorted_set_replica = RedisSortedSet(self.__replica)
         self.__live_record_id = live_record_id
         self.__key_suffix = key_suffix
-        self.__expire_ms = expire_ms
-        self.__lock_expire_ms = lock_expire_ms
+        self.__seg_expire_ms = int(seg_expire_sec * 1000)
+        self.__lock_expire_sec = lock_expire_sec
         self.__lock_wait_timeout_sec = lock_wait_timeout_sec
         self.__attr = attr
 
@@ -43,7 +43,7 @@ class SegmentNumberSet:
         start_time = asyncio.get_event_loop().time()
         inc_count(use_master=True)
         try:
-            await self.__sorted_set_master.set_pexpire(key, self.__expire_ms)
+            await self.__sorted_set_master.set_pexpire(key, self.__seg_expire_ms)
         except Exception as ex:
             extra = {"duration": asyncio.get_event_loop().time() - start_time}
             log.error("Renew failed", self.__error_attr(ex, extra))
@@ -96,7 +96,7 @@ class SegmentNumberSet:
             redis=self.__master,
             name=f"{self.__get_key()}:lock",
             sleep=LOCK_RETRY_INTERVAL_SEC,
-            timeout=self.__lock_expire_ms / 1000,
+            timeout=self.__lock_expire_sec,
             blocking=True,
             blocking_timeout=self.__lock_wait_timeout_sec,
         )

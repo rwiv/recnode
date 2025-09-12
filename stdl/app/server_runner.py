@@ -32,11 +32,14 @@ async def handle_error(request: Request, call_next):
         return response
 
 
-def run_server():
+def run_server(port: int | None = None):
     log.set_level(logging.DEBUG)
     disable_streamlink_log()
 
     env = get_env()
+    server_port = port
+    if server_port is None:
+        server_port = env.port
     my_public_ip = fetch_my_public_ip()
     log.info(f"Public IP: {my_public_ip}")
 
@@ -56,4 +59,4 @@ def run_server():
     app.add_middleware(BaseHTTPMiddleware, dispatch=handle_error)
     app.include_router(main_controller.router)
 
-    uvicorn.run(app, port=env.port, host="0.0.0.0", access_log=False)
+    uvicorn.run(app, port=server_port, host="0.0.0.0", access_log=False)

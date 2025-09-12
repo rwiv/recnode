@@ -18,7 +18,7 @@ from ...data.live import LiveState, LiveStateService
 from ...data.segment import SegmentNumberSet, SegmentStateService, SegmentStateValidator, SegmentState
 from ...file import ObjectWriter
 from ...metric import metric
-from ...utils import AsyncHttpClient, AsyncCounter, ProxyConnectorConfig
+from ...utils import AsyncHttpClient, AsyncCounter, ProxyConnectorConfig, AsyncSet
 
 TEST_FLAG = False
 # TEST_FLAG = True  # TODO: remove this line after testing
@@ -82,6 +82,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             proxy=proxy,
         )
 
+        self.__processing_nums: AsyncSet[int] = AsyncSet()
         self.__retrying_nums = self.__create_num_seg("retrying")
         self.__success_nums = self.__create_num_seg("success")
         self.__failed_nums = self.__create_num_seg("failed")
@@ -89,8 +90,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             master=redis_master,
             replica=redis_replica,
             live_record_id=live.id,
-            expire_ms=redis_data_conf.seg_expire_sec * 1000,
-            lock_expire_ms=redis_data_conf.lock_expire_ms,
+            seg_expire_sec=redis_data_conf.seg_expire_sec,
+            lock_expire_sec=redis_data_conf.lock_expire_sec,
             retry_parallel_retry_limit=self.__seg_parallel_retry_limit,
             attr=self.ctx.to_dict(),
         )
@@ -115,7 +116,9 @@ class SegmentedStreamRecorder(StreamRecorder):
         return dct
 
     async def __get_stats(self, full: bool = False) -> dict:
+        processing_nums = self.__processing_nums.list()
         result = {
+            "processing_total": len(processing_nums),
             "failed_total": self.__seg_failure_counter.get(),
             "segment_request_total": self.__seg_request_counter.get(),
             "segment_request_retries_total": self.__seg_retry_hist.total_sum,
@@ -125,6 +128,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             "m3u8_request_retries_total": self.__m3u8_retry_counter_total.get(),
         }
         if full:
+            result["processing_nums"] = ",".join(processing_nums)
             result["redis_using_connection_count"] = len(self.__redis_master.connection_pool._in_use_connections)
             result["redis_available_connection_count"] = len(self.__redis_master.connection_pool._available_connections)
         return result
@@ -241,12 +245,16 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         # Process segments
         for new_seg in segments:
+            if self.__processing_nums.contains(new_seg.num):
+                continue
             task_name = self.seg_task_name("req", new_seg.num)
             _ = asyncio.create_task(self.__process_segment(new_seg, latest_num), name=task_name)
 
         # If the first segment is not MAP_NUM, it means it is a valid segment
         retry_nums = await self.__retrying_nums.all(use_master=False)
         for retrying in await self.__seg_service.get_batch(retry_nums, use_master=False):
+            if self.__processing_nums.contains(retrying.num):
+                continue
             task_name = self.seg_task_name("retry", retrying.num)
             _ = asyncio.create_task(self.__process_segment(retrying, latest_num), name=task_name)
 
@@ -293,7 +301,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             inspected = await self.__seg_validator.validate_segment(seg, latest_num, self.__success_nums)
             if not inspected.ok:
                 duration = cur_duration(process_start)
-                if duration > self.__redis_data_conf.lock_expire_ms:
+                if duration > self.__redis_data_conf.lock_expire_sec:
                     attr = self.ctx.to_dict()
                     attr["seg_num"] = seg.num
                     attr["duration"] = duration
@@ -319,6 +327,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             return
         # log.debug(f"{lock}")
 
+        await self.__processing_nums.add(seg.num)
+
         req_start = asyncio.get_event_loop().time()
         try:
             if not seg.is_retrying:
@@ -330,13 +340,13 @@ class SegmentedStreamRecorder(StreamRecorder):
                 await self.__seg_service.increment_retry_count(seg.num)  # master +1~2
             await self.__seg_request_counter.increment()
 
-            b = await self.__seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
-            await metric.set_segment_request_duration(cur_duration(req_start), self.__pf, self.__seg_duration_hist)
-
             # await asyncio.sleep(4)
             # if TEST_FLAG:  # TODO: remove (only for test)
             #     if random.random() < 0.7:
             #         raise ValueError("Simulated error")
+
+            b = await self.__seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
+            await metric.set_segment_request_duration(cur_duration(req_start), self.__pf, self.__seg_duration_hist)
 
             if await self.__success_nums.contains(seg.num, use_master=False):
                 return
@@ -354,6 +364,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             except Exception as ex:
                 log.error("Failed to failure process", self.__error_attr(ex, num=seg.num))
         finally:
+            await self.__processing_nums.remove(seg.num)
             try:
                 await self.__seg_service.release_lock(lock)  # master +2
             except BaseException as ex:
@@ -427,8 +438,8 @@ class SegmentedStreamRecorder(StreamRecorder):
             replica=self.__redis_replica,
             live_record_id=self.__record_id,
             key_suffix=suffix,
-            expire_ms=self.__redis_data_conf.seg_expire_sec * 1000,
-            lock_expire_ms=self.__redis_data_conf.lock_expire_ms,
+            seg_expire_sec=self.__redis_data_conf.seg_expire_sec,
+            lock_expire_sec=self.__redis_data_conf.lock_expire_sec,
             lock_wait_timeout_sec=self.__redis_data_conf.lock_wait_sec,
             attr=self.ctx.to_dict(),
         )

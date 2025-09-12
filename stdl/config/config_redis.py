@@ -12,7 +12,7 @@ class RedisConfig(BaseModel):
 
 
 class RedisDataConfig(BaseModel):
-    lock_expire_ms: conint(ge=1000)
+    lock_expire_sec: conint(ge=1)
     lock_wait_sec: confloat(ge=1)
     live_expire_sec: conint(ge=1)
     seg_expire_sec: conint(ge=1)
@@ -40,7 +40,7 @@ def read_redis_replica_config():
 
 def read_redis_data_config():
     return RedisDataConfig(
-        lock_expire_ms=os.getenv("REDIS_LOCK_EXPIRE_MS"),  # type: ignore
+        lock_expire_sec=os.getenv("REDIS_LOCK_EXPIRE_SEC"),  # type: ignore
         lock_wait_sec=os.getenv("REDIS_LOCK_WAIT_SEC"),  # type: ignore
         live_expire_sec=os.getenv("REDIS_LIVE_EXPIRE_SEC"),  # type: ignore
         seg_expire_sec=os.getenv("REDIS_SEG_EXPIRE_SEC"),  # type: ignore
