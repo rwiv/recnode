@@ -69,10 +69,13 @@ class RecorderResolver:
             redis_replica=Redis(connection_pool=create_redis_pool(self.__env.redis_replica)),
             redis_data_conf=self.__env.redis_data,
             req_conf=self.__env.req_conf,
-            proxy=self.__create_proxy_connector_config(state.location),
+            proxy=self.__get_proxy_connector_config(state.location),
         )
 
-    def __create_proxy_connector_config(self, location: LocationType) -> ProxyConnectorConfig | None:
+    def __get_proxy_connector_config(self, location: LocationType) -> ProxyConnectorConfig | None:
+        if self.__env.proxy is None:
+            return None
+
         if location == LocationType.LOCAL:
             return None
 

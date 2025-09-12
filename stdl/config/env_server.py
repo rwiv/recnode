@@ -29,7 +29,7 @@ class Env(BaseModel):
     redis_replica: RedisConfig
     redis_data: RedisDataConfig
     proxy_server: ProxyServerConfig
-    proxy: ProxyConfig
+    proxy: ProxyConfig | None
 
 
 def get_env() -> Env:

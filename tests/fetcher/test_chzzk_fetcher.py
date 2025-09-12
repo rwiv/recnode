@@ -14,6 +14,9 @@ channel_id = ""
 @pytest.mark.asyncio
 async def test_chzzk_fetcher():
     conf = env.proxy
+    if conf is None:
+        raise ValueError("Proxy config is not set")
+
     host = conf.host
     if host is None:
         raise ValueError("Proxy host is not set")

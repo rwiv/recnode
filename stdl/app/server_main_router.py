@@ -45,6 +45,7 @@ class MainController:
     async def my_ip(self, token: str = Depends(bearer_scheme)):
         if token != self.__api_token:
             raise HTTPException(status_code=401, detail="Invalid api token")
+
         async with aiohttp.ClientSession() as session:
             async with session.get(url="https://api.ipify.org") as res:
                 if res.status >= 400:
@@ -56,7 +57,10 @@ class MainController:
             raise HTTPException(status_code=401, detail="Invalid api token")
         return Response(content=generate_latest(), media_type="text/plain")
 
-    async def record(self, record_id: str):
+    async def record(self, record_id: str, token: str = Depends(bearer_scheme)):
+        if token != self.__api_token:
+            raise HTTPException(status_code=401, detail="Invalid api token")
+
         state = await self.__live_service.get_live(record_id, use_master=True)
         if state is None:
             raise HTTPException(status_code=404, detail="Not found LiveState")
@@ -72,14 +76,21 @@ class MainController:
         self.__scheduler.record(state)
         return "ok"
 
-    async def cancel(self, record_id: str):
+    async def cancel(self, record_id: str, token: str = Depends(bearer_scheme)):
+        if token != self.__api_token:
+            raise HTTPException(status_code=401, detail="Invalid api token")
+
         state = await self.__live_service.get_live(record_id, use_master=True)
         if state is None:
             raise HTTPException(status_code=404, detail="live state not found")
+
         self.__scheduler.cancel(state)
         return "ok"
 
-    async def get_status(self, fields: str | None = None):
+    async def get_status(self, fields: str | None = None, token: str = Depends(bearer_scheme)):
+        if token != self.__api_token:
+            raise HTTPException(status_code=401, detail="Invalid api token")
+
         field_elems = fields.split(",") if fields else []
 
         with_stats = False

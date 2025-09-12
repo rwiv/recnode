@@ -25,13 +25,23 @@ class ProxyConfig(BaseModel):
     use_my_ip: bool
 
 
-def read_proxy_config() -> ProxyConfig:
+def read_proxy_config() -> ProxyConfig | None:
+    host = os.getenv("PROXY_HOST") or None
+    port_domestic = os.getenv("PROXY_PORT_DOMESTIC") or None
+    port_overseas = os.getenv("PROXY_PORT_OVERSEAS") or None
+    username = os.getenv("PROXY_USERNAME") or None
+    password = os.getenv("PROXY_PASSWORD") or None
+
+    checklist = [port_domestic, port_overseas, username, password]
+    if any(item is None for item in checklist):
+        return None
+
     return ProxyConfig(
-        host=os.getenv("PROXY_HOST") or None,
-        port_domestic=os.getenv("PROXY_PORT_DOMESTIC") or None,
-        port_overseas=os.getenv("PROXY_PORT_OVERSEAS") or None,
-        username=os.getenv("PROXY_USERNAME") or None,
-        password=os.getenv("PROXY_PASSWORD") or None,
+        host=host,
+        port_domestic=port_domestic,
+        port_overseas=port_overseas,
+        username=username,
+        password=password,
         rdns=os.getenv("PROXY_RDNS") == "true",
         use_my_ip=os.getenv("PROXY_USE_MY_IP") == "true",
     )

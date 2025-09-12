@@ -13,6 +13,9 @@ env = get_env()
 async def test_http_client():
     print()
     conf = env.proxy
+    if conf is None:
+        raise ValueError("Proxy config is not set")
+
     host = conf.host
     if host is None:
         raise ValueError("Proxy host is not set")
