@@ -30,13 +30,18 @@ proxy:
   useMyIp: true
 
 redis:
-  masterHost: stdl-redis-master.media.svc.cluster.local
-  masterPort: 6379
-  replicaHost: stdl-redis-replicas.media.svc.cluster.local
-  replicaPort: 6379
-  auth:
-    secretName: stdl-redis-auth
+#  masterHost: stdl-redis-master.media.svc.cluster.local
+#  masterPort: 6379
+#  replicaHost: stdl-redis-replicas.media.svc.cluster.local
+#  replicaPort: 6379
+  server:
+    secretName: stdl-redis-server
     passwordKey: password
+  client:
+    secretName: stdl-redis-client
+    hostKey: host
+    masterPortKey: master-port
+    replicaPortKey: replica-port
   poolSize: 200
   data:
     lockExpireMs: 10000

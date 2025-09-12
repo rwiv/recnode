@@ -14,3 +14,9 @@ secrets:
   queue:
     path: media/stdl/queue
     secretName: stdl-queue
+  redisServer:
+    path: media/stdl/redis/server
+    secretName: stdl-redis-server
+  redisClient:
+    path: media/stdl/redis/client
+    secretName: stdl-redis-client

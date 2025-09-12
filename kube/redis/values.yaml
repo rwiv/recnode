@@ -2,18 +2,16 @@ metadata:
   name: stdl-redis
   namespace: media
 
-vault:
-  mount: kube
-  version: 1
-  refreshAfter: 30s
-  path: media/stdl/redis
-  secretName: stdl-redis-auth
+service:
+  nodePort:
+    master: 30211
+    replica: 30212
 
 redis:
   global:
     storageClass: longhorn
   auth:
-    existingSecret: stdl-redis-auth
+    existingSecret: stdl-redis-server
     existingSecretPasswordKey: password
   master:
     service:

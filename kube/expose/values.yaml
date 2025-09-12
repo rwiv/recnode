@@ -1,6 +1,0 @@
-global:
-  namespace: media
-redis:
-  name: stdl-redis
-  port: 6379
-  nodePort: 30211

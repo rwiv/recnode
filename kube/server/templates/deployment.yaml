@@ -108,19 +108,42 @@ spec:
               value: /app/tmp
             - name: FS_CONFIG_PATH
               value: "/mnt/fs-configs/{{ .Values.server.fs.confKey }}"
+
+{{/*            - name: REDIS_MASTER_HOST*/}}
+{{/*              value: {{ .Values.redis.masterHost }}*/}}
+{{/*            - name: REDIS_MASTER_PORT*/}}
+{{/*              value: "{{ .Values.redis.masterPort }}"*/}}
+{{/*            - name: REDIS_REPLICA_HOST*/}}
+{{/*              value: {{ .Values.redis.replicaHost }}*/}}
+{{/*            - name: REDIS_REPLICA_PORT*/}}
+{{/*              value: "{{ .Values.redis.replicaPort }}"*/}}
+
             - name: REDIS_MASTER_HOST
-              value: {{ .Values.redis.masterHost }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.client.secretName }}
+                  key: {{ .Values.redis.client.hostKey }}
             - name: REDIS_MASTER_PORT
-              value: "{{ .Values.redis.masterPort }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.client.secretName }}
+                  key: {{ .Values.redis.client.masterPortKey }}
             - name: REDIS_REPLICA_HOST
-              value: {{ .Values.redis.replicaHost }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.client.secretName }}
+                  key: {{ .Values.redis.client.hostKey }}
             - name: REDIS_REPLICA_PORT
-              value: "{{ .Values.redis.replicaPort }}"
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.client.secretName }}
+                  key: {{ .Values.redis.client.replicaPortKey }}
+
             - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.auth.secretName }}
-                  key: {{ .Values.redis.auth.passwordKey }}
+                  name: {{ .Values.redis.server.secretName }}
+                  key: {{ .Values.redis.server.passwordKey }}
             - name: REDIS_POOL_SIZE_LIMIT
               value: "{{ .Values.redis.poolSize }}"
             - name: REDIS_LOCK_EXPIRE_MS
