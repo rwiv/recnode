@@ -2,8 +2,9 @@ import asyncio
 
 from pyutils import log, error_dict
 from redis.asyncio import Redis
+from redis.asyncio.lock import Lock
 
-from ..redis import RedisSortedSet, RedisSpinLock, inc_count
+from ..redis import RedisSortedSet, inc_count
 
 LOCK_RETRY_INTERVAL_SEC = 0.1
 RENEW_THRESHOLD_MS = 60 * 1000  # 1 minute
@@ -89,14 +90,15 @@ class SegmentNumberSet:
         inc_count(use_master=True)
         await self.__sorted_set_master.clear(self.__get_key())
 
-    def lock(self) -> RedisSpinLock:
+    def lock(self) -> Lock:
         inc_count(use_master=True, amount=2)
-        return RedisSpinLock(
-            client=self.__master,
-            key=f"{self.__get_key()}:lock",
-            expire_ms=self.__lock_expire_ms,
-            timeout_sec=self.__lock_wait_timeout_sec,
-            retry_sec=LOCK_RETRY_INTERVAL_SEC,
+        return Lock(
+            redis=self.__master,
+            name=f"{self.__get_key()}:lock",
+            sleep=LOCK_RETRY_INTERVAL_SEC,
+            timeout=self.__lock_expire_ms / 1000,
+            blocking=True,
+            blocking_timeout=self.__lock_wait_timeout_sec,
         )
 
     def __get_key(self):

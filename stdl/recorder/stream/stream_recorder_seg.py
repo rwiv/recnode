@@ -91,7 +91,6 @@ class SegmentedStreamRecorder(StreamRecorder):
             live_record_id=live.id,
             expire_ms=redis_data_conf.seg_expire_sec * 1000,
             lock_expire_ms=redis_data_conf.lock_expire_ms,
-            lock_wait_timeout_sec=redis_data_conf.lock_wait_sec,
             retry_parallel_retry_limit=self.__seg_parallel_retry_limit,
             attr=self.ctx.to_dict(),
         )
@@ -276,6 +275,8 @@ class SegmentedStreamRecorder(StreamRecorder):
         if seg.num == MAP_NUM:
             raise ValueError(f"{MAP_NUM} is not a valid segment number")
 
+        process_start = asyncio.get_event_loop().time()
+
         try:
             coroutines = [
                 self.__success_nums.contains(seg.num, use_master=False),
@@ -291,6 +292,14 @@ class SegmentedStreamRecorder(StreamRecorder):
 
             inspected = await self.__seg_validator.validate_segment(seg, latest_num, self.__success_nums)
             if not inspected.ok:
+                duration = cur_duration(process_start)
+                if duration > self.__redis_data_conf.lock_expire_ms:
+                    attr = self.ctx.to_dict()
+                    attr["seg_num"] = seg.num
+                    attr["duration"] = duration
+                    log.error("Failed to validate segment: timeout", attr)
+                    return
+
                 if inspected.critical:
                     self._status = RecordingStatus.FAILED
                     await self.__live_service.update_is_invalid(record_id=self.__record_id, is_invalid=True)

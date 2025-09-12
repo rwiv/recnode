@@ -53,7 +53,6 @@ class SegmentStateService:
         live_record_id: str,
         expire_ms: int,
         lock_expire_ms: int,
-        lock_wait_timeout_sec: float,
         retry_parallel_retry_limit: int,
         attr: dict,
     ):
@@ -63,7 +62,6 @@ class SegmentStateService:
         self.__str_replica = RedisString(self.__replica)
         self.__expire_ms = expire_ms
         self.__lock_expire_ms = lock_expire_ms
-        self.__lock_wait_timeout_sec = lock_wait_timeout_sec
         self.__retry_parallel_retry_limit = retry_parallel_retry_limit
         self.__attr = attr
 

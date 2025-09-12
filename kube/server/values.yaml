@@ -5,7 +5,7 @@ metadata:
 
 image:
   repository: harbor.rwiv.xyz/private/stdl
-  tag: 0.9.5
+  tag: 0.9.6
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
