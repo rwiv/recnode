@@ -109,35 +109,38 @@ spec:
             - name: FS_CONFIG_PATH
               value: "/mnt/fs-configs/{{ .Values.server.fs.confKey }}"
 
-{{/*            - name: REDIS_MASTER_HOST*/}}
-{{/*              value: {{ .Values.redis.masterHost }}*/}}
-{{/*            - name: REDIS_MASTER_PORT*/}}
-{{/*              value: "{{ .Values.redis.masterPort }}"*/}}
-{{/*            - name: REDIS_REPLICA_HOST*/}}
-{{/*              value: {{ .Values.redis.replicaHost }}*/}}
-{{/*            - name: REDIS_REPLICA_PORT*/}}
-{{/*              value: "{{ .Values.redis.replicaPort }}"*/}}
-
+            {{- if .Values.redis.isInternal }}
+            - name: REDIS_MASTER_HOST
+              value: {{ .Values.redis.internal.masterHost }}
+            - name: REDIS_MASTER_PORT
+              value: "{{ .Values.redis.internal.masterPort }}"
+            - name: REDIS_REPLICA_HOST
+              value: {{ .Values.redis.internal.replicaHost }}
+            - name: REDIS_REPLICA_PORT
+              value: "{{ .Values.redis.internal.replicaPort }}"
+            {{- end }}
+            {{- if not .Values.redis.isInternal }}
             - name: REDIS_MASTER_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.client.secretName }}
-                  key: {{ .Values.redis.client.hostKey }}
+                  name: {{ .Values.redis.external.secretName }}
+                  key: {{ .Values.redis.external.hostKey }}
             - name: REDIS_MASTER_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.client.secretName }}
-                  key: {{ .Values.redis.client.masterPortKey }}
+                  name: {{ .Values.redis.external.secretName }}
+                  key: {{ .Values.redis.external.masterPortKey }}
             - name: REDIS_REPLICA_HOST
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.client.secretName }}
-                  key: {{ .Values.redis.client.hostKey }}
+                  name: {{ .Values.redis.external.secretName }}
+                  key: {{ .Values.redis.external.hostKey }}
             - name: REDIS_REPLICA_PORT
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.redis.client.secretName }}
-                  key: {{ .Values.redis.client.replicaPortKey }}
+                  name: {{ .Values.redis.external.secretName }}
+                  key: {{ .Values.redis.external.replicaPortKey }}
+            {{- end }}
 
             - name: REDIS_PASSWORD
               valueFrom:

@@ -30,14 +30,17 @@ proxy:
   useMyIp: true
 
 redis:
-#  masterHost: stdl-redis-master.media.svc.cluster.local
-#  masterPort: 6379
-#  replicaHost: stdl-redis-replicas.media.svc.cluster.local
-#  replicaPort: 6379
+  isInternal: true
+  type: internal
   server:
     secretName: stdl-redis-server
     passwordKey: password
-  client:
+  internal:
+    masterHost: stdl-redis-master.media.svc.cluster.local
+    masterPort: 6379
+    replicaHost: stdl-redis-replicas.media.svc.cluster.local
+    replicaPort: 6379
+  external:
     secretName: stdl-redis-client
     hostKey: host
     masterPortKey: master-port
