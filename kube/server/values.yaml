@@ -15,6 +15,10 @@ affinity: {}
 podLabels: {}
 nodeAlias: ~
 
+ingress:
+  hostName: stdl.rwiv.xyz
+  secretName: cloudflare-certificate
+
 proxy:
   enabled: false
   secretName: proxy-auth
