@@ -5,6 +5,7 @@ services:
     environment:
       PY_ENV: prod
       SERVER_PORT: "${SERVER_PORT}"
+      SERVER_API_TOKEN: "${SERVER_API_TOKEN}"
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
 
       FS_NAME: "${FS_NAME}"
@@ -18,11 +19,13 @@ services:
       SEG_TIMEOUT_SEC: "${SEG_TIMEOUT_SEC}"
       SEG_PARALLEL_RETRY_LIMIT: "${SEG_PARALLEL_RETRY_LIMIT}"
       SEG_FAILURE_THRESHOLD_RATIO: "${SEG_FAILURE_THRESHOLD_RATIO}"
+      INTERVAL_WAIT_WEIGHT_SEC: "${INTERVAL_WAIT_WEIGHT_SEC}"
 
-      REDIS_HOST: "${REDIS_HOST}"
-      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_MASTER_HOST: "${REDIS_MASTER_HOST}"
+      REDIS_MASTER_PORT: "${REDIS_MASTER_PORT}"
+      REDIS_REPLICA_HOST: "${REDIS_REPLICA_HOST}"
+      REDIS_REPLICA_PORT: "${REDIS_REPLICA_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
-      REDIS_CA_PATH: /app/ca.crt
       REDIS_POOL_SIZE_LIMIT: "${REDIS_POOL_SIZE_LIMIT}"
 
       REDIS_LOCK_EXPIRE_SEC: "${REDIS_LOCK_EXPIRE_SEC}"
@@ -35,7 +38,6 @@ services:
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
-      - "${REDIS_CA_PATH}:/app/ca.crt"
       - "../stdl:/app/stdl"
   stdl-server2:
     image: stdl:latest
@@ -43,6 +45,7 @@ services:
     environment:
       PY_ENV: prod
       SERVER_PORT: "${SERVER_PORT}"
+      SERVER_API_TOKEN: "${SERVER_API_TOKEN}"
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
 
       FS_NAME: "${FS_NAME}"
@@ -56,11 +59,13 @@ services:
       SEG_TIMEOUT_SEC: "${SEG_TIMEOUT_SEC}"
       SEG_PARALLEL_RETRY_LIMIT: "${SEG_PARALLEL_RETRY_LIMIT}"
       SEG_FAILURE_THRESHOLD_RATIO: "${SEG_FAILURE_THRESHOLD_RATIO}"
+      INTERVAL_WAIT_WEIGHT_SEC: "${INTERVAL_WAIT_WEIGHT_SEC}"
 
-      REDIS_HOST: "${REDIS_HOST}"
-      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_MASTER_HOST: "${REDIS_MASTER_HOST}"
+      REDIS_MASTER_PORT: "${REDIS_MASTER_PORT}"
+      REDIS_REPLICA_HOST: "${REDIS_REPLICA_HOST}"
+      REDIS_REPLICA_PORT: "${REDIS_REPLICA_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
-      REDIS_CA_PATH: /app/ca.crt
       REDIS_POOL_SIZE_LIMIT: "${REDIS_POOL_SIZE_LIMIT}"
 
       REDIS_LOCK_EXPIRE_SEC: "${REDIS_LOCK_EXPIRE_SEC}"
@@ -73,7 +78,6 @@ services:
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
-      - "${REDIS_CA_PATH}:/app/ca.crt"
       - "../stdl:/app/stdl"
   stdl-server3:
     image: stdl:latest
@@ -81,6 +85,7 @@ services:
     environment:
       PY_ENV: prod
       SERVER_PORT: "${SERVER_PORT}"
+      SERVER_API_TOKEN: "${SERVER_API_TOKEN}"
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
 
       FS_NAME: "${FS_NAME}"
@@ -94,11 +99,13 @@ services:
       SEG_TIMEOUT_SEC: "${SEG_TIMEOUT_SEC}"
       SEG_PARALLEL_RETRY_LIMIT: "${SEG_PARALLEL_RETRY_LIMIT}"
       SEG_FAILURE_THRESHOLD_RATIO: "${SEG_FAILURE_THRESHOLD_RATIO}"
+      INTERVAL_WAIT_WEIGHT_SEC: "${INTERVAL_WAIT_WEIGHT_SEC}"
 
-      REDIS_HOST: "${REDIS_HOST}"
-      REDIS_PORT: "${REDIS_PORT}"
+      REDIS_MASTER_HOST: "${REDIS_MASTER_HOST}"
+      REDIS_MASTER_PORT: "${REDIS_MASTER_PORT}"
+      REDIS_REPLICA_HOST: "${REDIS_REPLICA_HOST}"
+      REDIS_REPLICA_PORT: "${REDIS_REPLICA_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
-      REDIS_CA_PATH: /app/ca.crt
       REDIS_POOL_SIZE_LIMIT: "${REDIS_POOL_SIZE_LIMIT}"
 
       REDIS_LOCK_EXPIRE_SEC: "${REDIS_LOCK_EXPIRE_SEC}"
@@ -111,5 +118,4 @@ services:
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
-      - "${REDIS_CA_PATH}:/app/ca.crt"
       - "../stdl:/app/stdl"

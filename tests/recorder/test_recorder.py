@@ -14,6 +14,7 @@ from stdl.data.redis import create_redis_pool
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 
 env = get_env()
+headers = {"Authorization": f"Bearer {env.api_token}"}
 live_service = LiveStateService(
     master=Redis(connection_pool=create_redis_pool(env.redis_master)),
     replica=Redis(connection_pool=create_redis_pool(env.redis_replica)),
@@ -58,11 +59,11 @@ async def test_delete_record():
 
 async def start(url: str):
     async with aiohttp.ClientSession() as session:
-        async with session.post(url=url) as res:
+        async with session.post(url=url, headers=headers) as res:
             print(await res.text())
 
 
 async def cancel(url: str):
     async with aiohttp.ClientSession() as session:
-        async with session.delete(url=url) as res:
+        async with session.delete(url=url, headers=headers) as res:
             print(await res.text())
