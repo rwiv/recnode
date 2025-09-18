@@ -38,11 +38,11 @@ helm-prod-redis-run:
 helm-prod-redis-rm:
 	-@helm uninstall stdl-redis -n media
 
-delete-prod-redis-pvc:
-	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
+#delete-prod-redis-pvc:
+#	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n media
+#	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n media
+#	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
+#	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
 
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \
