@@ -38,11 +38,11 @@ helm-prod-redis-run:
 helm-prod-redis-rm:
 	-@helm uninstall stdl-redis -n media
 
-delete-prod-redis-pvc:
-	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
-	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
+#delete-prod-redis-pvc:
+#	-@kubectl delete pvc redis-data-stdl-redis-master-0 -n media
+#	-@kubectl delete pvc redis-data-stdl-redis-replicas-0 -n media
+#	-@kubectl delete pvc redis-data-stdl-redis-replicas-1 -n media
+#	-@kubectl delete pvc redis-data-stdl-redis-replicas-2 -n media
 
 helm-stage-redis-run:
 	-@helm install stdl-redis ../kube/redis -n stage \
@@ -82,13 +82,13 @@ helm-prod-71-run:
 		--set metadata.name=stdl-server-711 \
 		--set ingress.hostName=stdl-711.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=true \
+		--set redis.isInternal=false \
 		--set nodeAlias=node1
 	-@helm install stdl-server-712 ../kube/server -n media \
 		--set metadata.name=stdl-server-712 \
 		--set ingress.hostName=stdl-712.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=true \
+		--set redis.isInternal=false \
 		--set nodeAlias=node1
 
 helm-prod-72-run:
@@ -97,13 +97,13 @@ helm-prod-72-run:
 		--set metadata.name=stdl-server-721 \
 		--set ingress.hostName=stdl-721.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=true \
+		--set redis.isInternal=false \
 		--set nodeAlias=node2
 	-@helm install stdl-server-722 ../kube/server -n media \
 		--set metadata.name=stdl-server-722 \
 		--set ingress.hostName=stdl-722.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=true \
+		--set redis.isInternal=false \
 		--set nodeAlias=node2
 
 helm-prod-73-run:
@@ -112,13 +112,13 @@ helm-prod-73-run:
 		--set metadata.name=stdl-server-731 \
 		--set ingress.hostName=stdl-731.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=true \
+		--set redis.isInternal=false \
 		--set nodeAlias=node3
 	-@helm install stdl-server-732 ../kube/server -n media \
 		--set metadata.name=stdl-server-732 \
 		--set ingress.hostName=stdl-732.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=true \
+		--set redis.isInternal=false \
 		--set nodeAlias=node3
 
 
@@ -150,25 +150,25 @@ helm-prod-81-run:
 		--set metadata.name=stdl-server-811 \
 		--set ingress.hostName=stdl-811.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node1
 	-@helm install stdl-server-812 ../kube/server -n media \
 		--set metadata.name=stdl-server-812 \
 		--set ingress.hostName=stdl-812.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node1
 	-@helm install stdl-server-813 ../kube/server -n media \
 		--set metadata.name=stdl-server-813 \
 		--set ingress.hostName=stdl-813.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node1
 	-@helm install stdl-server-814 ../kube/server -n media \
 		--set metadata.name=stdl-server-814 \
 		--set ingress.hostName=stdl-814.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node1
 
 helm-prod-82-run:
@@ -177,25 +177,25 @@ helm-prod-82-run:
 		--set metadata.name=stdl-server-821 \
 		--set ingress.hostName=stdl-821.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node2
 	-@helm install stdl-server-822 ../kube/server -n media \
 		--set metadata.name=stdl-server-822 \
 		--set ingress.hostName=stdl-822.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node2
 	-@helm install stdl-server-823 ../kube/server -n media \
 		--set metadata.name=stdl-server-823 \
 		--set ingress.hostName=stdl-823.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node2
 	-@helm install stdl-server-824 ../kube/server -n media \
 		--set metadata.name=stdl-server-824 \
 		--set ingress.hostName=stdl-824.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node2
 
 helm-prod-83-run:
@@ -204,25 +204,25 @@ helm-prod-83-run:
 		--set metadata.name=stdl-server-831 \
 		--set ingress.hostName=stdl-831.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node3
 	-@helm install stdl-server-832 ../kube/server -n media \
 		--set metadata.name=stdl-server-832 \
 		--set ingress.hostName=stdl-832.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node3
 	-@helm install stdl-server-833 ../kube/server -n media \
 		--set metadata.name=stdl-server-833 \
 		--set ingress.hostName=stdl-833.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node3
 	-@helm install stdl-server-834 ../kube/server -n media \
 		--set metadata.name=stdl-server-834 \
 		--set ingress.hostName=stdl-834.rwiv.xyz \
 		--set vpn.enabled=false \
-		--set redis.isInternal=false \
+		--set redis.isInternal=true \
 		--set nodeAlias=node3
 
 

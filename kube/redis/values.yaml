@@ -8,8 +8,8 @@ service:
     replica: 30212
 
 redis:
-  global:
-    storageClass: longhorn
+#  global:
+#    storageClass: longhorn
   auth:
     existingSecret: stdl-redis-server
     existingSecretPasswordKey: password
@@ -19,24 +19,26 @@ redis:
       ports:
         redis: 6379
     persistence:
-      enabled: true
-      size: 4Gi
-    resources:
-      requests:
-        memory: 1024Mi
-      limits:
-        memory: 2048Mi
+      enabled: false
+#      enabled: true
+#      size: 4Gi
+#    resources:
+#      requests:
+#        memory: 1024Mi
+#      limits:
+#        memory: 2048Mi
   replica:
-    replicaCount: 3
+    replicaCount: 6
     service:
       type: ClusterIP
       ports:
         redis: 6379
     persistence:
-      enabled: true
-      size: 4Gi
-    resources:
-      requests:
-        memory: 1024Mi
-      limits:
-        memory: 2048Mi
+      enabled: false
+#      enabled: true
+#      size: 4Gi
+#    resources:
+#      requests:
+#        memory: 1024Mi
+#      limits:
+#        memory: 2048Mi

@@ -31,7 +31,6 @@ proxy:
 
 redis:
   isInternal: true
-  type: internal
   server:
     secretName: stdl-redis-server
     passwordKey: password
