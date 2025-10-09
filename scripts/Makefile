@@ -33,7 +33,7 @@ helm-redis-dep:
 	-@helm dependency update ./redis
 
 helm-prod-redis-run:
-	-@helm install stdl-redis ../kube/redis -n media --set redis.replica.replicaCount=3
+	-@helm install stdl-redis ../kube/redis -n media
 
 helm-prod-redis-rm:
 	-@helm uninstall stdl-redis -n media
