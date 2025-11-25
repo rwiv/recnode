@@ -18,6 +18,7 @@ COPY pyproject.toml .
 COPY uv.lock .
 COPY README.md .
 COPY Cargo.toml .
+COPY Cargo.lock .
 COPY src src
 COPY recnode recnode
 
@@ -30,7 +31,7 @@ FROM python:3.13.2-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache git libgcc
+RUN apk add --no-cache libgcc
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/recnode /app/recnode
