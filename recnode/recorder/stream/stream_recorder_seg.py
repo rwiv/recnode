@@ -3,6 +3,7 @@ import json
 import random
 from datetime import datetime
 
+import aiofiles
 from aiofiles import os as aos
 from pyutils import log, path_join, error_dict, merge_query_string
 from redis.asyncio import Redis
@@ -179,7 +180,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         # Fetch m3u8
         req_start_time = asyncio.get_event_loop().time()
         try:
-            m3u8_text = await self.__m3u8_http.request_file_text(url=self.ctx.stream_url, attr=self.ctx.to_dict())
+            m3u8_text = await self.__m3u8_http.get_text(url=self.ctx.stream_url, attr=self.ctx.to_dict())
             await self.__m3u8_retry_counter.reset()
             await metric.set_m3u8_request_duration(cur_duration(req_start_time), self.__pf, self.__m3u8_duration_hist)
         except Exception as ex:
@@ -206,7 +207,9 @@ class SegmentedStreamRecorder(StreamRecorder):
                 map_url = "/".join([self.ctx.stream_base_url, map_seg.uri])
 
             file_path = path_join(self.__tmp_dpath, f"{MAP_NUM}.ts")
-            await self.__seg_http.request_file(url=map_url, file_path=file_path, attr=self.ctx.to_dict())
+            b = await self.__seg_http.get_bytes(url=map_url, attr=self.ctx.to_dict())
+            async with aiofiles.open(file_path, "wb") as f:
+                await f.write(b)
 
         segments = []
         now = datetime.now()
@@ -338,16 +341,17 @@ class SegmentedStreamRecorder(StreamRecorder):
             #     if random.random() < 0.7:
             #         raise ValueError("Simulated error")
 
-            file_path = path_join(self.__tmp_dpath, f"{seg.num}.ts")
-            attr = self.ctx.to_dict({"num": seg.num})
-            size = await self.__seg_http.request_file(url=seg.url, file_path=file_path, attr=attr)
+            b = await self.__seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
+            async with aiofiles.open(path_join(self.__tmp_dpath, f"{seg.num}.ts"), "wb") as f:
+                await f.write(b)
+
             await metric.set_segment_request_duration(cur_duration(req_start), self.__pf, self.__seg_duration_hist)
 
             if await self.__success_nums.contains(seg.num, use_master=False):
                 return
 
             try:
-                await self.__on_segment_request_success(seg, size=size)
+                await self.__on_segment_request_success(seg, size=len(b))
             except Exception as ex:
                 log.error("Failed to success process", self.__error_attr(ex, num=seg.num))
         except Exception as ex:
