@@ -21,16 +21,22 @@ stage-rm: helm-stage-server-rm
 
 
 # infra
-helm-infra-run:
+helm-prod-infra-run:
 	-@helm install recnode-infra ../kube/infra -n media
 
-helm-infra-rm:
+helm-prod-infra-rm:
 	-@helm uninstall recnode-infra -n media
+
+helm-stage-infra-run:
+	-@helm install recnode-infra ../kube/infra -n stage --set global.namespace=stage
+
+helm-stage-infra-rm:
+	-@helm uninstall recnode-infra -n stage
 
 
 # redis
 helm-redis-dep:
-	-@helm dependency update ./redis
+	-@helm dependency update ../kube/redis
 
 helm-prod-redis-run:
 	-@helm install recnode-redis ../kube/redis -n media
@@ -296,8 +302,6 @@ helm-stage-server-run:
 	-@helm install recnode-server-521 ../kube/server -n stage \
 		--set metadata.namespace=stage \
 		--set metadata.name=recnode-server-521 \
-		--set image.repository=harbor.rwiv.xyz/test/recnode \
-		--set image.tag=latest \
 		--set ingress.hostName=recnode-521.rwiv.xyz \
 		--set vpn.enabled=false \
 		--set redis.masterHost=recnode-redis-master.stage.svc.cluster.local \
@@ -308,8 +312,6 @@ helm-stage-server-run:
 	-@helm install recnode-server-522 ../kube/server -n stage \
 		--set metadata.namespace=stage \
 		--set metadata.name=recnode-server-522 \
-		--set image.repository=harbor.rwiv.xyz/test/recnode \
-		--set image.tag=latest \
 		--set ingress.hostName=recnode-522.rwiv.xyz \
 		--set vpn.enabled=true \
 		--set vpn.proxyEndpoint=http://recnode-proxy.stage.svc.cluster.local \
@@ -327,8 +329,6 @@ helm-stage-server-rm:
 helm-stage-proxy-run:
 	-@helm install recnode-proxy ../kube/proxy -n stage \
 		--set metadata.namespace=stage \
-		--set image.repository=harbor.rwiv.xyz/test/recnode \
-		--set image.tag=latest \
 		--set server.replicas=1
 
 helm-stage-proxy-rm:
