@@ -70,7 +70,6 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
-            use_rust=req_conf.use_rust,
             proxy=proxy,
         )
         self.__seg_http = AsyncHttpClient(
@@ -78,7 +77,6 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
-            use_rust=req_conf.use_rust,
             proxy=proxy,
         )
 

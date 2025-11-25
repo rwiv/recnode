@@ -35,14 +35,12 @@ class AsyncHttpClient:
         retry_limit: int = 0,
         retry_delay_sec: float = 0,
         use_backoff: bool = False,
-        use_rust: bool = True,
         print_error: bool = True,
         proxy: ProxyConnectorConfig | None = None,
     ):
         self.__retry_limit = retry_limit
         self.__retry_delay_sec = retry_delay_sec
         self.__use_backoff = use_backoff
-        self.__use_rust = use_rust
         self.__timeout = aiohttp.ClientTimeout(total=timeout_sec)
         self.__headers = {}
         self.__print_error = print_error
@@ -150,9 +148,6 @@ class AsyncHttpClient:
         )
 
     async def request_file_text(self, url: str, attr: dict | None = None) -> str:
-        if not self.__use_rust:
-            return await self.get_text(url=url, attr=attr)
-
         start = asyncio.get_event_loop().time()
         try:
             status, _, content = await rust_request.request_file(url, self.__headers, None, True)  # type: ignore
@@ -165,13 +160,6 @@ class AsyncHttpClient:
             raise HttpRequestError("Failed to request", 500) from ex
 
     async def request_file(self, url: str, file_path: str | None, attr: dict | None = None) -> int:
-        if not self.__use_rust:
-            b = await self.get_bytes(url=url, attr=attr)
-            if file_path is not None:
-                async with aiofiles.open(file_path, "wb") as f:
-                    await f.write(b)
-            return len(b)
-
         start = asyncio.get_event_loop().time()
         try:
             status, size, _ = await rust_request.request_file(url, self.__headers, file_path, False)  # type: ignore

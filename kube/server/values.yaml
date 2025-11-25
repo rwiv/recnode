@@ -75,7 +75,6 @@ server:
     segFailureThresholdRatio: 4
     intervalWaitWeightSec: 1.2
     intervalMinTimeSec: 4
-    useRust: true
 
 vpn:
   enabled: false
