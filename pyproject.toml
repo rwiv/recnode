@@ -1,6 +1,6 @@
 [project]
 name = "recnode"
-version = "1.0.3"
+version = "1.0.4"
 description = "Distributed Live Stream Recording Cluster"
 readme = "README.md"
 requires-python = ">=3.12"
