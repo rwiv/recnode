@@ -13,7 +13,7 @@ secrets:
     secretName: stdl-fs
   queue:
     path: media/stdl/queue
-    secretName: stdl-queue
+    secretName: recnode-queue
   redisServer:
     path: media/stdl/redis/server
     secretName: stdl-redis-server

@@ -92,9 +92,9 @@ class SegmentStateValidator:
                     log.error(f"ReqSegment not found for num {req_seg.num}", self.__attr)
                     return no()
                 if seg_state.size is not None:
-                    req_b = await self.__seg_http.get_bytes(url=req_seg.url, retry_limit=self.__req_retry_limit)
-                    if len(req_b) != seg_state.size:
-                        log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, len(req_b)))
+                    size = await self.__seg_http.request_file(url=req_seg.url, file_path=None)
+                    if size != seg_state.size:
+                        log.error("Size mismatch", self.__pair_attr(req_seg, seg_state, size))
                         return critical()
                     break
 

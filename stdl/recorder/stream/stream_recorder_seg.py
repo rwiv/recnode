@@ -3,7 +3,6 @@ import json
 import random
 from datetime import datetime
 
-import aiofiles
 from aiofiles import os as aos
 from pyutils import log, path_join, error_dict, merge_query_string
 from redis.asyncio import Redis
@@ -181,12 +180,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         # Fetch m3u8
         req_start_time = asyncio.get_event_loop().time()
         try:
-            m3u8_text = await self.__m3u8_http.get_text(
-                url=self.ctx.stream_url,
-                headers=self.ctx.stream_headers,
-                attr=self.ctx.to_dict(),
-                print_error=False,
-            )
+            m3u8_text = await self.__m3u8_http.request_file_text(url=self.ctx.stream_url, attr=self.ctx.to_dict())
             await self.__m3u8_retry_counter.reset()
             await metric.set_m3u8_request_duration(cur_duration(req_start_time), self.__pf, self.__m3u8_duration_hist)
         except Exception as ex:
@@ -211,9 +205,9 @@ class SegmentedStreamRecorder(StreamRecorder):
             map_url = map_seg.uri
             if self.ctx.stream_base_url is not None:
                 map_url = "/".join([self.ctx.stream_base_url, map_seg.uri])
-            b = await self.__seg_http.get_bytes(map_url, attr=self.ctx.to_dict())
-            async with aiofiles.open(path_join(self.__tmp_dpath, f"{MAP_NUM}.ts"), "wb") as f:
-                await f.write(b)
+
+            file_path = path_join(self.__tmp_dpath, f"{MAP_NUM}.ts")
+            await self.__seg_http.request_file(url=map_url, file_path=file_path, attr=self.ctx.to_dict())
 
         segments = []
         now = datetime.now()
@@ -345,17 +339,16 @@ class SegmentedStreamRecorder(StreamRecorder):
             #     if random.random() < 0.7:
             #         raise ValueError("Simulated error")
 
-            b = await self.__seg_http.get_bytes(url=seg.url, attr=self.ctx.to_dict({"num": seg.num}))
+            file_path = path_join(self.__tmp_dpath, f"{seg.num}.ts")
+            attr = self.ctx.to_dict({"num": seg.num})
+            size = await self.__seg_http.request_file(url=seg.url, file_path=file_path, attr=attr)
             await metric.set_segment_request_duration(cur_duration(req_start), self.__pf, self.__seg_duration_hist)
 
             if await self.__success_nums.contains(seg.num, use_master=False):
                 return
 
-            seg_path = path_join(self.__tmp_dpath, f"{seg.num}.ts")
-            async with aiofiles.open(seg_path, "wb") as f:
-                await f.write(b)
             try:
-                await self.__on_segment_request_success(seg, size=len(b))
+                await self.__on_segment_request_success(seg, size=size)
             except Exception as ex:
                 log.error("Failed to success process", self.__error_attr(ex, num=seg.num))
         except Exception as ex:

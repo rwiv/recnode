@@ -5,6 +5,7 @@ from typing import Any
 import aiohttp
 from aiohttp import BaseConnector, ClientTimeout
 from aiohttp_socks import ProxyConnector, ProxyType
+import rust_downloader
 from pydantic import BaseModel
 from pyutils import log, error_dict
 
@@ -145,6 +146,30 @@ class AsyncHttpClient:
             connector=connector,
         )
 
+    async def request_file_text(self, url: str, attr: dict | None = None) -> str:
+        start = asyncio.get_event_loop().time()
+        try:
+            status, _, content = await rust_downloader.request_file(url, self.headers, None, True)  # type: ignore
+            if status >= 400:
+                log.error("Failed to request", get_err_dict(url, start, attr, status=status))
+                raise HttpRequestError("Failed to request", status)
+            return content.decode("utf-8")
+        except RuntimeError as ex:
+            log.error("Failed to request", get_err_dict(url, start, attr, status=500))
+            raise HttpRequestError("Failed to request", 500) from ex
+
+    async def request_file(self, url: str, file_path: str | None, attr: dict | None = None) -> int:
+        start = asyncio.get_event_loop().time()
+        try:
+            status, size, _ = await rust_downloader.request_file(url, self.headers, file_path, False)  # type: ignore
+            if status >= 400:
+                log.error("Failed to request", get_err_dict(url, start, attr, status=status))
+                raise HttpRequestError("Failed to request", status)
+            return size
+        except RuntimeError as ex:
+            log.error("Failed to request", get_err_dict(url, start, attr, status=500))
+            raise HttpRequestError("Failed to request", 500) from ex
+
     async def fetch(
         self,
         method: str,
@@ -252,3 +277,13 @@ class AsyncHttpClientMock(AsyncHttpClient):
         connector: BaseConnector | None = None,
     ) -> bytes:
         return b"0" * self.b_size
+
+
+def get_err_dict(url: str, start: float, attr: dict | None = None, status: int | None = None) -> dict:
+    err = {"url": url, "duration": round(asyncio.get_event_loop().time() - start, 2)}
+    if status is not None:
+        err["status"] = status
+    if attr is not None:
+        for k, v in attr.items():
+            err[k] = v
+    return err

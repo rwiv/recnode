@@ -11,5 +11,6 @@ uvicorn==0.34.0
 streamlink==7.1.3
 python-multipart==0.0.20
 prometheus_client==0.21.1
+maturin==1.10.2
 
 git+https://github.com/rwiv/pyutils.git@v0.3.3
