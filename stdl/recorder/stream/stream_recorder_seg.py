@@ -26,8 +26,6 @@ MAP_NUM = -1
 FIRST_SEG_LOCK_NUM = 0
 SEG_TASK_PREFIX = "seg"
 
-INTERVAL_MIN_TIME_SEC = 1
-
 
 class SegmentedStreamRecorder(StreamRecorder):
     def __init__(
@@ -47,6 +45,7 @@ class SegmentedStreamRecorder(StreamRecorder):
         self.__seg_parallel_retry_limit = req_conf.seg_parallel_retry_limit
         self.__seg_failure_threshold_ratio = req_conf.seg_failure_threshold_ratio
         self.__interval_wait_weight_sec = req_conf.interval_wait_weight_sec
+        self.__interval_min_time_sec = req_conf.interval_min_time_sec
 
         self.__redis_master = redis_master
         self.__redis_replica = redis_replica
@@ -71,6 +70,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
+            use_rust=req_conf.use_rust,
             proxy=proxy,
         )
         self.__seg_http = AsyncHttpClient(
@@ -78,6 +78,7 @@ class SegmentedStreamRecorder(StreamRecorder):
             retry_limit=0,
             retry_delay_sec=0,
             print_error=False,
+            use_rust=req_conf.use_rust,
             proxy=proxy,
         )
 
@@ -266,8 +267,8 @@ class SegmentedStreamRecorder(StreamRecorder):
 
         exc_duration = cur_duration(start_time)
         wait_sec = 0
-        if exc_duration < INTERVAL_MIN_TIME_SEC:
-            wait_sec += INTERVAL_MIN_TIME_SEC - exc_duration
+        if exc_duration < self.__interval_min_time_sec:
+            wait_sec += self.__interval_min_time_sec - exc_duration
         # to prevent segment requests from being concentrated on a specific node
         wait_sec += random.uniform(0, self.__interval_wait_weight_sec)
         await asyncio.sleep(wait_sec)

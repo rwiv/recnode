@@ -104,6 +104,10 @@ spec:
               value: "{{ .Values.server.reqConf.segFailureThresholdRatio }}"
             - name: INTERVAL_WAIT_WEIGHT_SEC
               value: "{{ .Values.server.reqConf.intervalWaitWeightSec }}"
+            - name: INTERVAL_MIN_TIME_SEC
+              value: "{{ .Values.server.reqConf.intervalMinTimeSec }}"
+            - name: USER_RUST
+              value: "{{ .Values.server.reqConf.useRust }}"
             - name: TMP_DIR_PATH
               value: /app/tmp
             - name: FS_CONFIG_PATH

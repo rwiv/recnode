@@ -2,6 +2,7 @@ import asyncio
 from enum import Enum
 from typing import Any
 
+import aiofiles
 import aiohttp
 from aiohttp import BaseConnector, ClientTimeout
 from aiohttp_socks import ProxyConnector, ProxyType
@@ -30,38 +31,40 @@ class ProxyConnectorConfig(BaseModel):
 class AsyncHttpClient:
     def __init__(
         self,
-        timeout_sec: float = 60,
+        timeout_sec: float = 30,
         retry_limit: int = 0,
         retry_delay_sec: float = 0,
         use_backoff: bool = False,
+        use_rust: bool = True,
         print_error: bool = True,
         proxy: ProxyConnectorConfig | None = None,
     ):
-        self.retry_limit = retry_limit
-        self.retry_delay_sec = retry_delay_sec
-        self.use_backoff = use_backoff
-        self.timeout = aiohttp.ClientTimeout(total=timeout_sec)
-        self.headers = {}
-        self.print_error = print_error
-        self.proxy_connector_config = proxy
+        self.__retry_limit = retry_limit
+        self.__retry_delay_sec = retry_delay_sec
+        self.__use_backoff = use_backoff
+        self.__use_rust = use_rust
+        self.__timeout = aiohttp.ClientTimeout(total=timeout_sec)
+        self.__headers = {}
+        self.__print_error = print_error
+        self.__proxy_connector_config = proxy
 
     def set_headers(self, headers: dict):
         for k, v in headers.items():
-            if self.headers.get(k) is not None:
+            if self.__headers.get(k) is not None:
                 raise ValueError(f"Header {k} already set")
-            self.headers[k] = v
+            self.__headers[k] = v
 
     def __proxy_connector(self) -> BaseConnector | None:
-        if self.proxy_connector_config is None:
+        if self.__proxy_connector_config is None:
             return None
 
         return ProxyConnector(
             proxy_type=ProxyType.SOCKS5,
-            host=self.proxy_connector_config.host,
-            port=self.proxy_connector_config.port,
-            username=self.proxy_connector_config.username,
-            password=self.proxy_connector_config.password,
-            rdns=self.proxy_connector_config.rdns,
+            host=self.__proxy_connector_config.host,
+            port=self.__proxy_connector_config.port,
+            username=self.__proxy_connector_config.username,
+            password=self.__proxy_connector_config.password,
+            rdns=self.__proxy_connector_config.rdns,
         )
 
     async def get_text(
@@ -147,9 +150,12 @@ class AsyncHttpClient:
         )
 
     async def request_file_text(self, url: str, attr: dict | None = None) -> str:
+        if not self.__use_rust:
+            return await self.get_text(url=url, attr=attr)
+
         start = asyncio.get_event_loop().time()
         try:
-            status, _, content = await rust_request.request_file(url, self.headers, None, True)  # type: ignore
+            status, _, content = await rust_request.request_file(url, self.__headers, None, True)  # type: ignore
             if status >= 400:
                 log.error("Failed to request", get_err_dict(url, start, attr, status=status))
                 raise HttpRequestError("Failed to request", status)
@@ -159,9 +165,16 @@ class AsyncHttpClient:
             raise HttpRequestError("Failed to request", 500) from ex
 
     async def request_file(self, url: str, file_path: str | None, attr: dict | None = None) -> int:
+        if not self.__use_rust:
+            b = await self.get_bytes(url=url, attr=attr)
+            if file_path is not None:
+                async with aiofiles.open(file_path, "wb") as f:
+                    await f.write(b)
+            return len(b)
+
         start = asyncio.get_event_loop().time()
         try:
-            status, size, _ = await rust_request.request_file(url, self.headers, file_path, False)  # type: ignore
+            status, size, _ = await rust_request.request_file(url, self.__headers, file_path, False)  # type: ignore
             if status >= 400:
                 log.error("Failed to request", get_err_dict(url, start, attr, status=status))
                 raise HttpRequestError("Failed to request", status)
@@ -182,14 +195,14 @@ class AsyncHttpClient:
         retry_limit: int | None = None,
         connector: BaseConnector | None = None,
     ) -> Any:
-        req_headers = self.headers
+        req_headers = self.__headers
         if headers is not None:
-            req_headers = self.headers.copy()
+            req_headers = self.__headers.copy()
             for key, value in headers.items():
                 req_headers[key] = value
 
-        req_print_error = print_error if print_error is not None else self.print_error
-        req_retry_limit = retry_limit if retry_limit is not None else self.retry_limit
+        req_print_error = print_error if print_error is not None else self.__print_error
+        req_retry_limit = retry_limit if retry_limit is not None else self.__retry_limit
 
         proxy_connector = connector
         if proxy_connector is None:
@@ -204,7 +217,7 @@ class AsyncHttpClient:
                     return_type=return_type,
                     headers=req_headers,
                     json=json,
-                    timeout=self.timeout,
+                    timeout=self.__timeout,
                     connector=proxy_connector,
                 )
             except Exception as ex:
@@ -220,11 +233,11 @@ class AsyncHttpClient:
                     for k, v in attr.items():
                         err[k] = v
 
-                if self.retry_limit == 0:
+                if self.__retry_limit == 0:
                     if req_print_error:
                         log.error("Failed to request", err)
                     raise
-                if retry_cnt == self.retry_limit:
+                if retry_cnt == self.__retry_limit:
                     if req_print_error:
                         log.error("Failed to request: Retry Limit Exceeded", err)
                     raise
@@ -232,11 +245,11 @@ class AsyncHttpClient:
                 if req_print_error:
                     log.debug(f"Retry request", err)
 
-                if self.retry_delay_sec >= 0:
-                    if self.use_backoff:
-                        await asyncio.sleep(self.retry_delay_sec * (2**retry_cnt))
+                if self.__retry_delay_sec >= 0:
+                    if self.__use_backoff:
+                        await asyncio.sleep(self.__retry_delay_sec * (2**retry_cnt))
                     else:
-                        await asyncio.sleep(self.retry_delay_sec)
+                        await asyncio.sleep(self.__retry_delay_sec)
 
 
 async def request(

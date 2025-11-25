@@ -10,6 +10,8 @@ class RequestConfig(BaseModel):
     seg_parallel_retry_limit: conint(ge=0)
     seg_failure_threshold_ratio: conint(ge=0)
     interval_wait_weight_sec: confloat(ge=0)
+    interval_min_time_sec: confloat(ge=0)
+    use_rust: bool
 
 
 def read_request_config() -> RequestConfig:
@@ -20,4 +22,6 @@ def read_request_config() -> RequestConfig:
         seg_parallel_retry_limit=os.getenv("SEG_PARALLEL_RETRY_LIMIT"),  # type: ignore
         seg_failure_threshold_ratio=os.getenv("SEG_FAILURE_THRESHOLD_RATIO"),  # type: ignore
         interval_wait_weight_sec=os.getenv("INTERVAL_WAIT_WEIGHT_SEC"),  # type: ignore
+        interval_min_time_sec=os.getenv("INTERVAL_MIN_TIME_SEC"),  # type: ignore
+        use_rust=os.getenv("USE_RUST") == "true",
     )
