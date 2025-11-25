@@ -1,10 +1,9 @@
-FROM python:3.13.2-alpine AS rust_builder
+FROM python:3.13.2-alpine AS builder
 
 WORKDIR /app
 
 # - cargo & rust: Rust 컴파일러
 # - gcc, musl-dev, libffi-dev, openssl-dev: Python/Rust 라이브러리 컴파일용 헤더
-# - maturin: Rust 프로젝트 빌드 도구
 RUN apk add --no-cache \
     git \
     cargo \
@@ -13,26 +12,27 @@ RUN apk add --no-cache \
     musl-dev \
     libffi-dev \
     openssl-dev \
-    patchelf \
-    && pip install --no-cache-dir maturin
+    patchelf
 
-COPY requirements.txt .
-COPY Cargo.toml .
 COPY pyproject.toml .
-COPY src/ src/
+COPY uv.lock .
+COPY README.md .
+COPY Cargo.toml .
+COPY src src
+COPY stdl stdl
 
-RUN pip install --no-cache-dir -r requirements.txt
-RUN maturin build --release --strip && \
-    pip install target/wheels/*.whl
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# --- Final Stage ---
+RUN uv sync --no-cache --frozen --no-dev
+
+# Runtime Stage
 FROM python:3.13.2-alpine
 
 WORKDIR /app
 
 RUN apk add --no-cache git libgcc
 
-COPY --from=rust_builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
-COPY --from=rust_builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/stdl /app/stdl
 
-COPY stdl stdl
+ENV PATH="/app/.venv/bin:$PATH"

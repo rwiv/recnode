@@ -75,7 +75,7 @@ fn request_file<'a>(
 
 // 모듈 등록 (이름은 Cargo.toml의 name과 같아야 함)
 #[pymodule]
-fn rust_downloader(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn rust_request(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(request_file, m)?)?;
     Ok(())
 }

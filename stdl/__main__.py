@@ -1,10 +1,11 @@
 import asyncio
 import sys
 
+from pyutils import log
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python -m foo <batch|server|proxy>")
+        log.error("Usage: python -m foo <batch|server|proxy>")
         sys.exit(1)
 
     mode = sys.argv[1]
@@ -22,5 +23,5 @@ if __name__ == "__main__":
 
         run_proxy()
     else:
-        print(f"Unknown mode: {mode}")
+        log.error(f"Unknown mode: {mode}")
         sys.exit(1)

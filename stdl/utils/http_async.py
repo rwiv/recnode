@@ -5,7 +5,7 @@ from typing import Any
 import aiohttp
 from aiohttp import BaseConnector, ClientTimeout
 from aiohttp_socks import ProxyConnector, ProxyType
-import rust_downloader
+import rust_request
 from pydantic import BaseModel
 from pyutils import log, error_dict
 
@@ -149,7 +149,7 @@ class AsyncHttpClient:
     async def request_file_text(self, url: str, attr: dict | None = None) -> str:
         start = asyncio.get_event_loop().time()
         try:
-            status, _, content = await rust_downloader.request_file(url, self.headers, None, True)  # type: ignore
+            status, _, content = await rust_request.request_file(url, self.headers, None, True)  # type: ignore
             if status >= 400:
                 log.error("Failed to request", get_err_dict(url, start, attr, status=status))
                 raise HttpRequestError("Failed to request", status)
@@ -161,7 +161,7 @@ class AsyncHttpClient:
     async def request_file(self, url: str, file_path: str | None, attr: dict | None = None) -> int:
         start = asyncio.get_event_loop().time()
         try:
-            status, size, _ = await rust_downloader.request_file(url, self.headers, file_path, False)  # type: ignore
+            status, size, _ = await rust_request.request_file(url, self.headers, file_path, False)  # type: ignore
             if status >= 400:
                 log.error("Failed to request", get_err_dict(url, start, attr, status=status))
                 raise HttpRequestError("Failed to request", status)
