@@ -8,8 +8,8 @@ from pyutils import load_dotenv, path_join, find_project_root
 from redis.asyncio import Redis
 from redis.asyncio.lock import Lock
 
-from stdl.config import get_env
-from stdl.data.redis import (
+from recnode.config import get_env
+from recnode.data.redis import (
     create_redis_pool,
     RedisSpinLock,
     RedisPubSubLock,

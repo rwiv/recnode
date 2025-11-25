@@ -4,7 +4,7 @@ import time
 
 from pyutils import path_join, find_project_root
 
-from stdl.utils import stem
+from recnode.utils import stem
 
 base_dir_path = path_join(find_project_root(), "dev", "test")
 paths = [

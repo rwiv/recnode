@@ -9,7 +9,7 @@ spec:
       - port: {{ .Values.workflow.webhook.port }}
         targetPort: {{ .Values.workflow.webhook.port }}
   webhook:
-    stdl:
+    recnode:
       port: "{{ .Values.workflow.webhook.port }}"
       endpoint: /{{ .Values.global.name }}-{{ .Values.global.suffix }}
       method: {{ .Values.workflow.webhook.method }}

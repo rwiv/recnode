@@ -1,7 +1,7 @@
 import pytest
 
-from stdl.fetcher import SoopFetcher
-from stdl.utils import FIREFOX_USER_AGENT, AsyncHttpClient
+from recnode.fetcher import SoopFetcher
+from recnode.utils import FIREFOX_USER_AGENT, AsyncHttpClient
 
 channel_id = ""
 

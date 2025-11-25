@@ -2,8 +2,8 @@ import pytest
 from aiohttp_socks import ProxyType
 from pyutils import load_dotenv, path_join, find_project_root
 
-from stdl.config import get_env
-from stdl.utils import AsyncHttpClient, ProxyConnectorConfig
+from recnode.config import get_env
+from recnode.utils import AsyncHttpClient, ProxyConnectorConfig
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 env = get_env()

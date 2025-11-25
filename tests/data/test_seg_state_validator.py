@@ -5,11 +5,11 @@ import pytest
 from pyutils import load_dotenv, path_join, find_project_root, log
 from redis.asyncio import Redis
 
-from stdl.config import get_env
-from stdl.data.live import LiveStateService
-from stdl.data.redis import create_redis_pool
-from stdl.data.segment import SegmentNumberSet, SegmentStateService, SegmentStateValidator, ok, no, critical as crit
-from stdl.utils import AsyncHttpClientMock
+from recnode.config import get_env
+from recnode.data.live import LiveStateService
+from recnode.data.redis import create_redis_pool
+from recnode.data.segment import SegmentNumberSet, SegmentStateService, SegmentStateValidator, ok, no, critical as crit
+from recnode.utils import AsyncHttpClientMock
 from tests.data.mock_helpers import seg, live
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))

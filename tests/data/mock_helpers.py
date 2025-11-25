@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
 
-from stdl.common import PlatformType, LOCAL_FS_NAME
-from stdl.data.live import LiveState, LocationType
-from stdl.data.segment import SegmentState
+from recnode.common import PlatformType, LOCAL_FS_NAME
+from recnode.data.live import LiveState, LocationType
+from recnode.data.segment import SegmentState
 
 
 def live(id: str = str(uuid.uuid4())):

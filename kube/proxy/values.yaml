@@ -1,9 +1,9 @@
 metadata:
-  name: stdl-proxy
-  appName: stdl-proxy
+  name: recnode-proxy
+  appName: recnode-proxy
   namespace: media
 image:
-  repository: harbor.rwiv.xyz/private/stdl
+  repository: harbor.rwiv.xyz/private/recnode
   tag: 0.0.0
   pullSecret: image-pull-secret
 affinity: {}
@@ -11,13 +11,13 @@ podLabels: {}
 nodeAlias: ~
 server:
   replicas: 2
-  containerName: stdl-proxy
+  containerName: recnode-proxy
   service:
     type: ClusterIP
     port: 80
     targetPort: 9084
     nodePort: 30214
   fs:
-    secretName: stdl-fs
+    secretName: recnode-fs
     fsNameKey: fs-name
     confKey: fs_conf.yaml

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: stdl-nodeport-main
+  name: recnode-nodeport-main
   namespace: media
 spec:
   selector:

@@ -4,7 +4,7 @@ on:
     tags:
       - v**
 env:
-  APP_NAME: stdl
+  APP_NAME: recnode
   IMAGE_PREFIX: private
   IMAGE_REGISTRY: harbor.rwiv.xyz
   IMAGE_DOCKERFILE_PATH: docker/Dockerfile

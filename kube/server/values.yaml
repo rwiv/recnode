@@ -1,11 +1,11 @@
 metadata:
-  appName: stdl-server
-  name: stdl-server
+  appName: recnode-server
+  name: recnode-server
   namespace: media
 
 image:
-  repository: harbor.rwiv.xyz/private/stdl
-  tag: 1.0.2
+  repository: harbor.rwiv.xyz/private/recnode
+  tag: 1.0.3
   pullSecret: image-pull-secret
 gluetun:
   repository: qmcgaw/gluetun
@@ -16,7 +16,7 @@ podLabels: {}
 nodeAlias: ~
 
 ingress:
-  hostName: stdl.rwiv.xyz
+  hostName: recnode.rwiv.xyz
   secretName: cloudflare-certificate
 
 proxy:
@@ -32,15 +32,15 @@ proxy:
 redis:
   isInternal: true
   server:
-    secretName: stdl-redis-server
+    secretName: recnode-redis-server
     passwordKey: password
   internal:
-    masterHost: stdl-redis-master.media.svc.cluster.local
+    masterHost: recnode-redis-master.media.svc.cluster.local
     masterPort: 6379
-    replicaHost: stdl-redis-replicas.media.svc.cluster.local
+    replicaHost: recnode-redis-replicas.media.svc.cluster.local
     replicaPort: 6379
   external:
-    secretName: stdl-redis-client
+    secretName: recnode-redis-client
     hostKey: host
     masterPortKey: master-port
     replicaPortKey: replica-port
@@ -53,7 +53,7 @@ redis:
 
 server:
   replicas: 1
-  containerName: stdl-server
+  containerName: recnode-server
   service:
     type: ClusterIP
     name: http
@@ -61,10 +61,10 @@ server:
     protocol: TCP
     targetPort: 9083
   auth:
-    secretName: stdl-auth
+    secretName: recnode-auth
     tokenKey: bearer-token
   fs:
-    secretName: stdl-fs
+    secretName: recnode-fs
     confKey: fs_conf.yaml
   segSizeMb: 17
   reqConf:

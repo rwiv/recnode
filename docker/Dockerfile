@@ -19,7 +19,7 @@ COPY uv.lock .
 COPY README.md .
 COPY Cargo.toml .
 COPY src src
-COPY stdl stdl
+COPY recnode recnode
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
@@ -33,6 +33,6 @@ WORKDIR /app
 RUN apk add --no-cache git libgcc
 
 COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/stdl /app/stdl
+COPY --from=builder /app/recnode /app/recnode
 
 ENV PATH="/app/.venv/bin:$PATH"

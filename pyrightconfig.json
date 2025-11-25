@@ -1,5 +1,5 @@
 {
-  "include": ["stdl", "tests"],
+  "include": ["recnode", "tests"],
   "exclude": ["**/node_modules", "**/__pycache__"],
   "ignore": [],
   "venvPath": ".",

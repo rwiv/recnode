@@ -1,6 +1,6 @@
 metadata:
-  appName: stdl-server
-  name: stdl-server
+  appName: recnode-server
+  name: recnode-server
   namespace: media
 
 serviceMonitor:
@@ -12,5 +12,5 @@ serviceMonitor:
 nodeName: ~
 
 auth:
-  secretName: stdl-auth
+  secretName: recnode-auth
   tokenKey: bearer-token

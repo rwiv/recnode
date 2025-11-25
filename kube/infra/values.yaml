@@ -6,17 +6,17 @@ vault:
   refreshAfter: 30s
 secrets:
   auth:
-    path: media/stdl/auth
-    secretName: stdl-auth
+    path: media/recnode/auth
+    secretName: recnode-auth
   fs:
-    path: media/stdl/fs
-    secretName: stdl-fs
+    path: media/recnode/fs
+    secretName: recnode-fs
   queue:
-    path: media/stdl/queue
+    path: media/recnode/queue
     secretName: recnode-queue
   redisServer:
-    path: media/stdl/redis/server
-    secretName: stdl-redis-server
+    path: media/recnode/redis/server
+    secretName: recnode-redis-server
   redisClient:
-    path: media/stdl/redis/client
-    secretName: stdl-redis-client
+    path: media/recnode/redis/client
+    secretName: recnode-redis-client

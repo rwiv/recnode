@@ -2,8 +2,8 @@ import pytest
 from pyutils import load_dotenv, path_join, find_project_root
 from redis.asyncio import Redis
 
-from stdl.config import get_env
-from stdl.data.redis import (
+from recnode.config import get_env
+from recnode.data.redis import (
     RedisString,
     RedisQueue,
     create_redis_pool,

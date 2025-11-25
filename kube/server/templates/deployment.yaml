@@ -69,7 +69,7 @@ spec:
         - name: {{ .Values.server.containerName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           workingDir: "/app"
-          command: ["python", "-m", "stdl", "server"]
+          command: ["python", "-m", "recnode", "server"]
           {{- if not .Values.vpn.enabled }}
           ports:
             - containerPort: {{ .Values.server.service.targetPort }}

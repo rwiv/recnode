@@ -1,6 +1,6 @@
 apiVersion: v2
-name: stdl-redis
-description: stdl-redis
+name: recnode-redis
+description: recnode-redis
 type: application
 version: 0.1.0
 appVersion: "1.16.0"

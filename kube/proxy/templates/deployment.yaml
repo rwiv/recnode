@@ -32,7 +32,7 @@ spec:
         - name: {{ .Values.server.containerName }}
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           workingDir: "/app"
-          command: ["python", "-m", "stdl", "proxy"]
+          command: ["python", "-m", "recnode", "proxy"]
           ports:
             - containerPort: {{ .Values.server.service.targetPort }}
           env:

@@ -1,5 +1,5 @@
 cd ..
-set IMG=stdl:latest
+set IMG=recnode:latest
 set DOCKERFILE=./docker/Dockerfile
 
 docker rmi %IMG%

@@ -1,5 +1,5 @@
 apiVersion: v2
-name: stdl-proxy-cloud
-description: stdl
+name: recnode-proxy-cloud
+description: recnode
 type: application
 version: 0.1.0

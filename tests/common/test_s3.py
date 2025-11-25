@@ -1,7 +1,7 @@
 import pytest
 from pyutils import path_join, find_project_root
 
-from stdl.file import read_fs_config_by_file, FsConfig, create_async_client
+from recnode.file import read_fs_config_by_file, FsConfig, create_async_client
 
 fs_name = "minio"
 fs_configs = read_fs_config_by_file(path_join(find_project_root(), "dev", "fs_conf_test.yaml"))

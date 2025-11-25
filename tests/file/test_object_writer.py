@@ -1,7 +1,7 @@
 import pytest
 from pyutils import load_dotenv, path_join, find_project_root
 
-from stdl.file import ProxyObjectWriter
+from recnode.file import ProxyObjectWriter
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))
 

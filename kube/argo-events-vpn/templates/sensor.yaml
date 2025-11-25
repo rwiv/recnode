@@ -12,7 +12,7 @@ spec:
       eventName: {{ .Values.global.name }}
   triggers:
     - template:
-        name: stdl-workflow-trigger
+        name: recnode-workflow-trigger
         k8s:
           operation: create
           source:
@@ -57,7 +57,7 @@ spec:
                               name: {{ .Values.app.rabbitmq.secretName }}
                               key: {{ .Values.app.rabbitmq.passwordKey }}
                       volumeMounts:
-                        - name: stdl-nfs
+                        - name: recnode-nfs
                           mountPath: {{ .Values.persistence.nfs.mountPath }}
                       resources:
                         requests:
@@ -89,7 +89,7 @@ spec:
                           - name: FIREWALL_OUTBOUND_SUBNETS
                             value: "10.43.0.0/16"
                     volumes:
-                      - name: stdl-nfs
+                      - name: recnode-nfs
                         persistentVolumeClaim:
                           claimName: {{ .Values.persistence.nfs.pvcName }}
                     affinity:

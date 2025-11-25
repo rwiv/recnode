@@ -1,7 +1,7 @@
 services:
-  stdl-server1:
-    image: stdl:latest
-    container_name: stdl-server1
+  recnode-server1:
+    image: recnode:latest
+    container_name: recnode-server1
     environment:
       PY_ENV: prod
       SERVER_PORT: "${SERVER_PORT}"
@@ -32,16 +32,16 @@ services:
       REDIS_LOCK_WAIT_SEC: "${REDIS_LOCK_WAIT_SEC}"
       REDIS_SEG_EXPIRE_SEC: "${REDIS_SEG_EXPIRE_SEC}"
       REDIS_LIVE_EXPIRE_SEC: "${REDIS_LIVE_EXPIRE_SEC}"
-    entrypoint: python -m stdl server
+    entrypoint: python -m recnode server
     ports:
       - "13201:${SERVER_PORT}"
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
-      - "../stdl:/app/stdl"
-  stdl-server2:
-    image: stdl:latest
-    container_name: stdl-server2
+      - "../recnode:/app/recnode"
+  recnode-server2:
+    image: recnode:latest
+    container_name: recnode-server2
     environment:
       PY_ENV: prod
       SERVER_PORT: "${SERVER_PORT}"
@@ -72,16 +72,16 @@ services:
       REDIS_LOCK_WAIT_SEC: "${REDIS_LOCK_WAIT_SEC}"
       REDIS_SEG_EXPIRE_SEC: "${REDIS_SEG_EXPIRE_SEC}"
       REDIS_LIVE_EXPIRE_SEC: "${REDIS_LIVE_EXPIRE_SEC}"
-    entrypoint: python -m stdl server
+    entrypoint: python -m recnode server
     ports:
       - "13202:${SERVER_PORT}"
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
-      - "../stdl:/app/stdl"
-  stdl-server3:
-    image: stdl:latest
-    container_name: stdl-server3
+      - "../recnode:/app/recnode"
+  recnode-server3:
+    image: recnode:latest
+    container_name: recnode-server3
     environment:
       PY_ENV: prod
       SERVER_PORT: "${SERVER_PORT}"
@@ -112,10 +112,10 @@ services:
       REDIS_LOCK_WAIT_SEC: "${REDIS_LOCK_WAIT_SEC}"
       REDIS_SEG_EXPIRE_SEC: "${REDIS_SEG_EXPIRE_SEC}"
       REDIS_LIVE_EXPIRE_SEC: "${REDIS_LIVE_EXPIRE_SEC}"
-    entrypoint: python -m stdl server
+    entrypoint: python -m recnode server
     ports:
       - "13203:${SERVER_PORT}"
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${OUT_DIR_PATH}:/app/out"
-      - "../stdl:/app/stdl"
+      - "../recnode:/app/recnode"

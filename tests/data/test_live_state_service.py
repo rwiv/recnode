@@ -2,9 +2,9 @@ import pytest
 from pyutils import load_dotenv, path_join, find_project_root
 from redis.asyncio import Redis
 
-from stdl.config import get_env
-from stdl.data.live import LiveStateService
-from stdl.data.redis import create_redis_pool
+from recnode.config import get_env
+from recnode.data.live import LiveStateService
+from recnode.data.redis import create_redis_pool
 from tests.data.mock_helpers import live
 
 load_dotenv(path_join(find_project_root(), "dev", ".env"))

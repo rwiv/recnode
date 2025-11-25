@@ -1,9 +1,9 @@
 global:
-  name: stdl
+  name: recnode
   namespace: media
   suffix: proton
 image:
-  repository: harbor.rwiv.xyz/private/stdl
+  repository: harbor.rwiv.xyz/private/recnode
   tag: 0.0.0
   pullSecret: image-pull-secret
 vault:
@@ -12,7 +12,7 @@ vault:
   proton:
     path: platform/proton
     version: 1
-    secretName: stdl-proton-secret
+    secretName: recnode-proton-secret
 gluetun:
   repository: qmcgaw/gluetun
   tag: v3.40
@@ -20,7 +20,7 @@ gluetun:
   countries: Korea
 persistence:
   nfs:
-    pvcName: stdl
+    pvcName: recnode
     storageClass: nfs-main1
     mountPath: /mnt/nfs
     requests: 2000Gi
@@ -30,7 +30,7 @@ resources:
     memory: 200Mi
 workflow:
   webhook:
-    endpoint: /stdl-proton
+    endpoint: /recnode-proton
     port: 12000
     method: POST
 secret:

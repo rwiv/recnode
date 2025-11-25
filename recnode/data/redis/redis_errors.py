@@ -1,4 +1,4 @@
-from stdl.utils import HttpError
+from recnode.utils import HttpError
 
 
 class RedisError(HttpError):

@@ -1,7 +1,7 @@
 import pytest
 
-from stdl.fetcher import TwitchFetcher
-from stdl.utils import AsyncHttpClient
+from recnode.fetcher import TwitchFetcher
+from recnode.utils import AsyncHttpClient
 
 channel_id = ""
 

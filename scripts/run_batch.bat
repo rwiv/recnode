@@ -1,3 +1,3 @@
 cd ..
-.\.venv\Scripts\python.exe -m stdl batch
+.\.venv\Scripts\python.exe -m recnode batch
 pause

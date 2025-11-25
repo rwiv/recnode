@@ -1,6 +1,6 @@
 [project]
-name = "stdl"
-version = "1.0.2"
+name = "recnode"
+version = "1.0.3"
 description = "Distributed Live Stream Recording Cluster"
 readme = "README.md"
 requires-python = ">=3.12"

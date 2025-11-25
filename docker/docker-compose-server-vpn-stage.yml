@@ -17,14 +17,14 @@ services:
       - "OPENVPN_PASSWORD=${OPENVPN_PASSWORD}"
       - OPENVPN_CUSTOM_CONFIG=/ovpn/client.ovpn
       - DNS_KEEP_NAMESERVER=true
-  stdl-vpn:
-    image: stdl:latest
-    container_name: stdl-vpn
+  recnode-vpn:
+    image: recnode:latest
+    container_name: recnode-vpn
     environment:
       PY_ENV: prod
       SEG_SIZE_MB: "${SEG_SIZE_MB}"
       PROXY_ENABLED: "true"
-      PROXY_ENDPOINT: "http://stdl-proxy:9084"
+      PROXY_ENDPOINT: "http://recnode-proxy:9084"
 
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
@@ -35,7 +35,7 @@ services:
       REDIS_PORT: "${REDIS_PORT}"
       REDIS_PASSWORD: "${REDIS_PASSWORD}"
       REDIS_CA_PATH: /app/ca.crt
-    entrypoint: python -m stdl server
+    entrypoint: python -m recnode server
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"
       - "${TMP_DIR_PATH}:/app/tmp"
@@ -44,9 +44,9 @@ services:
       gluetun:
         condition: service_healthy
     network_mode: container:gluetun
-  stdl-proxy:
-    image: stdl:latest
-    container_name: stdl-proxy
+  recnode-proxy:
+    image: recnode:latest
+    container_name: recnode-proxy
     environment:
       PY_ENV: prod
       SERVER_PORT: "9084"
@@ -54,6 +54,6 @@ services:
 
       FS_NAME: "${FS_NAME}"
       FS_CONFIG_PATH: /app/fs_conf.yaml
-    entrypoint: python -m stdl proxy
+    entrypoint: python -m recnode proxy
     volumes:
       - "${FS_CONFIG_PATH}:/app/fs_conf.yaml"

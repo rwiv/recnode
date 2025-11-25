@@ -1,6 +1,6 @@
-# stdl
+# recnode
 
-live **st**ream **d**own**l**oader
+Distributed Live Stream Recording Cluster
 
 ## modules
 
