@@ -48,11 +48,11 @@ sequenceDiagram
 
 ### 2. Failure Recovery: Semaphore
 
-<img src="https://raw.githubusercontent.com/rwiv/stdocs/refs/heads/main/diagrams/recnode-semaphore.png">
-
 특정 세그먼트 다운로드에 실패했을 경우, 세그먼트 유예 기간 내에 데이터를 확보하는 것이 최우선입니다. 이를 위해 실패한 건에 대해서는 병렬 요청을 허용하여 성공 확률을 높입니다.
 
 단, 무제한적인 병렬 요청은 네트워크 과부하를 유발할 수 있으므로, Semaphore를 통해 동시 재시도 요청 수를 제한적으로 제어하여 시스템 안정성을 유지합니다.
+
+<img src="https://raw.githubusercontent.com/rwiv/stdocs/refs/heads/main/diagrams/recnode-semaphore.png">
 
 ## Prometheus Dashboard Support
 
