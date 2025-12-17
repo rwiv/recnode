@@ -2,30 +2,45 @@
 
 Distributed Live Stream Recording Cluster
 
-## modules
-
-### module list
-
-- entry point
-    - `app`
-- main modules
-    - `recorder`
-- sub modules
-    - `data`: live data 기록, segment lock 처리, 실패 segment 처리
-    - `fetcher`: 플랫폼 별 live data fetching을 위한 http client
-    - `file`: 범용 파일 액세스 처리 (local, s3...)
-- common: 모든 모듈이 의존할 수 있는 모듈
-    - `utils`: 아무 모듈도 의존하지 않는 범용 모듈
-    - `common`: `utils` 모듈만을 의존하는 범용 모듈
-
-### module dependency
+## Global Lock
 
 ```mermaid
-graph TD
-  app --> file
-  app --> recorder
+sequenceDiagram
+    participant N1 as Node1
+    participant N2 as Node2
+    participant R as Redis
+    participant P as Platform
 
-  recorder --> data
-  recorder --> fetcher
-  recorder --> file
+    par Lock Race
+        N1->>R: seg23 lock 획득 시도
+    and
+        N2->>R: seg23 lock 획득 시도
+    end
+    
+    R-->>N1: seg23 lock 획득 성공
+    R-->>N2: seg23 lock 획득 실패
+
+
+    N1->>+P: seg23 다운로드 시작
+
+    N2->>R: seg24 lock 획득 시도
+    R-->>N2: seg24 lock 획득 성공
+
+    P-->>-N1: seg23 다운로드 완료
+
+    N2->>+P: seg24 다운로드 시작
+
+    N1->>R: seg23 lock 반환
+
+    P-->>-N2: seg24 다운로드 완료
+
+    N2->>R: seg24 lock 반환
 ```
+
+## Parallel Lock (Semaphore)
+
+<img src="https://raw.githubusercontent.com/rwiv/stdocs/refs/heads/main/diagrams/recnode-semaphore.png">
+
+## Prometheus Dashboard Support
+
+<img src="https://raw.githubusercontent.com/rwiv/stdocs/refs/heads/main/imgs/recnode/prometheus_dashboard.png">
